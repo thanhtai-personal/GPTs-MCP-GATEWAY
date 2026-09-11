@@ -28,6 +28,18 @@ export class AppConfigService {
     .filter(Boolean);
   readonly rateLimitPerMinute = integer('GATEWAY_RATE_LIMIT_PER_MINUTE', 60);
   readonly upstreamTimeoutMs = integer('MCP_UPSTREAM_TIMEOUT_MS', 30_000);
+  readonly gptActionResponseMaxChars = integer(
+    'GPT_ACTION_RESPONSE_MAX_CHARS',
+    80_000,
+  );
+  readonly gptResponseTransferTtlSeconds = integer(
+    'GPT_RESPONSE_TRANSFER_TTL_SECONDS',
+    600,
+  );
+  readonly gptResponseMaxStoredChars = integer(
+    'GPT_RESPONSE_MAX_STORED_CHARS',
+    5_000_000,
+  );
 
   get supabaseUrl(): string {
     return required('SUPABASE_URL');

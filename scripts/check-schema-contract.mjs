@@ -2,8 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const migrationPath = path.join(root, "database", "migrations", "001_initial_schema.sql");
-const sql = fs.readFileSync(migrationPath, "utf8").toLowerCase();
+const migrationDir = path.join(root, "database", "migrations");
+const sql = fs.readdirSync(migrationDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(migrationDir, name), "utf8"))
+  .join("\n")
+  .toLowerCase();
 
 const required = [
   "create table public.app_users",
@@ -11,6 +16,8 @@ const required = [
   "create table public.open_ids",
   "create table public.gateway_credentials",
   "create table public.trial_entitlements",
+  "create table public.gpt_response_transfers",
+  "create table public.gpt_response_chunks",
   "create or replace function public.claim_gateway_trial",
   "unique (user_id, provider)"
 ];

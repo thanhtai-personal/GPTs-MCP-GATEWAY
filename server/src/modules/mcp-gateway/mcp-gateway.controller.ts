@@ -3,20 +3,29 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Req,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CallMcpToolDto } from '@server/root/modules/mcp-gateway/dto/call-mcp-tool.dto';
 import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
 import type { GatewayRequest } from '@server/root/modules/mcp-gateway/gateway-request.types';
 import { McpGatewayService } from '@server/root/modules/mcp-gateway/mcp-gateway.service';
+import { GptResponseInterceptor } from '@server/root/modules/mcp-gateway/response/gpt-response.interceptor';
+import { SkipGptResponseEnvelope } from '@server/root/modules/mcp-gateway/response/gpt-response.metadata';
+import { GptResponseService } from '@server/root/modules/mcp-gateway/response/gpt-response.service';
 
 @Controller('gpt')
 @UseGuards(GatewayAccessGuard)
+@UseInterceptors(GptResponseInterceptor)
 export class McpGatewayController {
-  constructor(private readonly gateway: McpGatewayService) {}
+  constructor(
+    private readonly gateway: McpGatewayService,
+    private readonly responses: GptResponseService,
+  ) {}
 
   @Get('profile')
   profile(@Req() request: GatewayRequest) {
@@ -46,6 +55,21 @@ export class McpGatewayController {
       this.principal(request),
       service,
       toolName,
+    );
+  }
+
+
+  @Get('responses/:transferId/chunks/:chunkIndex')
+  @SkipGptResponseEnvelope()
+  getResponseChunk(
+    @Req() request: GatewayRequest,
+    @Param('transferId') transferId: string,
+    @Param('chunkIndex', ParseIntPipe) chunkIndex: number,
+  ) {
+    return this.responses.getChunk(
+      this.principal(request),
+      transferId,
+      chunkIndex,
     );
   }
 
