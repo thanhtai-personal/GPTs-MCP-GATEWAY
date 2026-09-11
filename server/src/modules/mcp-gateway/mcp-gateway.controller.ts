@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { CallMcpToolDto } from '@server/root/modules/mcp-gateway/dto/call-mcp-tool.dto';
 import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
+import { resolveMcpToolArguments } from '@server/root/modules/mcp-gateway/mcp-tool-arguments';
 import type { GatewayRequest } from '@server/root/modules/mcp-gateway/gateway-request.types';
 import { McpGatewayService } from '@server/root/modules/mcp-gateway/mcp-gateway.service';
 import { GptResponseInterceptor } from '@server/root/modules/mcp-gateway/response/gpt-response.interceptor';
@@ -84,7 +85,7 @@ export class McpGatewayController {
       this.principal(request),
       service,
       toolName,
-      dto.arguments,
+      resolveMcpToolArguments(dto),
     );
   }
 

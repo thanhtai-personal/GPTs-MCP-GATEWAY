@@ -1,14 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listMcpConnections,
-  removeStitch,
-  saveStitch,
-  testStitch,
+  listMcpProviders,
+  removeMcpConnection,
+  saveMcpConnection,
+  testMcpConnection,
 } from "@/modules/mcp-connections/api/mcp-connections.api";
 
 export const mcpConnectionKeys = {
   all: ["mcp-connections"] as const,
+  providers: ["mcp-providers"] as const,
 };
+
+export function useMcpProviders(accessToken: string) {
+  return useQuery({
+    queryKey: mcpConnectionKeys.providers,
+    queryFn: () => listMcpProviders(accessToken),
+    enabled: Boolean(accessToken),
+  });
+}
 
 export function useMcpConnections(accessToken: string) {
   return useQuery({
@@ -18,24 +28,39 @@ export function useMcpConnections(accessToken: string) {
   });
 }
 
-export function useSaveStitch(accessToken: string) {
+export function useSaveMcpConnection(accessToken: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (apiKey: string) => saveStitch(accessToken, apiKey),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
+    mutationFn: ({
+      provider,
+      apiKey,
+    }: {
+      provider: string;
+      apiKey: string;
+    }) => saveMcpConnection(accessToken, provider, apiKey),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
   });
 }
 
-export function useTestStitch(accessToken: string) {
+export function useTestMcpConnection(accessToken: string) {
   return useMutation({
-    mutationFn: (apiKey: string) => testStitch(accessToken, apiKey),
+    mutationFn: ({
+      provider,
+      apiKey,
+    }: {
+      provider: string;
+      apiKey: string;
+    }) => testMcpConnection(accessToken, provider, apiKey),
   });
 }
 
-export function useRemoveStitch(accessToken: string) {
+export function useRemoveMcpConnection(accessToken: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => removeStitch(accessToken),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
+    mutationFn: (provider: string) =>
+      removeMcpConnection(accessToken, provider),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
   });
 }

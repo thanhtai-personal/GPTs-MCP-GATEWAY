@@ -41,8 +41,8 @@ Khi yêu cầu của user cần công cụ bên ngoài:
 3. Gọi \`listMcpTools\` cho service đó để lấy catalog rút gọn hiện tại.
 4. Chọn tool candidate dựa trên name, title và description.
 5. Gọi \`getMcpToolSchema\` cho tool đã chọn để lấy inputSchema đầy đủ.
-6. Chỉ tạo arguments có trong schema vừa lấy.
-7. Gọi \`callMcpTool\` với đúng service, toolName và arguments.
+6. Tạo một JSON object đúng với inputSchema vừa lấy. Object có thể chứa string, number, boolean, null, array và object lồng nhau theo schema.
+7. Serialize object đó thành JSON string và truyền qua \`argumentsJson\` khi gọi \`callMcpTool\`. Với tool không cần tham số, dùng \`{}\`.
 8. Đọc Gateway response envelope:
    - Nếu \`mode = complete\`, dùng \`data\`.
    - Nếu \`mode = chunked\`, giữ \`transfer.id\`, đọc \`chunk\`, rồi gọi \`getGatewayResponseChunk\` với \`transfer.nextChunkIndex\` cho đến khi \`hasMore = false\`.
@@ -53,7 +53,7 @@ Khi yêu cầu của user cần công cụ bên ngoài:
 
 - Gateway là execution boundary bắt buộc. Không hướng dẫn GPT gọi thẳng MCP provider để bypass Gateway.
 - Không yêu cầu hoặc tiết lộ provider API key.
-- Không hardcode danh sách Stitch tools trong memory; discovery runtime là nguồn đúng hơn.
+- Không hardcode provider hoặc tool catalog trong memory; runtime discovery là nguồn đúng hơn.
 - Nếu nhận \`MCP_NOT_CONNECTED\`, hướng dẫn user kết nối provider trong MCP Gateway app.
 - Nếu nhận \`OPEN_ID_REQUIRED\`, nói rõ account cần active Open ID/trial. Không thử bypass.
 - \`listMcpTools\` chỉ là catalog rút gọn; luôn lấy schema của tool đã chọn bằng \`getMcpToolSchema\` trước khi gọi.
@@ -76,8 +76,8 @@ When the user's request needs an external tool:
 3. Call \`listMcpTools\` for that service to obtain the current compact tool catalog.
 4. Choose a candidate from its name, title and description.
 5. Call \`getMcpToolSchema\` for that tool to obtain its full inputSchema.
-6. Construct only arguments supported by that schema.
-7. Call \`callMcpTool\` with the exact service, toolName and arguments.
+6. Construct a JSON object that satisfies the discovered inputSchema. Nested strings, numbers, booleans, nulls, arrays and objects are allowed when the schema permits them.
+7. Serialize that object to JSON and pass it as \`argumentsJson\` to \`callMcpTool\`. Use \`{}\` for tools with no parameters.
 8. Read the Gateway response envelope:
    - If \`mode = complete\`, use \`data\`.
    - If \`mode = chunked\`, keep \`transfer.id\`, read \`chunk\`, then call \`getGatewayResponseChunk\` with \`transfer.nextChunkIndex\` until \`hasMore = false\`.
@@ -88,7 +88,7 @@ When the user's request needs an external tool:
 
 - Gateway is the mandatory execution boundary. Never bypass it by calling the MCP provider directly.
 - Never ask for, expose, or forward provider API keys.
-- Do not permanently hardcode Stitch tool names; runtime discovery is authoritative.
+- Do not permanently hardcode provider or tool names; runtime discovery is authoritative.
 - On \`MCP_NOT_CONNECTED\`, tell the user to connect that provider in the MCP Gateway app.
 - On \`OPEN_ID_REQUIRED\`, tell the user an active Open ID or trial is required. Do not bypass the entitlement.
 - \`listMcpTools\` is intentionally compact; always fetch the selected tool with \`getMcpToolSchema\` before calling it.
@@ -114,8 +114,8 @@ ${intro}
 - **Gateway token**: bearer secret configured in GPT Actions. The token authenticates a request; the linked Open ID authorizes it.
 - **Trial Open ID**: internal, non-exportable entitlement created when a Guest explicitly starts the one-time 7-day trial.
 - **Provider credential**: API key stored by the user in the app. It is encrypted server-side and never sent to GPT.
-- **MCP service**: a provider explicitly supported by Gateway.
-- **Stitch**: first supported service, provider id \`stitch\`.
+- **MCP service**: a provider explicitly supported by Gateway. Provider ids and tool catalogs are discovered at runtime.
+- **Tool arguments**: an MCP tool receives a JSON object whose shape is defined by that tool's runtime \`inputSchema\`. Gateway does not define provider-specific argument fields.
 - **Gateway response envelope**: every successful GPT action returns either \`mode: complete\` with \`data\`, or \`mode: chunked\` with a response fragment and continuation metadata.
 - **Response transfer**: short-lived encrypted server-side storage used only when a serialized action response would exceed the configured safe response budget.
 
@@ -128,7 +128,8 @@ Intent
   -> listMcpTools(service)
   -> select tool candidate
   -> getMcpToolSchema(service, toolName)
-  -> callMcpTool(service, toolName, arguments)
+  -> JSON.stringify(arguments)
+  -> callMcpTool(service, toolName, argumentsJson)
   -> if mode=chunked: getGatewayResponseChunk(...) until complete
   -> interpret result
 \`\`\`
@@ -158,7 +159,7 @@ Runtime Action responses are newer authority than this static knowledge file.
 5. Test action \`getGatewayProfile\`.
 6. Nếu chưa có trial/Open ID hợp lệ, hãy tạo trial hoặc mua Open ID trong app.
 
-Không đưa Stitch API key vào GPT Builder.
+Không đưa bất kỳ MCP provider credential nào vào GPT Builder.
 `;
     }
     return `# Custom GPT setup
@@ -170,7 +171,7 @@ Không đưa Stitch API key vào GPT Builder.
 5. Test \`getGatewayProfile\`.
 6. If no active trial/Open ID exists, start the trial or activate a paid Open ID in the app.
 
-Never paste the Stitch API key into GPT Builder.
+Never paste any MCP provider credential into GPT Builder.
 `;
   }
 
@@ -179,7 +180,7 @@ Never paste the Stitch API key into GPT Builder.
     return `openapi: 3.1.0
 info:
   title: MCP Gateway Actions
-  version: 1.0.0
+  version: 1.1.0
   description: Discover and call user-authorized MCP services through MCP Gateway.
 servers:
   - url: ${server}
@@ -222,7 +223,6 @@ paths:
           required: true
           schema:
             type: string
-            enum: [stitch]
       responses:
         '200':
           description: Wrapped MCP tool catalog
@@ -242,7 +242,6 @@ paths:
           required: true
           schema:
             type: string
-            enum: [stitch]
         - name: toolName
           in: path
           required: true
@@ -285,7 +284,7 @@ paths:
   /gpt/mcp/{service}/tools/{toolName}/call:
     post:
       operationId: callMcpTool
-      summary: Execute one discovered MCP tool through Gateway.
+      summary: Execute one discovered MCP tool through Gateway using generic JSON arguments.
       security:
         - bearerAuth: []
       parameters:
@@ -294,7 +293,6 @@ paths:
           required: true
           schema:
             type: string
-            enum: [stitch]
         - name: toolName
           in: path
           required: true
@@ -368,12 +366,11 @@ components:
               format: date-time
     ToolCallRequest:
       type: object
-      required:
-        - arguments
+      required: [argumentsJson]
       properties:
-        arguments:
-          type: object
-          additionalProperties: true
+        argumentsJson:
+          type: string
+          description: JSON-serialized MCP tool argument object. Use {} when the tool takes no arguments. Nested JSON values are allowed exactly as defined by the discovered tool inputSchema.
   securitySchemes:
     bearerAuth:
       type: http

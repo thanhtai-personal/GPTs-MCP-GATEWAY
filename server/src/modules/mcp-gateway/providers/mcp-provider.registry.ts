@@ -1,16 +1,26 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  MCP_PROVIDER_ADAPTERS,
+} from '@server/root/modules/mcp-gateway/providers/mcp-provider.tokens';
 import type {
   McpProviderAdapter,
-  McpProviderId,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 @Injectable()
 export class McpProviderRegistry {
-  private readonly providers: Map<McpProviderId, McpProviderAdapter>;
+  private readonly providers: Map<string, McpProviderAdapter>;
 
-  constructor(stitch: StitchMcpAdapter) {
-    this.providers = new Map([[stitch.id, stitch]]);
+  constructor(
+    @Inject(MCP_PROVIDER_ADAPTERS)
+    adapters: McpProviderAdapter[],
+  ) {
+    this.providers = new Map(
+      adapters.map((adapter) => [adapter.id, adapter] as const),
+    );
+
+    if (this.providers.size !== adapters.length) {
+      throw new Error('Duplicate MCP provider id registered');
+    }
   }
 
   list() {
@@ -21,8 +31,17 @@ export class McpProviderRegistry {
     }));
   }
 
+  listConfigurable() {
+    return [...this.providers.values()].map((provider) => ({
+      id: provider.id,
+      name: provider.displayName,
+      status: 'available' as const,
+      credential: provider.credential,
+    }));
+  }
+
   get(providerId: string): McpProviderAdapter {
-    const provider = this.providers.get(providerId as McpProviderId);
+    const provider = this.providers.get(providerId);
     if (!provider) {
       throw new BadRequestException({
         code: 'MCP_PROVIDER_UNSUPPORTED',

@@ -10,6 +10,7 @@ import { AuthService } from '@server/root/modules/auth/auth.service';
 import { AuditService } from '@server/root/modules/audit/audit.service';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
+import type { McpProviderCredential } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 type ConnectionRow = {
   id: string;
@@ -32,6 +33,11 @@ export class McpConnectionsService {
     private readonly providers: McpProviderRegistry,
     private readonly supabase: SupabaseService,
   ) {}
+
+  async listSupportedProviders(request: Request) {
+    await this.auth.requireUser(request);
+    return this.providers.listConfigurable();
+  }
 
   async listOwn(request: Request) {
     const user = await this.auth.requireUser(request);
@@ -58,7 +64,7 @@ export class McpConnectionsService {
     const provider = this.providers.get(dto.provider);
     const startedAt = Date.now();
     try {
-      await provider.testConnection(dto.apiKey);
+      await provider.testConnection(this.apiKeyCredential(dto.apiKey));
       await this.audit.write({
         userId: user.id,
         eventType: 'mcp_connection.verified',
@@ -82,7 +88,7 @@ export class McpConnectionsService {
   async saveOwn(request: Request, dto: SaveMcpConnectionDto) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(dto.provider);
-    await provider.testConnection(dto.apiKey);
+    await provider.testConnection(this.apiKeyCredential(dto.apiKey));
     const now = new Date().toISOString();
     const client = this.supabase.createServiceRoleClient();
     const { data, error } = await client
@@ -152,7 +158,10 @@ export class McpConnectionsService {
     return { deleted: true };
   }
 
-  async getProviderApiKey(userId: string, providerId: string): Promise<string> {
+  async getProviderCredential(
+    userId: string,
+    providerId: string,
+  ): Promise<McpProviderCredential> {
     const client = this.supabase.createServiceRoleClient();
     const { data, error } = await client
       .from('mcp_connections')
@@ -172,9 +181,8 @@ export class McpConnectionsService {
         message: `${providerId} is not connected`,
       });
     }
-    return this.cipher.decrypt(data.credential_ciphertext);
+    return this.apiKeyCredential(this.cipher.decrypt(data.credential_ciphertext));
   }
-
 
   async listConnectedProviderIds(userId: string): Promise<string[]> {
     const client = this.supabase.createServiceRoleClient();
@@ -191,6 +199,13 @@ export class McpConnectionsService {
       });
     }
     return (data ?? []).map((row) => row.provider);
+  }
+
+  private apiKeyCredential(value: string): McpProviderCredential {
+    return {
+      kind: 'api_key',
+      value: value.trim(),
+    };
   }
 
   private toView(row: ConnectionRow) {

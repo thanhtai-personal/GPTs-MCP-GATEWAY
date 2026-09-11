@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuditService } from '@server/root/modules/audit/audit.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
+import type {
+  McpToolArguments,
+} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 import type { GatewayPrincipal } from '@server/root/modules/open-id/gateway-credential.service';
 
 @Injectable()
@@ -33,13 +36,13 @@ export class McpGatewayService {
 
   async listTools(principal: GatewayPrincipal, providerId: string) {
     const provider = this.providers.get(providerId);
-    const apiKey = await this.connections.getProviderApiKey(
+    const credential = await this.connections.getProviderCredential(
       principal.user.id,
       provider.id,
     );
     const startedAt = Date.now();
     try {
-      const tools = await provider.listTools(apiKey);
+      const tools = await provider.listTools(credential);
       await this.audit.write({
         userId: principal.user.id,
         credentialId: principal.credentialId,
@@ -82,14 +85,14 @@ export class McpGatewayService {
     toolName: string,
   ) {
     const provider = this.providers.get(providerId);
-    const apiKey = await this.connections.getProviderApiKey(
+    const credential = await this.connections.getProviderCredential(
       principal.user.id,
       provider.id,
     );
     const startedAt = Date.now();
 
     try {
-      const tools = await provider.listTools(apiKey);
+      const tools = await provider.listTools(credential);
       const tool = tools.find((candidate) => candidate.name === toolName);
       if (!tool) {
         throw new NotFoundException({
@@ -114,7 +117,10 @@ export class McpGatewayService {
           name: tool.name,
           ...(tool.title ? { title: tool.title } : {}),
           ...(tool.description ? { description: tool.description } : {}),
-          inputSchema: tool.inputSchema ?? {},
+          inputSchema: tool.inputSchema,
+          ...(tool.outputSchema ? { outputSchema: tool.outputSchema } : {}),
+          ...(tool.annotations ? { annotations: tool.annotations } : {}),
+          ...(tool.meta ? { meta: tool.meta } : {}),
         },
       };
     } catch (error) {
@@ -135,16 +141,20 @@ export class McpGatewayService {
     principal: GatewayPrincipal,
     providerId: string,
     toolName: string,
-    argumentsValue: Record<string, unknown>,
+    argumentsValue: McpToolArguments,
   ) {
     const provider = this.providers.get(providerId);
-    const apiKey = await this.connections.getProviderApiKey(
+    const credential = await this.connections.getProviderCredential(
       principal.user.id,
       provider.id,
     );
     const startedAt = Date.now();
     try {
-      const result = await provider.callTool(apiKey, toolName, argumentsValue);
+      const result = await provider.callTool(
+        credential,
+        toolName,
+        argumentsValue,
+      );
       await this.audit.write({
         userId: principal.user.id,
         credentialId: principal.credentialId,

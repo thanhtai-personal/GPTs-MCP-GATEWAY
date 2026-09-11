@@ -1,0 +1,1 @@
+export const MCP_PROVIDER_ADAPTERS = Symbol('MCP_PROVIDER_ADAPTERS');

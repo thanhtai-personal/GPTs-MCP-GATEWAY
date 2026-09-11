@@ -1,6 +1,14 @@
-import { IsObject } from 'class-validator';
+import { IsObject, IsOptional, IsString } from 'class-validator';
+import type {
+  McpToolArguments,
+} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 export class CallMcpToolDto {
+  @IsOptional()
   @IsObject()
-  arguments!: Record<string, unknown>;
+  arguments?: McpToolArguments;
+
+  @IsOptional()
+  @IsString()
+  argumentsJson?: string;
 }

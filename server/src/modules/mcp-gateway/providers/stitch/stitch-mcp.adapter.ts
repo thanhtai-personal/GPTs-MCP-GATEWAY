@@ -5,8 +5,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
+import {
+  McpProtocolShapeError,
+  parseMcpToolCallResult,
+  parseMcpToolListPage,
+} from '@server/root/modules/mcp-gateway/providers/mcp-provider-boundary';
 import type {
   McpProviderAdapter,
+  McpProviderCredential,
+  McpToolArguments,
   McpToolCallResult,
   McpToolDefinition,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
@@ -22,9 +29,6 @@ type JsonRpcResponse<T> = {
   };
 };
 
-type ToolsListResult = {
-  tools?: McpToolDefinition[];
-};
 
 const STITCH_MCP_ENDPOINT = 'https://stitch.googleapis.com/mcp';
 
@@ -32,27 +36,98 @@ const STITCH_MCP_ENDPOINT = 'https://stitch.googleapis.com/mcp';
 export class StitchMcpAdapter implements McpProviderAdapter {
   readonly id = 'stitch' as const;
   readonly displayName = 'Google Stitch';
+  readonly credential = {
+    kind: 'api_key' as const,
+    label: 'Stitch API Key',
+    placeholder: 'AIza...',
+  };
 
   constructor(private readonly config: AppConfigService) {}
 
-  async testConnection(apiKey: string): Promise<void> {
-    await this.listTools(apiKey);
+  async testConnection(credential: McpProviderCredential): Promise<void> {
+    await this.listTools(credential);
   }
 
-  async listTools(apiKey: string): Promise<McpToolDefinition[]> {
-    const response = await this.rpc<ToolsListResult>(apiKey, 'tools/list', {});
-    return Array.isArray(response.tools) ? response.tools : [];
+  async listTools(
+    credential: McpProviderCredential,
+  ): Promise<McpToolDefinition[]> {
+    const apiKey = this.apiKey(credential);
+    const tools: McpToolDefinition[] = [];
+    const seenCursors = new Set<string>();
+    let cursor: string | undefined;
+
+    for (let pageIndex = 0; pageIndex < 64; pageIndex += 1) {
+      const result = await this.rpc<unknown>(
+        apiKey,
+        'tools/list',
+        cursor === undefined ? {} : { cursor },
+      );
+
+      try {
+        const page = parseMcpToolListPage(result);
+        tools.push(...page.tools);
+
+        if (page.nextCursor === undefined) {
+          return tools;
+        }
+
+        if (seenCursors.has(page.nextCursor)) {
+          throw new McpProtocolShapeError(
+            'MCP tools/list returned a repeated pagination cursor',
+          );
+        }
+
+        seenCursors.add(page.nextCursor);
+        cursor = page.nextCursor;
+      } catch (error) {
+        this.throwInvalidResponse(error);
+      }
+    }
+
+    throw new BadGatewayException({
+      code: 'MCP_INVALID_RESPONSE',
+      message: 'MCP tools/list exceeded the 64-page safety limit',
+    });
   }
 
   async callTool(
-    apiKey: string,
+    credential: McpProviderCredential,
     toolName: string,
-    argumentsValue: Record<string, unknown>,
+    argumentsValue: McpToolArguments,
   ): Promise<McpToolCallResult> {
-    return this.rpc<McpToolCallResult>(apiKey, 'tools/call', {
-      name: toolName,
-      arguments: argumentsValue,
-    });
+    const result = await this.rpc<unknown>(
+      this.apiKey(credential),
+      'tools/call',
+      {
+        name: toolName,
+        arguments: argumentsValue,
+      },
+    );
+    try {
+      return parseMcpToolCallResult(result);
+    } catch (error) {
+      this.throwInvalidResponse(error);
+    }
+  }
+
+  private throwInvalidResponse(error: unknown): never {
+    if (error instanceof McpProtocolShapeError) {
+      throw new BadGatewayException({
+        code: 'MCP_INVALID_RESPONSE',
+        message: error.message,
+      });
+    }
+    throw error;
+  }
+
+  private apiKey(credential: McpProviderCredential): string {
+    if (credential.kind !== 'api_key') {
+      throw new UnauthorizedException({
+        code: 'MCP_INVALID_CREDENTIAL',
+        message: 'Stitch requires an API key credential',
+      });
+    }
+    return credential.value;
   }
 
   private async rpc<T>(

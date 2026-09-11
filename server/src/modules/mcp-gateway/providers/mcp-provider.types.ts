@@ -1,27 +1,53 @@
-export type McpProviderId = 'stitch';
+export type JsonPrimitive = string | number | boolean | null;
+
+export type JsonValue =
+  | JsonPrimitive
+  | JsonValue[]
+  | JsonObject;
+
+export type JsonObject = {
+  [key: string]: JsonValue;
+};
+
+export type McpToolArguments = JsonObject;
+export type McpJsonSchema = JsonObject;
+
+export type McpProviderCredential =
+  | {
+      kind: 'api_key';
+      value: string;
+    };
+
+export type McpProviderCredentialDefinition = {
+  kind: McpProviderCredential['kind'];
+  label: string;
+  placeholder?: string;
+};
 
 export type McpToolDefinition = {
   name: string;
   title?: string;
   description?: string;
-  inputSchema?: Record<string, unknown>;
+  inputSchema: McpJsonSchema;
+  outputSchema?: McpJsonSchema;
+  annotations?: JsonObject;
+  meta?: JsonObject;
 };
 
-export type McpToolCallResult = {
-  content?: unknown;
-  structuredContent?: unknown;
+export type McpToolCallResult = JsonObject & {
   isError?: boolean;
-  [key: string]: unknown;
 };
 
 export interface McpProviderAdapter {
-  readonly id: McpProviderId;
+  readonly id: string;
   readonly displayName: string;
-  testConnection(apiKey: string): Promise<void>;
-  listTools(apiKey: string): Promise<McpToolDefinition[]>;
+  readonly credential: McpProviderCredentialDefinition;
+
+  testConnection(credential: McpProviderCredential): Promise<void>;
+  listTools(credential: McpProviderCredential): Promise<McpToolDefinition[]>;
   callTool(
-    apiKey: string,
+    credential: McpProviderCredential,
     toolName: string,
-    argumentsValue: Record<string, unknown>,
+    argumentsValue: McpToolArguments,
   ): Promise<McpToolCallResult>;
 }

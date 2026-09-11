@@ -7,6 +7,11 @@ import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-
 export class McpConnectionsController {
   constructor(private readonly connections: McpConnectionsService) {}
 
+  @Get('providers')
+  providers(@Req() request: Request) {
+    return this.connections.listSupportedProviders(request);
+  }
+
   @Get()
   list(@Req() request: Request) {
     return this.connections.listOwn(request);
