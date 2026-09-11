@@ -2,21 +2,24 @@
   "name": "@mcp-gateway/server",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "nest build --path tsconfig.build.json",
     "start": "nest start --path tsconfig.build.json",
     "start:dev": "nest start --watch --path tsconfig.build.json",
     "start:prod": "node dist/main.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "deps:reset": "node scripts/reset-dependency-tree.mjs",
+    "audit": "npm audit --audit-level=high",
+    "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^7.5.5",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/swagger": "^5.0.8",
-    "@nestjs/throttler": "^6.5.0",
+    "@nestjs/common": "11.2.3",
+    "@nestjs/core": "11.2.3",
+    "@nestjs/platform-express": "11.2.3",
+    "@nestjs/swagger": "11.4.7",
+    "@nestjs/throttler": "6.5.0",
     "@supabase/supabase-js": "^2.115.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -25,13 +28,13 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/testing": "^7.5.5",
+    "@nestjs/cli": "11.0.24",
+    "@nestjs/testing": "11.2.3",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "jest": "^30.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "29.4.12",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
@@ -52,5 +55,12 @@
     "moduleNameMapper": {
       "^@server/root/(.*)$": "<rootDir>/$1"
     }
+  },
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11"
+  },
+  "overrides": {
+    "multer": "2.3.0"
   }
 }
