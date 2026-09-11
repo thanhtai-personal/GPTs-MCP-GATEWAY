@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-gateway/server",
+  "name": "@server/root",
   "version": "0.1.0",
   "private": true,
   "license": "AGPL-3.0-or-later",
@@ -62,5 +62,11 @@
   },
   "overrides": {
     "multer": "2.3.0"
+  },
+  "exports": {
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
   }
 }
