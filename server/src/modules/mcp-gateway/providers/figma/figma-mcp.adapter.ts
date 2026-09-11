@@ -20,12 +20,16 @@ export class FigmaMcpAdapter implements McpProviderAdapter {
   readonly displayName = 'Figma';
   readonly credential;
   readonly oauth;
+  readonly catalogStatus;
 
   constructor(
     config: AppConfigService,
     private readonly client: RemoteMcpHttpClient,
   ) {
     const configured = Boolean(config.figmaMcpOAuthClientId);
+    this.catalogStatus = configured
+      ? ('available' as const)
+      : ('pending_review' as const);
     this.credential = {
       kind: 'oauth' as const,
       label: 'Figma OAuth',
@@ -37,8 +41,8 @@ export class FigmaMcpAdapter implements McpProviderAdapter {
             vi: 'Figma Remote MCP dùng OAuth và yêu cầu MCP client được Figma chấp thuận. Credential của Figma REST OAuth app thông thường không cấp quyền mcp:connect.',
           }
         : {
-            en: 'Figma currently has no self-service MCP client registration. Request approval from Figma; only then configure the MCP OAuth client ID they approve or issue.',
-            vi: 'Figma hiện chưa có đăng ký MCP client self-service. Hãy xin Figma chấp thuận trước, sau đó mới cấu hình MCP OAuth client ID mà Figma phê duyệt hoặc cấp.',
+            en: 'Figma Remote MCP client access is pending Figma review. Connect stays disabled until Figma approves the client and an approved MCP OAuth client ID is configured.',
+            vi: 'Quyền truy cập Figma Remote MCP client đang chờ Figma xét duyệt. Nút kết nối sẽ bị khóa cho đến khi Figma phê duyệt client và MCP OAuth client ID được cấu hình.',
           },
     };
     this.oauth = {

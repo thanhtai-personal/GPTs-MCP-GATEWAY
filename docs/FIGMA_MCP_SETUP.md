@@ -17,8 +17,17 @@ A regular Figma REST API OAuth application created at
 client secret do not grant `mcp:connect` access unless Figma has explicitly
 approved that client for the Remote MCP server.
 
-Because of this, the Gateway exposes Figma as `requires_configuration` until
-`FIGMA_MCP_OAUTH_CLIENT_ID` is configured.
+Because of this, the Gateway exposes Figma as `pending_review` while no
+approved `FIGMA_MCP_OAUTH_CLIENT_ID` is configured. The Connect action remains
+disabled during this state. Once Figma approves the MCP client and the approved
+client ID is configured, the provider becomes `available`.
+
+## Hosted Gateway review status
+
+The hosted GPTs MCP Gateway has submitted the Figma Remote MCP Server Access
+Request and is currently waiting for Figma review. No review timeline is
+assumed. Until approval is received, keep both Figma OAuth environment
+variables empty and leave the provider in `pending_review`.
 
 ## How to obtain the MCP OAuth client ID
 

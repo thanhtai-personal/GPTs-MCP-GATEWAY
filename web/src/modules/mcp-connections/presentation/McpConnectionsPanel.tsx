@@ -72,7 +72,13 @@ function McpProviderCard({
         <span className={`status ${connection ? "good" : ""}`}>
           {connection
             ? t("Đã kết nối", "Connected")
-            : t("Chưa kết nối", "Not connected")}
+            : provider.status === "pending_review"
+              ? t("Đang chờ xét duyệt", "Pending review")
+              : provider.status === "provider_restricted"
+                ? t("Provider đang giới hạn", "Provider restricted")
+                : provider.status === "requires_configuration"
+                  ? t("Cần cấu hình", "Setup required")
+                  : t("Chưa kết nối", "Not connected")}
         </span>
       </div>
 
@@ -89,6 +95,7 @@ function McpProviderCard({
           connection={connection}
           credential={provider.credential}
           providerId={provider.id}
+          providerStatus={provider.status}
         />
       )}
     </section>
@@ -188,11 +195,13 @@ function OAuthConnectionForm({
   connection,
   credential,
   providerId,
+  providerStatus,
 }: {
   accessToken: string;
   connection?: McpConnection;
   credential: Extract<McpProvider["credential"], { kind: "oauth" }>;
   providerId: string;
+  providerStatus: McpProvider["status"];
 }) {
   const { t } = useUiLanguage();
   const connect = useStartMcpOAuth(accessToken);
@@ -235,11 +244,28 @@ function OAuthConnectionForm({
       </div>
 
       {!credential.configured ? (
-        <p className="notice error">
-          {t(
-            "OAuth client cho provider này chưa được cấu hình trên Gateway.",
-            "The OAuth client for this provider is not configured on Gateway.",
-          )}
+        <p
+          className={`notice ${
+            providerStatus === "pending_review" ||
+            providerStatus === "provider_restricted"
+              ? ""
+              : "error"
+          }`}
+        >
+          {providerStatus === "pending_review"
+            ? t(
+                "Provider đang chờ xét duyệt. Kết nối sẽ được bật sau khi provider phê duyệt MCP client và OAuth client được cấu hình.",
+                "Provider review is pending. Connect will be enabled after the MCP client is approved and its OAuth client is configured.",
+              )
+            : providerStatus === "provider_restricted"
+              ? t(
+                  "Provider hiện chưa cho phép OAuth từ Gateway hosted này. Kết nối sẽ được bật khi provider cho phép hoặc đăng ký OAuth client riêng cho Gateway.",
+                  "The provider does not currently allow OAuth from this hosted Gateway. Connect will be enabled when the provider allows or registers an OAuth client for the Gateway.",
+                )
+              : t(
+                  "OAuth client cho provider này chưa được cấu hình trên Gateway.",
+                  "The OAuth client for this provider is not configured on Gateway.",
+                )}
         </p>
       ) : null}
       {connect.error ? (

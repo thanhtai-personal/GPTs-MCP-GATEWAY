@@ -30,8 +30,9 @@ export class AppConfigService {
   readonly upstreamTimeoutMs = integer('MCP_UPSTREAM_TIMEOUT_MS', 30_000);
   readonly mcpOAuthStateTtlSeconds = integer('MCP_OAUTH_STATE_TTL_SECONDS', 600);
   readonly lovableMcpOAuthClientId =
-    process.env.LOVABLE_MCP_OAUTH_CLIENT_ID?.trim() ||
-    '6d465f583e1e4ce5801b1616f735670c';
+    process.env.LOVABLE_MCP_OAUTH_CLIENT_ID?.trim() || undefined;
+  readonly lovableMcpOAuthClientSecret =
+    process.env.LOVABLE_MCP_OAUTH_CLIENT_SECRET?.trim() || undefined;
   readonly figmaMcpOAuthClientId = process.env.FIGMA_MCP_OAUTH_CLIENT_ID?.trim() || undefined;
   readonly figmaMcpOAuthClientSecret =
     process.env.FIGMA_MCP_OAUTH_CLIENT_SECRET?.trim() || undefined;

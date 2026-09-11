@@ -12,6 +12,12 @@ export type JsonObject = {
 export type McpToolArguments = JsonObject;
 export type McpJsonSchema = JsonObject;
 
+export type McpProviderCatalogStatus =
+  | 'available'
+  | 'requires_configuration'
+  | 'pending_review'
+  | 'provider_restricted';
+
 export type McpApiKeyCredential = {
   kind: 'api_key';
   value: string;
@@ -72,6 +78,7 @@ export interface McpProviderAdapter {
   readonly displayName: string;
   readonly credential: McpProviderCredentialDefinition;
   readonly oauth?: McpOAuthProviderConfig;
+  readonly catalogStatus?: McpProviderCatalogStatus;
 
   testConnection(credential: McpProviderCredential): Promise<void>;
   listTools(credential: McpProviderCredential): Promise<McpToolDefinition[]>;

@@ -4,6 +4,7 @@ import {
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.tokens';
 import type {
   McpProviderAdapter,
+  McpProviderCatalogStatus,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 @Injectable()
@@ -40,9 +41,11 @@ export class McpProviderRegistry {
     }));
   }
 
-  private status(
-    provider: McpProviderAdapter,
-  ): 'available' | 'requires_configuration' {
+  private status(provider: McpProviderAdapter): McpProviderCatalogStatus {
+    if (provider.catalogStatus) {
+      return provider.catalogStatus;
+    }
+
     return provider.credential.kind === 'oauth' &&
       !provider.credential.configured
       ? 'requires_configuration'
