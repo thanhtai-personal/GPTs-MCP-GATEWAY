@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AuditService } from '@server/root/modules/audit/audit.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
@@ -49,7 +49,19 @@ export class McpGatewayService {
         success: true,
         durationMs: Date.now() - startedAt,
       });
-      return { service: provider.id, tools };
+      return {
+        service: provider.id,
+        total: tools.length,
+        schemaMode: 'lazy' as const,
+        tools: tools.map((tool) => ({
+          name: tool.name,
+          ...(tool.title ? { title: tool.title } : {}),
+          ...(tool.description
+            ? { description: this.compactDescription(tool.description) }
+            : {}),
+          hasInputSchema: Boolean(tool.inputSchema),
+        })),
+      };
     } catch (error) {
       await this.audit.write({
         userId: principal.user.id,
@@ -57,6 +69,61 @@ export class McpGatewayService {
         eventType: 'mcp_tools.list_failed',
         provider: provider.id,
         operation: 'tools/list',
+        success: false,
+        durationMs: Date.now() - startedAt,
+      });
+      throw error;
+    }
+  }
+
+  async getToolSchema(
+    principal: GatewayPrincipal,
+    providerId: string,
+    toolName: string,
+  ) {
+    const provider = this.providers.get(providerId);
+    const apiKey = await this.connections.getProviderApiKey(
+      principal.user.id,
+      provider.id,
+    );
+    const startedAt = Date.now();
+
+    try {
+      const tools = await provider.listTools(apiKey);
+      const tool = tools.find((candidate) => candidate.name === toolName);
+      if (!tool) {
+        throw new NotFoundException({
+          code: 'MCP_TOOL_NOT_FOUND',
+          message: `MCP tool not found: ${toolName}`,
+        });
+      }
+
+      await this.audit.write({
+        userId: principal.user.id,
+        credentialId: principal.credentialId,
+        eventType: 'mcp_tool_schema.read',
+        provider: provider.id,
+        operation: toolName,
+        success: true,
+        durationMs: Date.now() - startedAt,
+      });
+
+      return {
+        service: provider.id,
+        tool: {
+          name: tool.name,
+          ...(tool.title ? { title: tool.title } : {}),
+          ...(tool.description ? { description: tool.description } : {}),
+          inputSchema: tool.inputSchema ?? {},
+        },
+      };
+    } catch (error) {
+      await this.audit.write({
+        userId: principal.user.id,
+        credentialId: principal.credentialId,
+        eventType: 'mcp_tool_schema.read_failed',
+        provider: provider.id,
+        operation: toolName,
         success: false,
         durationMs: Date.now() - startedAt,
       });
@@ -100,5 +167,13 @@ export class McpGatewayService {
       });
       throw error;
     }
+  }
+
+  private compactDescription(description: string): string {
+    const normalized = description.replace(/\s+/gu, ' ').trim();
+    const maxLength = 600;
+    return normalized.length <= maxLength
+      ? normalized
+      : `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
   }
 }

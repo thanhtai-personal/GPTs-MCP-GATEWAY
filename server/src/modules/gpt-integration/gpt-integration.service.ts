@@ -38,10 +38,12 @@ Khi yêu cầu của user cần công cụ bên ngoài:
 
 1. Phân tích **intent** và **capability** cần thiết.
 2. Chọn MCP service phù hợp từ các service Gateway hỗ trợ.
-3. Gọi \`listMcpTools\` cho service đó để lấy tool catalog hiện tại.
-4. Chọn tool dựa trên name, description và inputSchema; không đoán arguments không có trong schema.
-5. Gọi \`callMcpTool\` với đúng service, toolName và arguments.
-6. Đọc kết quả MCP rồi trả lời user.
+3. Gọi \`listMcpTools\` cho service đó để lấy catalog rút gọn hiện tại.
+4. Chọn tool candidate dựa trên name, title và description.
+5. Gọi \`getMcpToolSchema\` cho tool đã chọn để lấy inputSchema đầy đủ.
+6. Chỉ tạo arguments có trong schema vừa lấy.
+7. Gọi \`callMcpTool\` với đúng service, toolName và arguments.
+8. Đọc kết quả MCP rồi trả lời user.
 
 ## Quy tắc
 
@@ -50,6 +52,7 @@ Khi yêu cầu của user cần công cụ bên ngoài:
 - Không hardcode danh sách Stitch tools trong memory; discovery runtime là nguồn đúng hơn.
 - Nếu nhận \`MCP_NOT_CONNECTED\`, hướng dẫn user kết nối provider trong MCP Gateway app.
 - Nếu nhận \`OPEN_ID_REQUIRED\`, nói rõ account cần active Open ID/trial. Không thử bypass.
+- \`listMcpTools\` chỉ là catalog rút gọn; luôn lấy schema của tool đã chọn bằng \`getMcpToolSchema\` trước khi gọi.
 - Nếu tool không phù hợp, gọi lại \`listMcpTools\` và chọn tool khác thay vì tự bịa endpoint.
 `;
     }
@@ -63,10 +66,12 @@ When the user's request needs an external tool:
 
 1. Determine the user's **intent** and required **capability**.
 2. Select the supported MCP service that owns that capability.
-3. Call \`listMcpTools\` for that service to obtain the current tool catalog.
-4. Choose a tool from its name, description and inputSchema. Do not invent unsupported arguments.
-5. Call \`callMcpTool\` with the exact service, toolName and arguments.
-6. Interpret the MCP result and answer the user.
+3. Call \`listMcpTools\` for that service to obtain the current compact tool catalog.
+4. Choose a candidate from its name, title and description.
+5. Call \`getMcpToolSchema\` for that tool to obtain its full inputSchema.
+6. Construct only arguments supported by that schema.
+7. Call \`callMcpTool\` with the exact service, toolName and arguments.
+8. Interpret the MCP result and answer the user.
 
 ## Rules
 
@@ -75,6 +80,7 @@ When the user's request needs an external tool:
 - Do not permanently hardcode Stitch tool names; runtime discovery is authoritative.
 - On \`MCP_NOT_CONNECTED\`, tell the user to connect that provider in the MCP Gateway app.
 - On \`OPEN_ID_REQUIRED\`, tell the user an active Open ID or trial is required. Do not bypass the entitlement.
+- \`listMcpTools\` is intentionally compact; always fetch the selected tool with \`getMcpToolSchema\` before calling it.
 - If a selected tool does not fit, refresh \`listMcpTools\` and choose again rather than inventing an endpoint.
 `;
   }
@@ -104,7 +110,8 @@ Intent
   -> Capability
   -> MCP Service
   -> listMcpTools(service)
-  -> select tool
+  -> select tool candidate
+  -> getMcpToolSchema(service, toolName)
   -> callMcpTool(service, toolName, arguments)
   -> interpret result
 \`\`\`
@@ -194,6 +201,27 @@ paths:
       responses:
         '200':
           description: MCP tool catalog
+  /gpt/mcp/{service}/tools/{toolName}:
+    get:
+      operationId: getMcpToolSchema
+      summary: Get the full input schema for one discovered MCP tool.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [stitch]
+        - name: toolName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: MCP tool definition including inputSchema
   /gpt/mcp/{service}/tools/{toolName}/call:
     post:
       operationId: callMcpTool

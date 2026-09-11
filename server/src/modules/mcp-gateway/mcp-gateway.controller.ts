@@ -36,6 +36,19 @@ export class McpGatewayController {
     return this.gateway.listTools(this.principal(request), service);
   }
 
+  @Get('mcp/:service/tools/:toolName')
+  getToolSchema(
+    @Req() request: GatewayRequest,
+    @Param('service') service: string,
+    @Param('toolName') toolName: string,
+  ) {
+    return this.gateway.getToolSchema(
+      this.principal(request),
+      service,
+      toolName,
+    );
+  }
+
   @Post('mcp/:service/tools/:toolName/call')
   callTool(
     @Req() request: GatewayRequest,
