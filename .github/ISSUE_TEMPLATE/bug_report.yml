@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible problem in MCP Gateway.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include real API keys, Gateway tokens, Supabase tokens, encryption keys, or personal data.
+        Security vulnerabilities should follow SECURITY.md instead of this public form.
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest reproducible sequence, with secrets removed.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Web
+        - Server
+        - Database / Supabase
+        - GPT Integration Kit / Actions
+        - MCP provider / Stitch
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: "24.x"
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation already run
+      description: List commands and actual results.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

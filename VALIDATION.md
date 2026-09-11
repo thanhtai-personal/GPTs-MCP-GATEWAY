@@ -36,3 +36,20 @@ Validation performed in the artifact environment on 2026-09-11.
 - Payment/checkout is intentionally outside this MVP; membership can be promoted only through a trusted admin/database flow for testing.
 
 These limits are runtime/environment validation gaps, not reported as passes.
+
+## Open-source documentation patch validation — 2026-09-11
+
+Additional validation run after the public documentation/community files were added:
+
+- `npm run check` — pass.
+  - source check: 72 TS/TSX/MJS files.
+  - schema contract check: pass.
+  - docs check: 24 Markdown files scanned; 19 required public documents present; relative links resolved.
+- GitHub issue-template YAML parsed successfully for:
+  - `.github/ISSUE_TEMPLATE/bug_report.yml`
+  - `.github/ISSUE_TEMPLATE/feature_request.yml`
+  - `.github/ISSUE_TEMPLATE/config.yml`
+- Basic secret-pattern scan over public documentation/community templates — no Google/OpenAI/JWT-looking real secrets found.
+- Documentation checks were executed with the artifact runtime Node.js `v22.16.0`; the project target remains Node.js 24 from `.nvmrc`.
+
+The dependency-backed build/live-runtime gaps listed above remain unchanged.

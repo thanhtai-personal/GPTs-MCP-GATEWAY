@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a focused product or engineering improvement.
+title: "[Feature] "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user/developer problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives / trade-offs
+      description: What other approaches did you consider?
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This request does not depend on exposing provider credentials to GPT.
+          required: true
+        - label: I have checked PROJECT_STATUS.md for current MVP boundaries.
+          required: true

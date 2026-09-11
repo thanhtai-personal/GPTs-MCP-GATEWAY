@@ -11,6 +11,7 @@
     "test:server": "npm --prefix server run test",
     "check:source": "node scripts/check-source.mjs",
     "check:schema": "node scripts/check-schema-contract.mjs",
-    "check": "npm run check:source && npm run check:schema"
+    "check": "npm run check:source && npm run check:schema && npm run check:docs",
+    "check:docs": "node scripts/check-docs.mjs"
   }
 }
