@@ -13,6 +13,9 @@ const requiredFiles = [
   "CODE_OF_CONDUCT.md",
   "SUPPORT.md",
   "CHANGELOG.md",
+  "LICENSE",
+  "OPEN_SOURCE_POLICY.md",
+  "COMMERCIAL.md",
   "docs/README.md",
   "docs/ARCHITECTURE.md",
   "docs/API_REFERENCE.md",
@@ -25,6 +28,8 @@ const requiredFiles = [
   "docs/TROUBLESHOOTING.md",
   "docs/OPEN_SOURCE_RELEASE.md",
   "docs/LICENSING.md",
+  "docs/DEPENDENCY_SECURITY.md",
+  ".github/REPOSITORY_RULES.md",
 ];
 
 function walk(dir) {

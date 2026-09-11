@@ -52,6 +52,14 @@ Reports are especially valuable for:
 - generated GPT kit leaking credentials;
 - provider tool call authorization isolation.
 
+## Dependency vulnerability policy
+
+Do not treat `npm audit fix --force` as an approved remediation path. It can install incompatible semver-major framework packages while npm continues with peer override warnings.
+
+Dependency security fixes should preserve a coherent supported framework tree and be validated by clean install, audit, typecheck, build and tests.
+
+See [docs/DEPENDENCY_SECURITY.md](./docs/DEPENDENCY_SECURITY.md).
+
 ## Deployment operators
 
 If you suspect a production secret leak, follow the incident guidance in [docs/SECURITY_MODEL.md](./docs/SECURITY_MODEL.md).

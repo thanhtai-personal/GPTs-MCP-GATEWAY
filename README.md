@@ -272,7 +272,8 @@ Key documents:
 - [Project Status](./docs/PROJECT_STATUS.md)
 - [FAQ](./docs/FAQ.md)
 - [Open-source Release Checklist](./docs/OPEN_SOURCE_RELEASE.md)
-- [Licensing Decision](./docs/LICENSING.md)
+- [Licensing](./docs/LICENSING.md)
+- [Dependency Security](./docs/DEPENDENCY_SECURITY.md)
 
 Community files:
 
@@ -282,15 +283,18 @@ Community files:
 - [Support](./SUPPORT.md)
 - [Changelog](./CHANGELOG.md)
 
-## Open-source license
+## Open-source license and hosted commercial service
 
-A license has **not yet been selected**. The package manifests currently say `UNLICENSED`.
+MCP Gateway is licensed under **AGPL-3.0-or-later**. See [LICENSE](./LICENSE).
 
-That is intentional: MIT/Apache-2.0 and AGPL-3.0 have materially different implications for a hosted Gateway/Open ID business. The repository owner should make that decision before public release.
+The official hosted Gateway/Open ID service may still be commercial. The software license and a hosted Open ID are separate:
 
-Until a `LICENSE` file is added and package metadata is updated, this source should **not be represented as an open-source licensed release**.
+- AGPL grants rights to use/modify/self-host the software under its terms;
+- an official hosted Open ID grants entitlement on that specific hosted deployment.
 
-See [Licensing Decision](./docs/LICENSING.md).
+Commercial use of AGPL code is permitted. This repository does not use a “non-commercial open source” restriction.
+
+Read [Open-source Policy](./OPEN_SOURCE_POLICY.md), [Commercial Model](./COMMERCIAL.md), and [Licensing](./docs/LICENSING.md).
 
 ## Project / trademark disclaimer
 

@@ -39,3 +39,5 @@ Follow [SECURITY.md](./SECURITY.md).
 ## Hosted commercial service
 
 This source repository does not itself define an SLA, billing support policy, refund policy, or hosted-service support commitment. Those belong to the operator of a hosted MCP Gateway deployment.
+
+The relationship between AGPL source rights and a paid hosted Open ID is documented in [COMMERCIAL.md](./COMMERCIAL.md).

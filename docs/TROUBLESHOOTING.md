@@ -113,3 +113,40 @@ The Nest app binds to `127.0.0.1` in current source. Put a reverse proxy/load ba
 Check whether `MCP_CREDENTIAL_ENCRYPTION_KEY` changed.
 
 The current source has no automatic key-rotation migration. Restore the correct key from secure backup or rotate provider credentials after implementing a controlled migration.
+
+## `npm audit fix --force` changed NestJS to 7.x/12.x
+
+Do not keep running `npm audit fix --force`.
+
+The server is intentionally on NestJS 11. A forced audit fix may downgrade/upgrade only part of the Nest packages and leave `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`, Swagger, and testing on incompatible major versions.
+
+Restore from the reviewed `server/package.json`, delete the broken install/lockfile, then perform a clean install.
+
+From the project root, run:
+
+```bat
+npm run repair:server-deps
+npm --prefix server install
+npm --prefix server ls @nestjs/common @nestjs/core @nestjs/platform-express @nestjs/swagger @nestjs/testing multer
+npm --prefix server audit --audit-level=high
+npm --prefix server run typecheck
+npm --prefix server run build
+npm --prefix server test -- --runInBand
+```
+
+The repair command also restores `server/package.json`, so it works even when the forced audit fix changed the direct Nest versions.
+
+Expected framework line after this patch:
+
+```text
+@nestjs/common            11.2.3
+@nestjs/core              11.2.3
+@nestjs/platform-express  11.2.3
+@nestjs/testing           11.2.3
+@nestjs/swagger           11.4.7
+multer                    2.3.0 (root override)
+```
+
+If audit still reports a high/critical issue, copy the **audit report**, not the forced fix result, and triage the affected package explicitly.
+
+Read [Dependency Security](./DEPENDENCY_SECURITY.md).

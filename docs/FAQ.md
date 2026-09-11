@@ -68,8 +68,10 @@ The project interoperates with Custom GPT Actions and Google Stitch, but third-p
 
 Yes, structurally. Read `SELF_HOSTING.md` and the current validation limitations before production use.
 
-## Is the repository already open-source licensed?
+## Is the repository open-source licensed?
 
-Not yet.
+Yes.
 
-The package manifests currently say `UNLICENSED`, and no `LICENSE` file is intentionally added until the owner chooses a license compatible with the commercial strategy. Read `LICENSING.md`.
+The repository uses AGPL-3.0-or-later. Commercial use of the code is permitted under that license. The official hosted Gateway/Open ID service may still be paid because hosted-service entitlement is separate from source-code licensing.
+
+Read `../OPEN_SOURCE_POLICY.md`, `../COMMERCIAL.md`, and `LICENSING.md`.

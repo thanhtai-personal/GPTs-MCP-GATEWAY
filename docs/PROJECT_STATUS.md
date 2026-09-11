@@ -109,10 +109,9 @@ Suggested maturity path:
 
 ```text
 0.1.x
-  -> deterministic install + CI
+  -> clean deterministic lockfiles + CI green
   -> live Supabase/Stitch smoke test
   -> security review
-  -> license selected
   -> public alpha
 
 0.2.x

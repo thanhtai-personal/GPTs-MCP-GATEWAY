@@ -16,6 +16,15 @@ For bugs or features:
 
 For security vulnerabilities, do **not** open a public exploit report. Follow [SECURITY.md](./SECURITY.md).
 
+
+## License of contributions
+
+The project is licensed under AGPL-3.0-or-later.
+
+By submitting a contribution, you agree that the contribution may be distributed under the same project license. Only submit code, documentation, media, or generated output that you have the right to contribute under compatible terms.
+
+Read [OPEN_SOURCE_POLICY.md](./OPEN_SOURCE_POLICY.md) before submitting a substantial change.
+
 ## Development setup
 
 Read:
@@ -136,6 +145,14 @@ If API behavior or configuration changes, update docs in the same PR.
 - no generated build output;
 - no unrelated formatting churn;
 - no rewrites of migration history after release.
+
+## Dependency and audit changes
+
+Do not use `npm audit fix --force` as a routine fix or include its uncontrolled dependency rewrites in a PR.
+
+NestJS framework packages must remain on the reviewed Nest 11 line until a dedicated major-upgrade PR changes that policy.
+
+For dependency vulnerabilities, follow [Dependency Security](./docs/DEPENDENCY_SECURITY.md), perform a clean install, inspect peers, then run audit/build/typecheck/tests.
 
 ## Adding dependencies
 

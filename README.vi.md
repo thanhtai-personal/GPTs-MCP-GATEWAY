@@ -140,15 +140,18 @@ Hướng dẫn đầy đủ: [Self-hosting](./docs/SELF_HOSTING.md).
 - [Troubleshooting](./docs/TROUBLESHOOTING.md)
 - [Open-source Release Checklist](./docs/OPEN_SOURCE_RELEASE.md)
 
-## License trước khi public
+## Open source và mô hình thương mại
 
-Repo hiện vẫn là `UNLICENSED`.
+MCP Gateway sử dụng **AGPL-3.0-or-later**. Xem [LICENSE](./LICENSE).
 
-Mình không tự chọn MIT/Apache-2.0/AGPL-3.0 trong source vì lựa chọn đó ảnh hưởng trực tiếp tới chiến lược thương mại hosted Open ID.
+Source được phép self-host và sử dụng thương mại theo điều khoản AGPL. Dịch vụ Gateway/Open ID chính thức vẫn có thể thu phí vì đây là dịch vụ được vận hành riêng, không phải “phí để được xem source”.
 
-Trước khi public, owner cần chốt license, thêm file `LICENSE` và cập nhật package metadata.
+Phân biệt rõ:
 
-Đọc [Licensing Decision](./docs/LICENSING.md).
+- license cho source code;
+- Open ID entitlement trên hosted Gateway chính thức.
+
+Đọc [Open-source Policy](./OPEN_SOURCE_POLICY.md), [Commercial Model](./COMMERCIAL.md) và [Licensing](./docs/LICENSING.md).
 
 ## Disclaimer
 

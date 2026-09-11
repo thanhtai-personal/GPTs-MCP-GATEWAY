@@ -26,9 +26,10 @@ This directory documents the behavior that exists in the current MCP Gateway sou
 ### I want to publish this repository
 
 1. [Open-source Release Checklist](./OPEN_SOURCE_RELEASE.md)
-2. [Licensing Decision](./LICENSING.md)
-3. [../SECURITY.md](../SECURITY.md)
-4. [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
+2. [Licensing](./LICENSING.md)
+3. [Dependency Security](./DEPENDENCY_SECURITY.md)
+4. [../SECURITY.md](../SECURITY.md)
+5. [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
 
 ## Source of truth order
 

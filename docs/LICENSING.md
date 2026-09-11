@@ -1,73 +1,80 @@
-# Licensing Decision
+# Licensing
 
-The current package manifests declare `UNLICENSED` and this repository intentionally does not add a `LICENSE` file without an owner decision.
+MCP Gateway is licensed under **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
-Selecting a license is a product/business decision, not a formatting task.
+The canonical license text is at [../LICENSE](../LICENSE).
 
-## Why the decision matters here
+The npm manifests may remain `"private": true`; that flag only prevents accidental npm-registry publication and does not make the Git repository proprietary.
 
-MCP Gateway has a hosted-service business concept around paid Open ID entitlements while also being suitable for self-hosting.
+## Why AGPL fits this project
 
-A public source license determines what others may do with the code, including whether they may modify it, redistribute it, or operate a competing hosted service.
+MCP Gateway is network-server software and the product concept includes an official hosted Gateway/Open ID service.
 
-## Common options to evaluate
+AGPL keeps the code genuinely open source while requiring covered modified versions made available over a network to provide corresponding source under the AGPL terms.
 
-### MIT
+This supports reciprocal source availability without pretending that open source means the official hosted service must be free.
 
-Characteristics:
+## Commercial use
 
-- very permissive;
-- low adoption friction;
-- allows proprietary forks;
-- allows third parties to run modified hosted versions without publishing those modifications.
+AGPL permits commercial use.
 
-Good fit when maximizing reuse/ecosystem adoption is more important than reciprocal source sharing.
+A third party can run a commercial service using AGPL-covered software if they comply with the license.
 
-### Apache License 2.0
+Therefore, the project must **not** claim that AGPL reserves all commercial hosting exclusively to the original owner.
 
-Characteristics:
+The official commercial boundary is instead:
 
-- permissive;
-- includes an explicit patent license/grant structure;
-- allows proprietary forks/hosted versions;
-- somewhat more detailed compliance requirements than MIT.
+- source code: AGPL;
+- official hosted service: operated separately;
+- hosted Open ID: entitlement on that hosted deployment;
+- provider credentials: owned by each user;
+- support/SLA/billing: service terms, not source-license terms.
 
-Often selected when a permissive license with clearer patent terms is preferred.
+See [../COMMERCIAL.md](../COMMERCIAL.md).
 
-### GNU AGPL v3
+## Why not a “non-commercial open-source” clause
 
-Characteristics:
+A license that forbids commercial use does not satisfy the standard Open Source Definition's no-discrimination-against-fields-of-endeavor principle.
 
-- strong copyleft;
-- includes a network-use source-offer obligation for modified covered software;
-- third parties can still run commercial hosted services, but covered modifications generally must remain available under AGPL terms to network users.
+If the project ever chooses a source-available/non-commercial license, documentation should say **source available**, not open source.
 
-Often considered for open-source server/SaaS software when reciprocal source availability is important.
+That is not the current policy.
 
-## What these licenses do not solve
+## Dual licensing
 
-An open-source license does not by itself:
+The current repository is not advertising a separate proprietary code license.
 
-- prevent competitors;
-- reserve your hosted Open ID service to you;
-- create trademark protection;
-- define cloud service terms;
-- replace a privacy policy or Terms of Service;
-- guarantee third-party dependency compatibility.
+If a proprietary/commercial code license is offered later, maintainers must first ensure they have the legal right to relicense all relevant contributions. Do not assume contributor code can automatically be relicensed.
 
-If the hosted service needs separate commercial terms, write those separately for the hosted service.
+A Contributor License Agreement may become relevant only if the project deliberately adopts that business model.
 
-## Before publishing
+## Dependencies
 
-The repository owner should:
+The AGPL project license does not replace third-party licenses.
 
-1. choose a license with legal/business advice appropriate to the project;
-2. add the canonical license text as `LICENSE`;
-3. update package `license` metadata to the SPDX identifier;
-4. add copyright notices only if desired/required;
-5. review dependency license compatibility;
-6. decide whether the project name/logo needs a trademark policy.
+Before a release:
 
-Until then, describe the repository as **source code prepared for open-source publication**, not as already licensed open source.
+- generate and commit clean lockfiles;
+- review production dependency licenses;
+- retain attribution/notices required by dependencies;
+- avoid dependencies with incompatible terms.
 
-This document is an engineering release checklist, not legal advice.
+## Branding
+
+The software license does not imply endorsement of forks or grant rights to third-party marks.
+
+Forks should clearly distinguish their deployment from any official hosted MCP Gateway/Open ID service.
+
+## Hosted legal documents
+
+A public hosted service may separately need:
+
+- Terms of Service;
+- Privacy Policy;
+- billing/refund terms;
+- acceptable-use rules;
+- service-specific data retention policy.
+
+Those documents are operational/commercial terms and should not be placed inside the AGPL license text.
+
+This document explains the repository policy and is not legal advice.

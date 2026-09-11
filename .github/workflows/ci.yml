@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm run check
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install server dependencies
+        shell: bash
+        run: |
+          if [ -f server/package-lock.json ]; then
+            npm --prefix server ci
+          else
+            echo "::warning::server/package-lock.json is missing; using npm install until the first public lockfile is committed."
+            npm --prefix server install
+          fi
+      - run: npm --prefix server run typecheck
+      - run: npm --prefix server run build
+      - run: npm --prefix server test -- --runInBand
+      - run: npm --prefix server audit --audit-level=high
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install web dependencies
+        shell: bash
+        run: |
+          if [ -f web/package-lock.json ]; then
+            npm --prefix web ci
+          else
+            echo "::warning::web/package-lock.json is missing; using npm install until the first public lockfile is committed."
+            npm --prefix web install
+          fi
+      - run: npm --prefix web run typecheck
+      - run: npm --prefix web run build

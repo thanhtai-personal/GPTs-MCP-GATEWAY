@@ -15,8 +15,11 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
   - contributor/community guidelines;
   - provider extension guide;
   - project status and troubleshooting;
-  - licensing decision guide;
+  - AGPL-3.0-or-later licensing and commercial-service boundary;
+  - dependency security policy;
+  - GitHub repository rules, CI and Dependabot configuration;
   - release checklist.
+- NestJS dependency policy pins the supported server framework line and overrides transitive Multer to the patched 2.3.0 release.
 
 ## [0.1.0] - 2026-09-11
 

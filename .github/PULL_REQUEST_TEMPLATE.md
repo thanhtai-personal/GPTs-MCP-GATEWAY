@@ -35,3 +35,5 @@ npm run check
 - [ ] Documentation updated for public behavior/config changes.
 - [ ] Existing migration history was not rewritten.
 - [ ] Provider changes preserve the Gateway/Open ID credential boundary.
+- [ ] I have the right to contribute these changes under AGPL-3.0-or-later.
+- [ ] Dependency changes follow `docs/DEPENDENCY_SECURITY.md`; no blanket `npm audit fix --force` rewrite is included.

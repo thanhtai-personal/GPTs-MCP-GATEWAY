@@ -64,6 +64,14 @@ If source behavior changes, update the nearest source-of-truth document in the s
 
 Do not document planned behavior as implemented. Put plans in `REQUIREMENTS.md`/`PROJECT_STATUS.md`.
 
+## Dependency maintenance
+
+Dependency updates should be small and reviewable.
+
+For NestJS, update the framework family deliberately and keep direct packages on the supported major. Do not merge automated changes that create peer-dependency override warnings.
+
+Never use `npm audit fix --force` as a blanket maintenance command. Follow [Dependency Security](./DEPENDENCY_SECURITY.md).
+
 ## Security maintenance
 
 Regularly review:

@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      nestjs-11:
+        patterns:
+          - "@nestjs/*"
+        update-types:
+          - "minor"
+          - "patch"
+      server-security-support:
+        patterns:
+          - "class-validator"
+          - "class-transformer"
+          - "helmet"
+          - "rxjs"
+
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
