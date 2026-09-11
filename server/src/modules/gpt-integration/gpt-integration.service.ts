@@ -217,16 +217,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [arguments]
-              properties:
-                arguments:
-                  type: object
-                  additionalProperties: true
+              $ref: '#/components/schemas/ToolCallRequest'
       responses:
         '200':
           description: MCP tool result
 components:
+  schemas:
+    ToolCallRequest:
+      type: object
+      required:
+        - arguments
+      properties:
+        arguments:
+          type: object
+          additionalProperties: true
   securitySchemes:
     bearerAuth:
       type: http
