@@ -12,16 +12,45 @@ export type JsonObject = {
 export type McpToolArguments = JsonObject;
 export type McpJsonSchema = JsonObject;
 
+export type McpApiKeyCredential = {
+  kind: 'api_key';
+  value: string;
+};
+
+export type McpOAuthCredential = {
+  kind: 'oauth';
+  accessToken: string;
+  refreshToken?: string;
+  tokenType: 'Bearer';
+  expiresAt?: string;
+  scope?: string;
+};
+
 export type McpProviderCredential =
+  | McpApiKeyCredential
+  | McpOAuthCredential;
+
+export type McpProviderCredentialDefinition =
   | {
       kind: 'api_key';
-      value: string;
+      label: string;
+      placeholder?: string;
+    }
+  | {
+      kind: 'oauth';
+      label: string;
+      connectLabel: { en: string; vi: string };
+      configured: boolean;
+      note?: { en: string; vi: string };
     };
 
-export type McpProviderCredentialDefinition = {
-  kind: McpProviderCredential['kind'];
-  label: string;
-  placeholder?: string;
+export type McpOAuthProviderConfig = {
+  resourceUrl: string;
+  protectedResourceMetadataUrl: string;
+  authorizationServerOrigins: string[];
+  clientId?: string;
+  clientSecret?: string;
+  scopes?: string[];
 };
 
 export type McpToolDefinition = {
@@ -42,6 +71,7 @@ export interface McpProviderAdapter {
   readonly id: string;
   readonly displayName: string;
   readonly credential: McpProviderCredentialDefinition;
+  readonly oauth?: McpOAuthProviderConfig;
 
   testConnection(credential: McpProviderCredential): Promise<void>;
   listTools(credential: McpProviderCredential): Promise<McpToolDefinition[]>;

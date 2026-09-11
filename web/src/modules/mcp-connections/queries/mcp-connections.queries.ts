@@ -4,6 +4,7 @@ import {
   listMcpProviders,
   removeMcpConnection,
   saveMcpConnection,
+  startMcpOAuth,
   testMcpConnection,
 } from "@/modules/mcp-connections/api/mcp-connections.api";
 
@@ -52,6 +53,15 @@ export function useTestMcpConnection(accessToken: string) {
       provider: string;
       apiKey: string;
     }) => testMcpConnection(accessToken, provider, apiKey),
+  });
+}
+
+export function useStartMcpOAuth(accessToken: string) {
+  return useMutation({
+    mutationFn: (provider: string) => startMcpOAuth(accessToken, provider),
+    onSuccess: ({ authorizationUrl }) => {
+      window.location.assign(authorizationUrl);
+    },
   });
 }
 

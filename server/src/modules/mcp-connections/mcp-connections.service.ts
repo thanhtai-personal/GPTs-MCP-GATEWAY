@@ -1,16 +1,21 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
 import { SupabaseService } from '@server/root/common/supabase/supabase.service';
 import { AuthService } from '@server/root/modules/auth/auth.service';
 import { AuditService } from '@server/root/modules/audit/audit.service';
-import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
+import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
+import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.service';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
-import type { McpProviderCredential } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
+import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
+import type {
+  McpProviderAdapter,
+  McpProviderCredential,
+} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 type ConnectionRow = {
   id: string;
@@ -18,6 +23,7 @@ type ConnectionRow = {
   provider: string;
   status: 'connected' | 'invalid' | 'unavailable';
   credential_ciphertext: string;
+  credential_version: number;
   last_verified_at: string | null;
   last_error_code: string | null;
   created_at: string;
@@ -29,7 +35,8 @@ export class McpConnectionsService {
   constructor(
     private readonly auth: AuthService,
     private readonly audit: AuditService,
-    private readonly cipher: SecretCipherService,
+    private readonly codec: McpCredentialCodec,
+    private readonly oauth: McpOAuthService,
     private readonly providers: McpProviderRegistry,
     private readonly supabase: SupabaseService,
   ) {}
@@ -45,11 +52,12 @@ export class McpConnectionsService {
     const { data, error } = await client
       .from('mcp_connections')
       .select(
-        'id,user_id,provider,status,credential_ciphertext,last_verified_at,last_error_code,created_at,updated_at',
+        'id,user_id,provider,status,credential_ciphertext,credential_version,last_verified_at,last_error_code,created_at,updated_at',
       )
       .eq('user_id', user.id)
       .order('provider')
       .returns<ConnectionRow[]>();
+
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
@@ -62,7 +70,9 @@ export class McpConnectionsService {
   async testOwn(request: Request, dto: SaveMcpConnectionDto) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(dto.provider);
+    this.requireApiKeyProvider(provider);
     const startedAt = Date.now();
+
     try {
       await provider.testConnection(this.apiKeyCredential(dto.apiKey));
       await this.audit.write({
@@ -88,47 +98,78 @@ export class McpConnectionsService {
   async saveOwn(request: Request, dto: SaveMcpConnectionDto) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(dto.provider);
-    await provider.testConnection(this.apiKeyCredential(dto.apiKey));
-    const now = new Date().toISOString();
-    const client = this.supabase.createServiceRoleClient();
-    const { data, error } = await client
-      .from('mcp_connections')
-      .upsert(
-        {
-          user_id: user.id,
-          provider: provider.id,
-          status: 'connected',
-          credential_ciphertext: this.cipher.encrypt(dto.apiKey.trim()),
-          credential_version: 1,
-          last_verified_at: now,
-          last_error_code: null,
-          updated_at: now,
-        },
-        { onConflict: 'user_id,provider' },
-      )
-      .select(
-        'id,user_id,provider,status,credential_ciphertext,last_verified_at,last_error_code,created_at,updated_at',
-      )
-      .single<ConnectionRow>();
+    this.requireApiKeyProvider(provider);
 
-    if (error) {
-      throw new ServiceUnavailableException({
-        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
-        message: 'Could not save MCP connection',
+    const credential = this.apiKeyCredential(dto.apiKey);
+    await provider.testConnection(credential);
+
+    return this.saveCredential(user.id, provider, credential);
+  }
+
+  async startOAuth(request: Request, providerId: string) {
+    const user = await this.auth.requireUser(request);
+    const provider = this.providers.get(providerId);
+
+    if (provider.credential.kind !== 'oauth') {
+      throw new BadRequestException({
+        code: 'MCP_OAUTH_NOT_SUPPORTED',
+        message: `${provider.displayName} does not use OAuth`,
       });
     }
-    await this.audit.write({
-      userId: user.id,
-      eventType: 'mcp_connection.updated',
-      provider: provider.id,
-      success: true,
-    });
-    return this.toView(data);
+
+    return this.oauth.createAuthorizationRequest(user.id, provider);
+  }
+
+  async completeOAuth(
+    providerId: string,
+    code: string,
+    state: string,
+    issuer?: string,
+  ) {
+    const provider = this.providers.get(providerId);
+    const result = await this.oauth.exchangeAuthorizationCode(
+      provider,
+      code,
+      state,
+      issuer,
+    );
+
+    await this.auth.getUserById(result.userId);
+    const startedAt = Date.now();
+
+    try {
+      await provider.testConnection(result.credential);
+      const connection = await this.saveCredential(
+        result.userId,
+        provider,
+        result.credential,
+      );
+
+      await this.audit.write({
+        userId: result.userId,
+        eventType: 'mcp_connection.oauth_connected',
+        provider: provider.id,
+        success: true,
+        durationMs: Date.now() - startedAt,
+      });
+
+      return connection;
+    } catch (error) {
+      await this.audit.write({
+        userId: result.userId,
+        eventType: 'mcp_connection.oauth_failed',
+        provider: provider.id,
+        success: false,
+        durationMs: Date.now() - startedAt,
+      });
+      throw error;
+    }
   }
 
   async removeOwn(request: Request, providerId: string) {
     const user = await this.auth.requireUser(request);
     this.providers.get(providerId);
+
     const client = this.supabase.createServiceRoleClient();
     const { data, error } = await client
       .from('mcp_connections')
@@ -137,6 +178,7 @@ export class McpConnectionsService {
       .eq('provider', providerId)
       .select('id')
       .maybeSingle<{ id: string }>();
+
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
@@ -149,12 +191,14 @@ export class McpConnectionsService {
         message: `${providerId} is not connected`,
       });
     }
+
     await this.audit.write({
       userId: user.id,
       eventType: 'mcp_connection.deleted',
       provider: providerId,
       success: true,
     });
+
     return { deleted: true };
   }
 
@@ -162,13 +206,20 @@ export class McpConnectionsService {
     userId: string,
     providerId: string,
   ): Promise<McpProviderCredential> {
+    const provider = this.providers.get(providerId);
     const client = this.supabase.createServiceRoleClient();
     const { data, error } = await client
       .from('mcp_connections')
-      .select('credential_ciphertext,status')
+      .select('id,credential_ciphertext,credential_version,status')
       .eq('user_id', userId)
       .eq('provider', providerId)
-      .maybeSingle<Pick<ConnectionRow, 'credential_ciphertext' | 'status'>>();
+      .maybeSingle<
+        Pick<
+          ConnectionRow,
+          'id' | 'credential_ciphertext' | 'credential_version' | 'status'
+        >
+      >();
+
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
@@ -181,7 +232,42 @@ export class McpConnectionsService {
         message: `${providerId} is not connected`,
       });
     }
-    return this.apiKeyCredential(this.cipher.decrypt(data.credential_ciphertext));
+
+    const credential = this.codec.decode(
+      data.credential_ciphertext,
+      data.credential_version,
+      provider,
+    );
+
+    if (
+      credential.kind !== 'oauth' ||
+      !this.codec.shouldRefresh(credential)
+    ) {
+      return credential;
+    }
+
+    const refreshed = await this.oauth.refreshCredential(provider, credential);
+    const encoded = this.codec.encode(refreshed);
+    const now = new Date().toISOString();
+    const { error: updateError } = await client
+      .from('mcp_connections')
+      .update({
+        credential_ciphertext: encoded.ciphertext,
+        credential_version: encoded.version,
+        last_verified_at: now,
+        last_error_code: null,
+        updated_at: now,
+      })
+      .eq('id', data.id);
+
+    if (updateError) {
+      throw new ServiceUnavailableException({
+        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
+        message: 'Could not persist refreshed MCP OAuth credential',
+      });
+    }
+
+    return refreshed;
   }
 
   async listConnectedProviderIds(userId: string): Promise<string[]> {
@@ -192,13 +278,70 @@ export class McpConnectionsService {
       .eq('user_id', userId)
       .eq('status', 'connected')
       .returns<Array<{ provider: string }>>();
+
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
         message: 'Could not load MCP connection status',
       });
     }
+
     return (data ?? []).map((row) => row.provider);
+  }
+
+  private async saveCredential(
+    userId: string,
+    provider: McpProviderAdapter,
+    credential: McpProviderCredential,
+  ) {
+    const now = new Date().toISOString();
+    const encoded = this.codec.encode(credential);
+    const client = this.supabase.createServiceRoleClient();
+
+    const { data, error } = await client
+      .from('mcp_connections')
+      .upsert(
+        {
+          user_id: userId,
+          provider: provider.id,
+          status: 'connected',
+          credential_ciphertext: encoded.ciphertext,
+          credential_version: encoded.version,
+          last_verified_at: now,
+          last_error_code: null,
+          updated_at: now,
+        },
+        { onConflict: 'user_id,provider' },
+      )
+      .select(
+        'id,user_id,provider,status,credential_ciphertext,credential_version,last_verified_at,last_error_code,created_at,updated_at',
+      )
+      .single<ConnectionRow>();
+
+    if (error) {
+      throw new ServiceUnavailableException({
+        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
+        message: 'Could not save MCP connection',
+      });
+    }
+
+    await this.audit.write({
+      userId,
+      eventType: 'mcp_connection.updated',
+      provider: provider.id,
+      success: true,
+    });
+
+    return this.toView(data);
+  }
+
+  private requireApiKeyProvider(provider: McpProviderAdapter): void {
+    if (provider.credential.kind !== 'api_key') {
+      throw new BadRequestException({
+        code: 'MCP_CREDENTIAL_TYPE_MISMATCH',
+        message: `${provider.displayName} must be connected with OAuth`,
+      });
+    }
   }
 
   private apiKeyCredential(value: string): McpProviderCredential {

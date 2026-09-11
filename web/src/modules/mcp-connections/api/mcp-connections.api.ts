@@ -38,6 +38,16 @@ export function saveMcpConnection(
   });
 }
 
+export function startMcpOAuth(accessToken: string, provider: string) {
+  return gatewayRequest<{ provider: string; authorizationUrl: string }>(
+    `/mcp-connections/${encodeURIComponent(provider)}/oauth/start`,
+    accessToken,
+    {
+      method: "POST",
+    },
+  );
+}
+
 export function removeMcpConnection(accessToken: string, provider: string) {
   return gatewayRequest<{ deleted: boolean }>(
     `/mcp-connections/${encodeURIComponent(provider)}`,

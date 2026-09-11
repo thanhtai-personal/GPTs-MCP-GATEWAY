@@ -34,6 +34,29 @@ describe('McpProviderRegistry', () => {
     ]);
   });
 
+
+  it('marks an OAuth provider without a configured client as requiring configuration', () => {
+    const oauthProvider: McpProviderAdapter = {
+      ...provider('figma'),
+      credential: {
+        kind: 'oauth',
+        label: 'Figma OAuth',
+        connectLabel: { en: 'Connect Figma', vi: 'Kết nối Figma' },
+        configured: false,
+      },
+      oauth: {
+        resourceUrl: 'https://mcp.figma.com/mcp',
+        protectedResourceMetadataUrl:
+          'https://mcp.figma.com/.well-known/oauth-protected-resource',
+      },
+    };
+    const registry = new McpProviderRegistry([oauthProvider]);
+
+    expect(registry.listConfigurable()[0]?.status).toBe(
+      'requires_configuration',
+    );
+  });
+
   it('rejects unsupported providers instead of accepting arbitrary URLs', () => {
     const registry = new McpProviderRegistry([provider('stitch')]);
 

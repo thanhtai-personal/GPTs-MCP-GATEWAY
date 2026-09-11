@@ -8,6 +8,7 @@ import {
   useMcpProviders,
   useRemoveMcpConnection,
   useSaveMcpConnection,
+  useStartMcpOAuth,
   useTestMcpConnection,
 } from "@/modules/mcp-connections/queries/mcp-connections.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
@@ -60,15 +61,6 @@ function McpProviderCard({
   provider: McpProvider;
 }) {
   const { t } = useUiLanguage();
-  const [credentialValue, setCredentialValue] = useState("");
-  const test = useTestMcpConnection(accessToken);
-  const save = useSaveMcpConnection(accessToken);
-  const remove = useRemoveMcpConnection(accessToken);
-
-  const mutationInput = {
-    provider: provider.id,
-    apiKey: credentialValue,
-  };
 
   return (
     <section className="card">
@@ -84,6 +76,49 @@ function McpProviderCard({
         </span>
       </div>
 
+      {provider.credential.kind === "api_key" ? (
+        <ApiKeyConnectionForm
+          accessToken={accessToken}
+          connection={connection}
+          credential={provider.credential}
+          providerId={provider.id}
+        />
+      ) : (
+        <OAuthConnectionForm
+          accessToken={accessToken}
+          connection={connection}
+          credential={provider.credential}
+          providerId={provider.id}
+        />
+      )}
+    </section>
+  );
+}
+
+function ApiKeyConnectionForm({
+  accessToken,
+  connection,
+  credential,
+  providerId,
+}: {
+  accessToken: string;
+  connection?: McpConnection;
+  credential: Extract<McpProvider["credential"], { kind: "api_key" }>;
+  providerId: string;
+}) {
+  const { t } = useUiLanguage();
+  const [credentialValue, setCredentialValue] = useState("");
+  const test = useTestMcpConnection(accessToken);
+  const save = useSaveMcpConnection(accessToken);
+  const remove = useRemoveMcpConnection(accessToken);
+
+  const mutationInput = {
+    provider: providerId,
+    apiKey: credentialValue,
+  };
+
+  return (
+    <>
       <p className="muted">
         {t(
           "Credential được gửi tới backend và mã hóa trước khi lưu.",
@@ -92,11 +127,11 @@ function McpProviderCard({
       </p>
 
       <label>
-        {provider.credential.label}
+        {credential.label}
         <input
           autoComplete="off"
           onChange={(event) => setCredentialValue(event.target.value)}
-          placeholder={provider.credential.placeholder}
+          placeholder={credential.placeholder}
           type="password"
           value={credentialValue}
         />
@@ -128,7 +163,7 @@ function McpProviderCard({
           <button
             className="danger"
             disabled={remove.isPending}
-            onClick={() => remove.mutate(provider.id)}
+            onClick={() => remove.mutate(providerId)}
             type="button"
           >
             {t("Ngắt kết nối", "Disconnect")}
@@ -144,6 +179,75 @@ function McpProviderCard({
       {test.error ? <p className="notice error">{test.error.message}</p> : null}
       {save.error ? <p className="notice error">{save.error.message}</p> : null}
       {remove.error ? <p className="notice error">{remove.error.message}</p> : null}
-    </section>
+    </>
+  );
+}
+
+function OAuthConnectionForm({
+  accessToken,
+  connection,
+  credential,
+  providerId,
+}: {
+  accessToken: string;
+  connection?: McpConnection;
+  credential: Extract<McpProvider["credential"], { kind: "oauth" }>;
+  providerId: string;
+}) {
+  const { t } = useUiLanguage();
+  const connect = useStartMcpOAuth(accessToken);
+  const remove = useRemoveMcpConnection(accessToken);
+
+  return (
+    <>
+      <p className="muted">
+        {t(
+          "Đăng nhập trực tiếp với provider qua OAuth. Gateway mã hóa access/refresh token và không gửi chúng cho GPT.",
+          "Sign in with the provider through OAuth. Gateway encrypts access/refresh tokens and never sends them to GPT.",
+        )}
+      </p>
+
+      {credential.note ? (
+        <p className="notice">{t(credential.note.vi, credential.note.en)}</p>
+      ) : null}
+
+      <div className="row">
+        <button
+          disabled={!credential.configured || connect.isPending}
+          onClick={() => connect.mutate(providerId)}
+          type="button"
+        >
+          {connection
+            ? t("Kết nối lại", "Reconnect")
+            : t(credential.connectLabel.vi, credential.connectLabel.en)}
+        </button>
+
+        {connection ? (
+          <button
+            className="danger"
+            disabled={remove.isPending}
+            onClick={() => remove.mutate(providerId)}
+            type="button"
+          >
+            {t("Ngắt kết nối", "Disconnect")}
+          </button>
+        ) : null}
+      </div>
+
+      {!credential.configured ? (
+        <p className="notice error">
+          {t(
+            "OAuth client cho provider này chưa được cấu hình trên Gateway.",
+            "The OAuth client for this provider is not configured on Gateway.",
+          )}
+        </p>
+      ) : null}
+      {connect.error ? (
+        <p className="notice error">{connect.error.message}</p>
+      ) : null}
+      {remove.error ? (
+        <p className="notice error">{remove.error.message}</p>
+      ) : null}
+    </>
   );
 }

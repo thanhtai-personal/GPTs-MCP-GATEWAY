@@ -27,7 +27,7 @@ export class McpProviderRegistry {
     return [...this.providers.values()].map((provider) => ({
       id: provider.id,
       name: provider.displayName,
-      status: 'available' as const,
+      status: this.status(provider),
     }));
   }
 
@@ -35,9 +35,18 @@ export class McpProviderRegistry {
     return [...this.providers.values()].map((provider) => ({
       id: provider.id,
       name: provider.displayName,
-      status: 'available' as const,
+      status: this.status(provider),
       credential: provider.credential,
     }));
+  }
+
+  private status(
+    provider: McpProviderAdapter,
+  ): 'available' | 'requires_configuration' {
+    return provider.credential.kind === 'oauth' &&
+      !provider.credential.configured
+      ? 'requires_configuration'
+      : 'available';
   }
 
   get(providerId: string): McpProviderAdapter {

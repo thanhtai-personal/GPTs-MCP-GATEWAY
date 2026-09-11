@@ -113,7 +113,7 @@ ${intro}
 - **Open ID**: commercial entitlement that authorizes Gateway MCP execution.
 - **Gateway token**: bearer secret configured in GPT Actions. The token authenticates a request; the linked Open ID authorizes it.
 - **Trial Open ID**: internal, non-exportable entitlement created when a Guest explicitly starts the one-time 7-day trial.
-- **Provider credential**: API key stored by the user in the app. It is encrypted server-side and never sent to GPT.
+- **Provider credential**: provider-specific secret material (for example an API key or OAuth grant) stored by the Gateway. It is encrypted server-side and never sent to GPT.
 - **MCP service**: a provider explicitly supported by Gateway. Provider ids and tool catalogs are discovered at runtime.
 - **Tool arguments**: an MCP tool receives a JSON object whose shape is defined by that tool's runtime \`inputSchema\`. Gateway does not define provider-specific argument fields.
 - **Gateway response envelope**: every successful GPT action returns either \`mode: complete\` with \`data\`, or \`mode: chunked\` with a response fragment and continuation metadata.
