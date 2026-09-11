@@ -1,0 +1,4835 @@
+diff --git a/.editorconfig b/.editorconfig
+new file mode 100644
+index 0000000..192c070
+--- /dev/null
++++ b/.editorconfig
+@@ -0,0 +1,11 @@
++root = true
++
++[*]
++charset = utf-8
++end_of_line = lf
++insert_final_newline = true
++indent_style = space
++indent_size = 2
++
++[*.md]
++trim_trailing_whitespace = false
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..3772032
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,10 @@
++node_modules/
++dist/
++.vite/
++.output/
++.env
++.env.*
++!.env.example
++coverage/
++*.log
++.DS_Store
+diff --git a/.nvmrc b/.nvmrc
+new file mode 100644
+index 0000000..a45fd52
+--- /dev/null
++++ b/.nvmrc
+@@ -0,0 +1 @@
++24
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..8c5bc85
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,58 @@
++# MCP Gateway
++
++MCP Gateway is a new project derived from the **source conventions** of NovelOS, not a copy of its story domain.
++
++Its core product is an **Open ID entitlement** that lets a Custom GPT use supported MCP services through one controlled gateway. The first provider adapter is Google Stitch.
++
++## Product flow
++
++```text
++Custom GPT
++   |
++   | OpenAPI Action + Gateway bearer token
++   v
++MCP Gateway
++   |
++   | validates Gateway token -> Open ID -> entitlement
++   | resolves the user's encrypted provider credential
++   v
++Supported MCP provider (Stitch first)
++```
++
++A logged-in user can connect Stitch and download the GPT integration kit before buying an Open ID. MCP execution is only allowed when the Gateway token resolves to an active paid Open ID or the account's one-time 7-day trial Open ID.
++
++## Repository
++
++- `web/` — TanStack Start / React / TypeScript / React Query, VI+EN UI.
++- `server/` — NestJS API, Supabase/PostgreSQL, provider adapters.
++- `database/migrations/` — initial schema for this new project.
++- `docs/` — architecture and GPT integration protocol.
++- `scripts/` — dependency-free contract/source checks.
++
++## Quick start
++
++1. Copy `server/.env.example` to `server/.env`.
++2. Copy `web/.env.example` to `web/.env`.
++3. Apply `database/migrations/001_initial_schema.sql` to a development Supabase database.
++4. Install dependencies in `server/` and `web/`.
++5. Run `npm run dev:server` and `npm run dev:web`.
++
++Generate a 32-byte encryption key:
++
++```bash
++openssl rand -base64 32
++```
++
++Put it in `MCP_CREDENTIAL_ENCRYPTION_KEY`. Never expose this key or the Supabase service role key to the browser.
++
++## Stitch
++
++The adapter targets `https://stitch.googleapis.com/mcp` and sends the user's API key in `X-Goog-Api-Key`. It uses MCP JSON-RPC `tools/list` and `tools/call`.
++
++## MVP limitations
++
++Payment checkout is intentionally not mocked. For MVP testing, promote an account's `membership_tier` to `member` in a trusted admin/database workflow. A payment provider can later update the same entitlement boundary server-side.
++
++## Patch trace
++
++`mcp-gateway.git.patch` is generated from the complete new source tree for trace/review purposes.
+diff --git a/REQUIREMENTS.md b/REQUIREMENTS.md
+new file mode 100644
+index 0000000..396ed45
+--- /dev/null
++++ b/REQUIREMENTS.md
+@@ -0,0 +1,35 @@
++# Requirements snapshot
++
++## Core
++- Gateway exists so Custom GPTs can use MCP capabilities through GPT Actions.
++- Open ID is the commercial entitlement; Action Schema/Instructions/Knowledge are integration assets.
++- Every MCP execution must resolve to an active Open ID entitlement.
++- First supported MCP provider: Google Stitch.
++- Users may only connect explicitly supported providers; no arbitrary MCP URLs in MVP.
++
++## Guest
++- New authenticated account is `guest`.
++- Guest may configure supported MCP credentials and download the GPT integration kit.
++- Guest can claim exactly one 7-day trial in account lifetime.
++- Trial begins only when the user explicitly creates the trial token.
++- Revoking/losing/expiring the token never restores trial eligibility.
++- Trial uses an internal, non-exportable Open ID entitlement.
++
++## Member
++- `member` or higher gets one exportable paid Open ID for the account and may generate Gateway tokens for it.
++- MVP has no business quota on member token count; technical rate limiting still applies.
++
++## GPT kit
++ZIP contains:
++- `instructions.md`
++- `knowledge.md`
++- `openapi.yaml`
++- `setup-guide.md`
++
++The kit teaches:
++`Intent -> Capability -> MCP service -> list tools -> choose tool -> call tool -> interpret result`.
++
++## UI
++- Vietnamese and English.
++- Public SEO landing page.
++- Authenticated pages for MCP connections, Open ID/trial, and GPT integration.
+diff --git a/VALIDATION.md b/VALIDATION.md
+new file mode 100644
+index 0000000..0f50763
+--- /dev/null
++++ b/VALIDATION.md
+@@ -0,0 +1,38 @@
++# Validation report
++
++Validation performed in the artifact environment on 2026-09-11.
++
++## Passed
++
++- `node scripts/check-source.mjs`
++  - 71 TS/TSX/MJS source files checked.
++  - no browser reference to `SUPABASE_SERVICE_ROLE_KEY`.
++  - no deep `../../` imports.
++  - no source file over the configured 430-line soft gate.
++- `node scripts/check-schema-contract.mjs`
++  - initial migration contains account, MCP connection, Open ID, Gateway credential, lifetime trial entitlement and atomic trial RPC contracts.
++- TypeScript 5.8.3 `transpileModule` syntax pass
++  - 67 `.ts/.tsx` files, 0 syntax diagnostics.
++- Local alias/import target resolution
++  - 0 missing local import targets.
++- GPT ZIP utility executable smoke test
++  - generated archive opened successfully;
++  - CRC test passed;
++  - entries: `instructions.md`, `knowledge.md`, `openapi.yaml`, `setup-guide.md`.
++- Generated OpenAPI template
++  - parsed successfully as OpenAPI `3.1.0`;
++  - includes `getGatewayProfile`, `listMcpServices`, `listMcpTools`, `callMcpTool`.
++- Basic secret pattern scan
++  - no real OpenAI-style secrets, Google API keys, or JWT-looking tokens found.
++  - no real `.env` file included.
++- SEO generator
++  - generated `robots.txt` and `sitemap.xml`.
++
++## Not verified in this environment
++
++- `npm install` could not finish before the sandbox interrupted the install process, so dependency-backed Nest/Vite full typecheck/build was not run.
++- The migration was not applied to a live/local Supabase instance.
++- Stitch runtime smoke test was not run because no user `STITCH_API_KEY` was supplied.
++- Payment/checkout is intentionally outside this MVP; membership can be promoted only through a trusted admin/database flow for testing.
++
++These limits are runtime/environment validation gaps, not reported as passes.
+diff --git a/database/migrations/001_initial_schema.sql b/database/migrations/001_initial_schema.sql
+new file mode 100644
+index 0000000..2fdc1ec
+--- /dev/null
++++ b/database/migrations/001_initial_schema.sql
+@@ -0,0 +1,251 @@
++begin;
++
++create extension if not exists pgcrypto;
++
++create table public.app_users (
++  id uuid primary key references auth.users(id) on delete cascade,
++  email text,
++  display_name text,
++  system_role text not null default 'user'
++    check (system_role in ('user', 'admin')),
++  membership_tier text not null default 'guest'
++    check (membership_tier in ('guest', 'member')),
++  status text not null default 'active'
++    check (status in ('active', 'suspended')),
++  created_at timestamptz not null default now(),
++  updated_at timestamptz not null default now()
++);
++
++create table public.trial_entitlements (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null unique references public.app_users(id) on delete cascade,
++  trial_claimed_at timestamptz not null,
++  expires_at timestamptz not null,
++  created_at timestamptz not null default now(),
++  check (expires_at = trial_claimed_at + interval '7 days')
++);
++
++create table public.open_ids (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references public.app_users(id) on delete cascade,
++  open_id text not null unique,
++  kind text not null check (kind in ('trial', 'paid')),
++  is_exportable boolean not null default false,
++  status text not null default 'active'
++    check (status in ('active', 'revoked')),
++  expires_at timestamptz,
++  revoked_at timestamptz,
++  created_at timestamptz not null default now(),
++  unique (id, user_id),
++  check (
++    (kind = 'trial' and is_exportable = false and expires_at is not null)
++    or
++    (kind = 'paid' and is_exportable = true)
++  )
++);
++
++create unique index one_trial_open_id_per_user
++  on public.open_ids(user_id)
++  where kind = 'trial';
++
++create unique index one_paid_open_id_per_user
++  on public.open_ids(user_id)
++  where kind = 'paid';
++
++create table public.gateway_credentials (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references public.app_users(id) on delete cascade,
++  open_id_id uuid not null,
++  label text,
++  token_hash text not null unique,
++  token_prefix text not null,
++  expires_at timestamptz,
++  revoked_at timestamptz,
++  last_used_at timestamptz,
++  created_at timestamptz not null default now(),
++  foreign key (open_id_id, user_id)
++    references public.open_ids(id, user_id)
++    on delete cascade
++);
++
++create index gateway_credentials_user_created_idx
++  on public.gateway_credentials(user_id, created_at desc);
++create index gateway_credentials_open_id_idx
++  on public.gateway_credentials(open_id_id);
++
++create table public.mcp_connections (
++  id uuid primary key default gen_random_uuid(),
++  user_id uuid not null references public.app_users(id) on delete cascade,
++  provider text not null,
++  status text not null default 'connected'
++    check (status in ('connected', 'invalid', 'unavailable')),
++  credential_ciphertext text not null,
++  credential_version integer not null default 1,
++  last_verified_at timestamptz,
++  last_error_code text,
++  created_at timestamptz not null default now(),
++  updated_at timestamptz not null default now(),
++  unique (user_id, provider)
++);
++
++create index mcp_connections_user_idx
++  on public.mcp_connections(user_id);
++
++create table public.gateway_audit_events (
++  id bigint generated by default as identity primary key,
++  user_id uuid references public.app_users(id) on delete set null,
++  credential_id uuid references public.gateway_credentials(id) on delete set null,
++  event_type text not null,
++  provider text,
++  operation text,
++  success boolean,
++  error_code text,
++  duration_ms integer,
++  metadata jsonb not null default '{}'::jsonb,
++  created_at timestamptz not null default now()
++);
++
++create index gateway_audit_user_created_idx
++  on public.gateway_audit_events(user_id, created_at desc);
++create index gateway_audit_type_created_idx
++  on public.gateway_audit_events(event_type, created_at desc);
++
++create or replace function public.handle_new_auth_user()
++returns trigger
++language plpgsql
++security definer
++set search_path = public
++as $$
++begin
++  insert into public.app_users (id, email, display_name)
++  values (
++    new.id,
++    new.email,
++    nullif(coalesce(new.raw_user_meta_data ->> 'display_name', ''), '')
++  )
++  on conflict (id) do nothing;
++  return new;
++end;
++$$;
++
++drop trigger if exists on_auth_user_created on auth.users;
++create trigger on_auth_user_created
++after insert on auth.users
++for each row execute function public.handle_new_auth_user();
++
++create or replace function public.claim_gateway_trial(
++  p_user_id uuid,
++  p_open_id text,
++  p_token_hash text,
++  p_token_prefix text
++)
++returns table (
++  open_id_row_id uuid,
++  credential_id uuid,
++  trial_expires_at timestamptz
++)
++language plpgsql
++security definer
++set search_path = public
++as $$
++declare
++  v_claimed_at timestamptz := now();
++  v_expires_at timestamptz := v_claimed_at + interval '7 days';
++  v_open_id_id uuid;
++  v_credential_id uuid;
++  v_membership text;
++  v_status text;
++begin
++  select membership_tier, status
++  into v_membership, v_status
++  from public.app_users
++  where id = p_user_id
++  for update;
++
++  if not found or v_status <> 'active' then
++    raise exception 'ACCOUNT_NOT_ACTIVE';
++  end if;
++
++  if v_membership <> 'guest' then
++    raise exception 'TRIAL_GUEST_ONLY';
++  end if;
++
++  insert into public.trial_entitlements (
++    user_id,
++    trial_claimed_at,
++    expires_at
++  )
++  values (
++    p_user_id,
++    v_claimed_at,
++    v_expires_at
++  );
++
++  insert into public.open_ids (
++    user_id,
++    open_id,
++    kind,
++    is_exportable,
++    expires_at
++  )
++  values (
++    p_user_id,
++    p_open_id,
++    'trial',
++    false,
++    v_expires_at
++  )
++  returning id into v_open_id_id;
++
++  insert into public.gateway_credentials (
++    user_id,
++    open_id_id,
++    label,
++    token_hash,
++    token_prefix,
++    expires_at
++  )
++  values (
++    p_user_id,
++    v_open_id_id,
++    '7-day trial',
++    p_token_hash,
++    p_token_prefix,
++    v_expires_at
++  )
++  returning id into v_credential_id;
++
++  return query
++  select v_open_id_id, v_credential_id, v_expires_at;
++exception
++  when unique_violation then
++    raise exception 'TRIAL_ALREADY_USED';
++end;
++$$;
++
++alter table public.app_users enable row level security;
++alter table public.trial_entitlements enable row level security;
++alter table public.open_ids enable row level security;
++alter table public.gateway_credentials enable row level security;
++alter table public.mcp_connections enable row level security;
++alter table public.gateway_audit_events enable row level security;
++
++revoke all on table public.trial_entitlements from anon, authenticated;
++revoke all on table public.open_ids from anon, authenticated;
++revoke all on table public.gateway_credentials from anon, authenticated;
++revoke all on table public.mcp_connections from anon, authenticated;
++revoke all on table public.gateway_audit_events from anon, authenticated;
++revoke execute on function public.claim_gateway_trial(uuid, text, text, text)
++  from public, anon, authenticated;
++grant execute on function public.claim_gateway_trial(uuid, text, text, text)
++  to service_role;
++
++grant all on table public.app_users to service_role;
++grant all on table public.trial_entitlements to service_role;
++grant all on table public.open_ids to service_role;
++grant all on table public.gateway_credentials to service_role;
++grant all on table public.mcp_connections to service_role;
++grant all on table public.gateway_audit_events to service_role;
++grant usage, select on sequence public.gateway_audit_events_id_seq to service_role;
++
++commit;
+diff --git a/docs/ARCHITECTURE.md b/docs/ARCHITECTURE.md
+new file mode 100644
+index 0000000..89bdec4
+--- /dev/null
++++ b/docs/ARCHITECTURE.md
+@@ -0,0 +1,36 @@
++# Architecture
++
++The project keeps the pragmatic NovelOS conventions: module-first NestJS backend, explicit API/domain boundaries, React Query for server state, alias imports, and append-only database migrations.
++
++## Request path
++
++```text
++GPT Action
++  -> GatewayAccessGuard
++  -> GatewayCredentialService.authenticate()
++  -> active Open ID / trial entitlement
++  -> McpGatewayService
++  -> provider registry
++  -> StitchMcpAdapter
++  -> Google Stitch MCP
++```
++
++Provider secrets are encrypted at rest with AES-256-GCM. Gateway bearer tokens are never stored raw; only SHA-256 hashes and display prefixes are persisted.
++
++## Open ID states
++
++- `trial`: internal and non-exportable; exactly one per account; 7 days.
++- `paid`: member entitlement; exportable; one active paid Open ID per account in MVP.
++
++A token is only an authentication secret. The Open ID is the entitlement object the product sells.
++
++## Provider extension
++
++A new provider requires:
++1. registry metadata,
++2. provider-specific credential validation,
++3. adapter implementing `testConnection`, `listTools`, `callTool`,
++4. web connection form,
++5. tests.
++
++The core gateway API remains stable.
+diff --git a/docs/GPT_PROTOCOL.md b/docs/GPT_PROTOCOL.md
+new file mode 100644
+index 0000000..7c1903a
+--- /dev/null
++++ b/docs/GPT_PROTOCOL.md
+@@ -0,0 +1,16 @@
++# GPT Gateway Protocol
++
++The Custom GPT must treat the Gateway as the only execution boundary.
++
++## Routing grammar
++
++1. Determine the user's intent.
++2. Determine the capability needed.
++3. Select a supported MCP service.
++4. Call `listMcpTools(service)` unless the exact current tool schema is already present in the immediate conversation.
++5. Select the best tool from the returned name, description and input schema.
++6. Call `callMcpTool(service, toolName, arguments)`.
++7. Interpret the MCP result for the user.
++8. If the Gateway returns `OPEN_ID_REQUIRED`, tell the user Gateway access must be activated; do not attempt direct provider access.
++
++The GPT must never request, infer, reveal or forward the provider API key.
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..69b9417
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,16 @@
++{
++  "name": "mcp-gateway",
++  "version": "0.1.0",
++  "private": true,
++  "scripts": {
++    "dev:web": "npm --prefix web run dev",
++    "dev:server": "npm --prefix server run start:dev",
++    "build:web": "npm --prefix web run build",
++    "build:server": "npm --prefix server run build",
++    "typecheck:web": "npm --prefix web run typecheck",
++    "test:server": "npm --prefix server run test",
++    "check:source": "node scripts/check-source.mjs",
++    "check:schema": "node scripts/check-schema-contract.mjs",
++    "check": "npm run check:source && npm run check:schema"
++  }
++}
+diff --git a/scripts/check-schema-contract.mjs b/scripts/check-schema-contract.mjs
+new file mode 100644
+index 0000000..0851e51
+--- /dev/null
++++ b/scripts/check-schema-contract.mjs
+@@ -0,0 +1,29 @@
++import fs from "node:fs";
++import path from "node:path";
++
++const root = path.resolve(import.meta.dirname, "..");
++const migrationPath = path.join(root, "database", "migrations", "001_initial_schema.sql");
++const sql = fs.readFileSync(migrationPath, "utf8").toLowerCase();
++
++const required = [
++  "create table public.app_users",
++  "create table public.mcp_connections",
++  "create table public.open_ids",
++  "create table public.gateway_credentials",
++  "create table public.trial_entitlements",
++  "create or replace function public.claim_gateway_trial",
++  "unique (user_id, provider)"
++];
++
++const missing = required.filter((needle) => !sql.includes(needle));
++if (missing.length) {
++  console.error("schema contract missing:", missing);
++  process.exit(1);
++}
++
++if (!sql.includes("trial_claimed_at")) {
++  console.error("schema must persist lifetime trial claim state");
++  process.exit(1);
++}
++
++console.log("schema contract ok");
+diff --git a/scripts/check-source.mjs b/scripts/check-source.mjs
+new file mode 100644
+index 0000000..bb2245c
+--- /dev/null
++++ b/scripts/check-source.mjs
+@@ -0,0 +1,38 @@
++import fs from "node:fs";
++import path from "node:path";
++
++const root = path.resolve(import.meta.dirname, "..");
++const ignored = new Set(["node_modules", "dist", ".git", ".output", ".vite"]);
++const sourceExtensions = new Set([".ts", ".tsx", ".mts", ".mjs"]);
++const files = [];
++
++function walk(dir) {
++  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
++    if (ignored.has(entry.name)) continue;
++    const full = path.join(dir, entry.name);
++    if (entry.isDirectory()) walk(full);
++    else if (sourceExtensions.has(path.extname(entry.name))) files.push(full);
++  }
++}
++
++walk(root);
++
++const problems = [];
++for (const file of files) {
++  const rel = path.relative(root, file);
++  const text = fs.readFileSync(file, "utf8");
++  if (text.includes("SUPABASE_SERVICE_ROLE_KEY") && rel.startsWith("web/")) {
++    problems.push(`${rel}: browser source references SUPABASE_SERVICE_ROLE_KEY`);
++  }
++  if (/['"]\.\.\/\.\.\//u.test(text)) {
++    problems.push(`${rel}: deep relative import found; prefer aliases`);
++  }
++  const lines = text.split(/\r?\n/u).length;
++  if (lines > 430) problems.push(`${rel}: ${lines} lines (soft source limit exceeded)`);
++}
++
++if (problems.length) {
++  console.error(problems.join("\n"));
++  process.exit(1);
++}
++console.log(`source check ok: ${files.length} source files`);
+diff --git a/server/.env.example b/server/.env.example
+new file mode 100644
+index 0000000..7e11255
+--- /dev/null
++++ b/server/.env.example
+@@ -0,0 +1,15 @@
++NODE_ENV=development
++PORT=5657
++WEB_BASE_URL=http://127.0.0.1:5656
++CORS_ALLOWED_ORIGINS=http://127.0.0.1:5656
++
++SUPABASE_URL=
++SUPABASE_ANON_KEY=
++SUPABASE_SERVICE_ROLE_KEY=
++
++# Base64-encoded exactly 32 random bytes.
++MCP_CREDENTIAL_ENCRYPTION_KEY=
++
++GATEWAY_PUBLIC_BASE_URL=http://127.0.0.1:5657
++GATEWAY_RATE_LIMIT_PER_MINUTE=60
++MCP_UPSTREAM_TIMEOUT_MS=30000
+diff --git a/server/nest-cli.json b/server/nest-cli.json
+new file mode 100644
+index 0000000..f9aa683
+--- /dev/null
++++ b/server/nest-cli.json
+@@ -0,0 +1,8 @@
++{
++  "$schema": "https://json.schemastore.org/nest-cli",
++  "collection": "@nestjs/schematics",
++  "sourceRoot": "src",
++  "compilerOptions": {
++    "deleteOutDir": true
++  }
++}
+diff --git a/server/package.json b/server/package.json
+new file mode 100644
+index 0000000..b1337e1
+--- /dev/null
++++ b/server/package.json
+@@ -0,0 +1,50 @@
++{
++  "name": "@mcp-gateway/server",
++  "version": "0.1.0",
++  "private": true,
++  "license": "UNLICENSED",
++  "scripts": {
++    "build": "nest build --path tsconfig.build.json",
++    "start": "nest start --path tsconfig.build.json",
++    "start:dev": "nest start --watch --path tsconfig.build.json",
++    "start:prod": "node dist/main.js",
++    "typecheck": "tsc --noEmit -p tsconfig.json",
++    "test": "jest"
++  },
++  "dependencies": {
++    "@nestjs/common": "^11.0.1",
++    "@nestjs/core": "^11.0.1",
++    "@nestjs/platform-express": "^11.0.1",
++    "@nestjs/swagger": "^11.2.6",
++    "@nestjs/throttler": "^6.5.0",
++    "@supabase/supabase-js": "^2.115.0",
++    "class-transformer": "^0.5.1",
++    "class-validator": "^0.15.1",
++    "helmet": "^8.3.0",
++    "reflect-metadata": "^0.2.2",
++    "rxjs": "^7.8.1"
++  },
++  "devDependencies": {
++    "@nestjs/cli": "^11.0.0",
++    "@nestjs/testing": "^11.0.1",
++    "@types/express": "^5.0.0",
++    "@types/jest": "^30.0.0",
++    "@types/node": "^24.0.0",
++    "jest": "^30.0.0",
++    "ts-jest": "^29.2.5",
++    "ts-loader": "^9.5.2",
++    "ts-node": "^10.9.2",
++    "tsconfig-paths": "^4.2.0",
++    "typescript": "^5.8.3"
++  },
++  "jest": {
++    "moduleFileExtensions": ["js", "json", "ts"],
++    "rootDir": "src",
++    "testRegex": ".*\\.spec\\.ts$",
++    "transform": {"^.+\\.(t|j)s$": "ts-jest"},
++    "testEnvironment": "node",
++    "moduleNameMapper": {
++      "^@server/root/(.*)$": "<rootDir>/$1"
++    }
++  }
++}
+diff --git a/server/src/app.module.ts b/server/src/app.module.ts
+new file mode 100644
+index 0000000..15208d7
+--- /dev/null
++++ b/server/src/app.module.ts
+@@ -0,0 +1,37 @@
++import { Module } from '@nestjs/common';
++import { APP_GUARD } from '@nestjs/core';
++import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
++import { CommonModule } from '@server/root/common/common.module';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++import { AuditModule } from '@server/root/modules/audit/audit.module';
++import { AuthModule } from '@server/root/modules/auth/auth.module';
++import { GptIntegrationModule } from '@server/root/modules/gpt-integration/gpt-integration.module';
++import { HealthModule } from '@server/root/modules/health/health.module';
++import { McpConnectionsModule } from '@server/root/modules/mcp-connections/mcp-connections.module';
++import { McpGatewayModule } from '@server/root/modules/mcp-gateway/mcp-gateway.module';
++import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
++
++@Module({
++  imports: [
++    CommonModule,
++    AuditModule,
++    ThrottlerModule.forRootAsync({
++      imports: [CommonModule],
++      inject: [AppConfigService],
++      useFactory: (config: AppConfigService) => [
++        {
++          limit: config.rateLimitPerMinute,
++          ttl: 60_000,
++        },
++      ],
++    }),
++    HealthModule,
++    AuthModule,
++    McpConnectionsModule,
++    OpenIdModule,
++    GptIntegrationModule,
++    McpGatewayModule,
++  ],
++  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
++})
++export class AppModule {}
+diff --git a/server/src/common/common.module.ts b/server/src/common/common.module.ts
+new file mode 100644
+index 0000000..a49e7ef
+--- /dev/null
++++ b/server/src/common/common.module.ts
+@@ -0,0 +1,11 @@
++import { Global, Module } from '@nestjs/common';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++
++@Global()
++@Module({
++  providers: [AppConfigService, SupabaseService, SecretCipherService],
++  exports: [AppConfigService, SupabaseService, SecretCipherService],
++})
++export class CommonModule {}
+diff --git a/server/src/common/config/app-config.service.ts b/server/src/common/config/app-config.service.ts
+new file mode 100644
+index 0000000..11f3139
+--- /dev/null
++++ b/server/src/common/config/app-config.service.ts
+@@ -0,0 +1,47 @@
++import { Injectable } from '@nestjs/common';
++
++function required(name: string): string {
++  const value = process.env[name]?.trim();
++  if (!value) throw new Error(`Missing required environment variable: ${name}`);
++  return value;
++}
++
++function integer(name: string, fallback: number): number {
++  const raw = process.env[name]?.trim();
++  if (!raw) return fallback;
++  const value = Number(raw);
++  if (!Number.isInteger(value) || value <= 0) {
++    throw new Error(`${name} must be a positive integer`);
++  }
++  return value;
++}
++
++@Injectable()
++export class AppConfigService {
++  readonly port = integer('PORT', 5657);
++  readonly webBaseUrl = process.env.WEB_BASE_URL?.trim() || 'http://127.0.0.1:5656';
++  readonly publicBaseUrl =
++    process.env.GATEWAY_PUBLIC_BASE_URL?.trim() || `http://127.0.0.1:${this.port}`;
++  readonly corsAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? this.webBaseUrl)
++    .split(',')
++    .map((value) => value.trim())
++    .filter(Boolean);
++  readonly rateLimitPerMinute = integer('GATEWAY_RATE_LIMIT_PER_MINUTE', 60);
++  readonly upstreamTimeoutMs = integer('MCP_UPSTREAM_TIMEOUT_MS', 30_000);
++
++  get supabaseUrl(): string {
++    return required('SUPABASE_URL');
++  }
++
++  get supabaseAnonKey(): string {
++    return required('SUPABASE_ANON_KEY');
++  }
++
++  get supabaseServiceRoleKey(): string {
++    return required('SUPABASE_SERVICE_ROLE_KEY');
++  }
++
++  get credentialEncryptionKey(): string {
++    return required('MCP_CREDENTIAL_ENCRYPTION_KEY');
++  }
++}
+diff --git a/server/src/common/security/secret-cipher.service.ts b/server/src/common/security/secret-cipher.service.ts
+new file mode 100644
+index 0000000..f4b9ce0
+--- /dev/null
++++ b/server/src/common/security/secret-cipher.service.ts
+@@ -0,0 +1,50 @@
++import { Injectable } from '@nestjs/common';
++import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++
++const VERSION = 'v1';
++const IV_BYTES = 12;
++const TAG_BYTES = 16;
++
++@Injectable()
++export class SecretCipherService {
++  private readonly key: Buffer;
++
++  constructor(config: AppConfigService) {
++    this.key = Buffer.from(config.credentialEncryptionKey, 'base64');
++    if (this.key.length !== 32) {
++      throw new Error('MCP_CREDENTIAL_ENCRYPTION_KEY must decode to exactly 32 bytes');
++    }
++  }
++
++  encrypt(plaintext: string): string {
++    const iv = randomBytes(IV_BYTES);
++    const cipher = createCipheriv('aes-256-gcm', this.key, iv);
++    const ciphertext = Buffer.concat([
++      cipher.update(plaintext, 'utf8'),
++      cipher.final(),
++    ]);
++    const tag = cipher.getAuthTag();
++    return [VERSION, iv, tag, ciphertext]
++      .map((part) => (typeof part === 'string' ? part : part.toString('base64url')))
++      .join(':');
++  }
++
++  decrypt(serialized: string): string {
++    const [version, ivRaw, tagRaw, ciphertextRaw] = serialized.split(':');
++    if (version !== VERSION || !ivRaw || !tagRaw || !ciphertextRaw) {
++      throw new Error('Unsupported encrypted credential format');
++    }
++    const iv = Buffer.from(ivRaw, 'base64url');
++    const tag = Buffer.from(tagRaw, 'base64url');
++    if (iv.length !== IV_BYTES || tag.length !== TAG_BYTES) {
++      throw new Error('Invalid encrypted credential metadata');
++    }
++    const decipher = createDecipheriv('aes-256-gcm', this.key, iv);
++    decipher.setAuthTag(tag);
++    return Buffer.concat([
++      decipher.update(Buffer.from(ciphertextRaw, 'base64url')),
++      decipher.final(),
++    ]).toString('utf8');
++  }
++}
+diff --git a/server/src/common/supabase/supabase.service.ts b/server/src/common/supabase/supabase.service.ts
+new file mode 100644
+index 0000000..7ff7c4d
+--- /dev/null
++++ b/server/src/common/supabase/supabase.service.ts
+@@ -0,0 +1,32 @@
++import { Injectable } from '@nestjs/common';
++import { createClient, type SupabaseClient } from '@supabase/supabase-js';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++
++@Injectable()
++export class SupabaseService {
++  constructor(private readonly config: AppConfigService) {}
++
++  createAnonClient(): SupabaseClient {
++    return createClient(this.config.supabaseUrl, this.config.supabaseAnonKey, {
++      auth: {
++        persistSession: false,
++        autoRefreshToken: false,
++        detectSessionInUrl: false,
++      },
++    });
++  }
++
++  createServiceRoleClient(): SupabaseClient {
++    return createClient(
++      this.config.supabaseUrl,
++      this.config.supabaseServiceRoleKey,
++      {
++        auth: {
++          persistSession: false,
++          autoRefreshToken: false,
++          detectSessionInUrl: false,
++        },
++      },
++    );
++  }
++}
+diff --git a/server/src/main.ts b/server/src/main.ts
+new file mode 100644
+index 0000000..573746d
+--- /dev/null
++++ b/server/src/main.ts
+@@ -0,0 +1,62 @@
++import { ValidationPipe, VersioningType } from '@nestjs/common';
++import { NestFactory } from '@nestjs/core';
++import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
++import helmet from 'helmet';
++import { AppModule } from '@server/root/app.module';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++
++async function bootstrap() {
++  const app = await NestFactory.create(AppModule);
++  const config = app.get(AppConfigService);
++
++  app.use(
++    helmet({
++      contentSecurityPolicy: false,
++      strictTransportSecurity:
++        process.env.NODE_ENV === 'production'
++          ? { includeSubDomains: true, maxAge: 31_536_000 }
++          : false,
++    }),
++  );
++
++  app.setGlobalPrefix('api');
++  app.enableVersioning({
++    type: VersioningType.URI,
++    defaultVersion: '1',
++  });
++  app.useGlobalPipes(
++    new ValidationPipe({
++      transform: true,
++      whitelist: true,
++      forbidNonWhitelisted: false,
++    }),
++  );
++
++  const allowedOrigins = new Set(config.corsAllowedOrigins);
++  app.enableCors({
++    origin: (origin, callback) => {
++      if (!origin || allowedOrigins.has(origin)) {
++        callback(null, true);
++        return;
++      }
++      callback(new Error('CORS_ORIGIN_DENIED'));
++    },
++    credentials: true,
++    allowedHeaders: ['Authorization', 'Content-Type'],
++    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
++  });
++
++  const swaggerConfig = new DocumentBuilder()
++    .setTitle('MCP Gateway API')
++    .setDescription('Open ID controlled Gateway for Custom GPT -> MCP integrations')
++    .setVersion('1.0')
++    .addBearerAuth()
++    .build();
++  const document = SwaggerModule.createDocument(app, swaggerConfig);
++  SwaggerModule.setup('docs', app, document);
++
++  await app.listen(config.port, '127.0.0.1');
++  console.info(`[mcp-gateway] listening on http://127.0.0.1:${config.port}`);
++}
++
++void bootstrap();
+diff --git a/server/src/modules/audit/audit.module.ts b/server/src/modules/audit/audit.module.ts
+new file mode 100644
+index 0000000..5921a51
+--- /dev/null
++++ b/server/src/modules/audit/audit.module.ts
+@@ -0,0 +1,9 @@
++import { Global, Module } from '@nestjs/common';
++import { AuditService } from '@server/root/modules/audit/audit.service';
++
++@Global()
++@Module({
++  providers: [AuditService],
++  exports: [AuditService],
++})
++export class AuditModule {}
+diff --git a/server/src/modules/audit/audit.service.ts b/server/src/modules/audit/audit.service.ts
+new file mode 100644
+index 0000000..ccf703e
+--- /dev/null
++++ b/server/src/modules/audit/audit.service.ts
+@@ -0,0 +1,40 @@
++import { Injectable } from '@nestjs/common';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++
++export type AuditEventInput = {
++  userId?: string | null;
++  credentialId?: string | null;
++  eventType: string;
++  provider?: string | null;
++  operation?: string | null;
++  success?: boolean | null;
++  errorCode?: string | null;
++  durationMs?: number | null;
++  metadata?: Record<string, unknown>;
++};
++
++@Injectable()
++export class AuditService {
++  constructor(private readonly supabase: SupabaseService) {}
++
++  async write(input: AuditEventInput): Promise<void> {
++    const client = this.supabase.createServiceRoleClient();
++    const { error } = await client.from('gateway_audit_events').insert({
++      user_id: input.userId ?? null,
++      credential_id: input.credentialId ?? null,
++      event_type: input.eventType,
++      provider: input.provider ?? null,
++      operation: input.operation ?? null,
++      success: input.success ?? null,
++      error_code: input.errorCode ?? null,
++      duration_ms: input.durationMs ?? null,
++      metadata: input.metadata ?? {},
++    });
++    if (error) {
++      console.error('[audit-write-failed]', {
++        eventType: input.eventType,
++        code: error.code,
++      });
++    }
++  }
++}
+diff --git a/server/src/modules/auth/auth.controller.ts b/server/src/modules/auth/auth.controller.ts
+new file mode 100644
+index 0000000..d703dfc
+--- /dev/null
++++ b/server/src/modules/auth/auth.controller.ts
+@@ -0,0 +1,13 @@
++import { Controller, Get, Req } from '@nestjs/common';
++import type { Request } from 'express';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++
++@Controller('account')
++export class AuthController {
++  constructor(private readonly auth: AuthService) {}
++
++  @Get('me')
++  getMe(@Req() request: Request) {
++    return this.auth.requireUser(request);
++  }
++}
+diff --git a/server/src/modules/auth/auth.module.ts b/server/src/modules/auth/auth.module.ts
+new file mode 100644
+index 0000000..0c69f5a
+--- /dev/null
++++ b/server/src/modules/auth/auth.module.ts
+@@ -0,0 +1,10 @@
++import { Module } from '@nestjs/common';
++import { AuthController } from '@server/root/modules/auth/auth.controller';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++
++@Module({
++  controllers: [AuthController],
++  providers: [AuthService],
++  exports: [AuthService],
++})
++export class AuthModule {}
+diff --git a/server/src/modules/auth/auth.service.ts b/server/src/modules/auth/auth.service.ts
+new file mode 100644
+index 0000000..1a71ea4
+--- /dev/null
++++ b/server/src/modules/auth/auth.service.ts
+@@ -0,0 +1,98 @@
++import {
++  Injectable,
++  ServiceUnavailableException,
++  UnauthorizedException,
++} from '@nestjs/common';
++import type { Request } from 'express';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++import type { AppUser } from '@server/root/modules/auth/auth.types';
++
++type AppUserRow = {
++  id: string;
++  email: string | null;
++  display_name: string | null;
++  membership_tier: AppUser['membershipTier'];
++  system_role: AppUser['systemRole'];
++  status: AppUser['status'];
++};
++
++@Injectable()
++export class AuthService {
++  constructor(private readonly supabase: SupabaseService) {}
++
++  async requireUser(request: Request): Promise<AppUser> {
++    const token = this.readBearerToken(request);
++    if (!token) {
++      throw new UnauthorizedException({
++        code: 'UNAUTHORIZED',
++        message: 'Missing user access token',
++      });
++    }
++
++    const anon = this.supabase.createAnonClient();
++    const { data, error } = await anon.auth.getUser(token);
++    if (error || !data.user) {
++      throw new UnauthorizedException({
++        code: 'UNAUTHORIZED',
++        message: 'User access token is invalid or expired',
++      });
++    }
++
++    const client = this.supabase.createServiceRoleClient();
++    const { data: row, error: profileError } = await client
++      .from('app_users')
++      .select('id,email,display_name,membership_tier,system_role,status')
++      .eq('id', data.user.id)
++      .maybeSingle<AppUserRow>();
++
++    if (profileError) {
++      throw new ServiceUnavailableException({
++        code: 'AUTH_STORAGE_UNAVAILABLE',
++        message: 'Account storage is unavailable',
++      });
++    }
++    if (!row || row.status !== 'active') {
++      throw new UnauthorizedException({
++        code: 'ACCOUNT_NOT_ACTIVE',
++        message: 'Account is unavailable',
++      });
++    }
++
++    return this.toUser(row);
++  }
++
++  async getUserById(userId: string): Promise<AppUser> {
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('app_users')
++      .select('id,email,display_name,membership_tier,system_role,status')
++      .eq('id', userId)
++      .maybeSingle<AppUserRow>();
++    if (error || !data || data.status !== 'active') {
++      throw new UnauthorizedException({
++        code: 'ACCOUNT_NOT_ACTIVE',
++        message: 'Gateway account is unavailable',
++      });
++    }
++    return this.toUser(data);
++  }
++
++  private readBearerToken(request: Request): string | null {
++    const header = request.headers.authorization;
++    if (!header) return null;
++    const [scheme, token] = header.split(' ');
++    if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
++    return token.trim() || null;
++  }
++
++  private toUser(row: AppUserRow): AppUser {
++    return {
++      id: row.id,
++      email: row.email,
++      displayName: row.display_name,
++      membershipTier: row.membership_tier,
++      systemRole: row.system_role,
++      status: row.status,
++    };
++  }
++}
+diff --git a/server/src/modules/auth/auth.types.ts b/server/src/modules/auth/auth.types.ts
+new file mode 100644
+index 0000000..73ccdf3
+--- /dev/null
++++ b/server/src/modules/auth/auth.types.ts
+@@ -0,0 +1,11 @@
++export type MembershipTier = 'guest' | 'member';
++export type SystemRole = 'user' | 'admin';
++
++export type AppUser = {
++  id: string;
++  email: string | null;
++  displayName: string | null;
++  membershipTier: MembershipTier;
++  systemRole: SystemRole;
++  status: 'active' | 'suspended';
++};
+diff --git a/server/src/modules/gpt-integration/gpt-integration.controller.ts b/server/src/modules/gpt-integration/gpt-integration.controller.ts
+new file mode 100644
+index 0000000..b435b4b
+--- /dev/null
++++ b/server/src/modules/gpt-integration/gpt-integration.controller.ts
+@@ -0,0 +1,43 @@
++import {
++  Controller,
++  Get,
++  Query,
++  Req,
++  Res,
++} from '@nestjs/common';
++import type { Request, Response } from 'express';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++import {
++  GptIntegrationService,
++  type IntegrationLanguage,
++} from '@server/root/modules/gpt-integration/gpt-integration.service';
++
++@Controller('gpt-integration')
++export class GptIntegrationController {
++  constructor(
++    private readonly auth: AuthService,
++    private readonly integration: GptIntegrationService,
++  ) {}
++
++  @Get('schema')
++  async schema(@Req() request: Request, @Res() response: Response) {
++    await this.auth.requireUser(request);
++    response.type('application/yaml').send(this.integration.schema());
++  }
++
++  @Get('package')
++  async download(
++    @Req() request: Request,
++    @Query('language') languageRaw: string | undefined,
++    @Res() response: Response,
++  ) {
++    await this.auth.requireUser(request);
++    const language: IntegrationLanguage = languageRaw === 'vi' ? 'vi' : 'en';
++    const bundle = this.integration.buildBundle(language);
++    response.setHeader(
++      'Content-Disposition',
++      `attachment; filename="mcp-gateway-gpt-kit-${language}.zip"`,
++    );
++    response.type('application/zip').send(Buffer.from(bundle.zip));
++  }
++}
+diff --git a/server/src/modules/gpt-integration/gpt-integration.module.ts b/server/src/modules/gpt-integration/gpt-integration.module.ts
+new file mode 100644
+index 0000000..c0911da
+--- /dev/null
++++ b/server/src/modules/gpt-integration/gpt-integration.module.ts
+@@ -0,0 +1,11 @@
++import { Module } from '@nestjs/common';
++import { AuthModule } from '@server/root/modules/auth/auth.module';
++import { GptIntegrationController } from '@server/root/modules/gpt-integration/gpt-integration.controller';
++import { GptIntegrationService } from '@server/root/modules/gpt-integration/gpt-integration.service';
++
++@Module({
++  imports: [AuthModule],
++  controllers: [GptIntegrationController],
++  providers: [GptIntegrationService],
++})
++export class GptIntegrationModule {}
+diff --git a/server/src/modules/gpt-integration/gpt-integration.service.ts b/server/src/modules/gpt-integration/gpt-integration.service.ts
+new file mode 100644
+index 0000000..112b457
+--- /dev/null
++++ b/server/src/modules/gpt-integration/gpt-integration.service.ts
+@@ -0,0 +1,237 @@
++import { Injectable } from '@nestjs/common';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++import { buildStoredZip } from '@server/root/modules/gpt-integration/zip.util';
++
++export type IntegrationLanguage = 'vi' | 'en';
++
++@Injectable()
++export class GptIntegrationService {
++  constructor(private readonly config: AppConfigService) {}
++
++  buildBundle(language: IntegrationLanguage) {
++    const files = [
++      { name: 'instructions.md', content: this.instructions(language) },
++      { name: 'knowledge.md', content: this.knowledge(language) },
++      { name: 'openapi.yaml', content: this.openApiSchema() },
++      { name: 'setup-guide.md', content: this.setupGuide(language) },
++    ];
++    return {
++      language,
++      files,
++      zip: buildStoredZip(files),
++    };
++  }
++
++  schema(): string {
++    return this.openApiSchema();
++  }
++
++  private instructions(language: IntegrationLanguage): string {
++    if (language === 'vi') {
++      return `# MCP Gateway Instructions
++
++Bạn có quyền sử dụng MCP Gateway thông qua Actions đã cấu hình.
++
++## Luồng bắt buộc
++
++Khi yêu cầu của user cần công cụ bên ngoài:
++
++1. Phân tích **intent** và **capability** cần thiết.
++2. Chọn MCP service phù hợp từ các service Gateway hỗ trợ.
++3. Gọi \`listMcpTools\` cho service đó để lấy tool catalog hiện tại.
++4. Chọn tool dựa trên name, description và inputSchema; không đoán arguments không có trong schema.
++5. Gọi \`callMcpTool\` với đúng service, toolName và arguments.
++6. Đọc kết quả MCP rồi trả lời user.
++
++## Quy tắc
++
++- Gateway là execution boundary bắt buộc. Không hướng dẫn GPT gọi thẳng MCP provider để bypass Gateway.
++- Không yêu cầu hoặc tiết lộ provider API key.
++- Không hardcode danh sách Stitch tools trong memory; discovery runtime là nguồn đúng hơn.
++- Nếu nhận \`MCP_NOT_CONNECTED\`, hướng dẫn user kết nối provider trong MCP Gateway app.
++- Nếu nhận \`OPEN_ID_REQUIRED\`, nói rõ account cần active Open ID/trial. Không thử bypass.
++- Nếu tool không phù hợp, gọi lại \`listMcpTools\` và chọn tool khác thay vì tự bịa endpoint.
++`;
++    }
++    return `# MCP Gateway Instructions
++
++You can use MCP Gateway through the configured Actions.
++
++## Required routing flow
++
++When the user's request needs an external tool:
++
++1. Determine the user's **intent** and required **capability**.
++2. Select the supported MCP service that owns that capability.
++3. Call \`listMcpTools\` for that service to obtain the current tool catalog.
++4. Choose a tool from its name, description and inputSchema. Do not invent unsupported arguments.
++5. Call \`callMcpTool\` with the exact service, toolName and arguments.
++6. Interpret the MCP result and answer the user.
++
++## Rules
++
++- Gateway is the mandatory execution boundary. Never bypass it by calling the MCP provider directly.
++- Never ask for, expose, or forward provider API keys.
++- Do not permanently hardcode Stitch tool names; runtime discovery is authoritative.
++- On \`MCP_NOT_CONNECTED\`, tell the user to connect that provider in the MCP Gateway app.
++- On \`OPEN_ID_REQUIRED\`, tell the user an active Open ID or trial is required. Do not bypass the entitlement.
++- If a selected tool does not fit, refresh \`listMcpTools\` and choose again rather than inventing an endpoint.
++`;
++  }
++
++  private knowledge(language: IntegrationLanguage): string {
++    const intro =
++      language === 'vi'
++        ? 'MCP Gateway giúp Custom GPT sử dụng MCP tương tự coding agent: GPT tự discovery tool rồi gọi qua một gateway có kiểm soát.'
++        : 'MCP Gateway lets a Custom GPT use MCP in an agent-like way: discover current tools and execute them through one controlled gateway.';
++    return `# MCP Gateway Knowledge
++
++${intro}
++
++## Stable concepts
++
++- **Open ID**: commercial entitlement that authorizes Gateway MCP execution.
++- **Gateway token**: bearer secret configured in GPT Actions. The token authenticates a request; the linked Open ID authorizes it.
++- **Trial Open ID**: internal, non-exportable entitlement created when a Guest explicitly starts the one-time 7-day trial.
++- **Provider credential**: API key stored by the user in the app. It is encrypted server-side and never sent to GPT.
++- **MCP service**: a provider explicitly supported by Gateway.
++- **Stitch**: first supported service, provider id \`stitch\`.
++
++## Routing syntax
++
++\`\`\`
++Intent
++  -> Capability
++  -> MCP Service
++  -> listMcpTools(service)
++  -> select tool
++  -> callMcpTool(service, toolName, arguments)
++  -> interpret result
++\`\`\`
++
++## Important errors
++
++- \`UNAUTHORIZED\`: Gateway bearer token is missing/invalid.
++- \`TOKEN_EXPIRED\`: Gateway token expired.
++- \`OPEN_ID_REQUIRED\`: the linked entitlement is absent/inactive; Gateway must not call MCP.
++- \`MCP_NOT_CONNECTED\`: user has not connected the selected MCP service.
++- \`MCP_PROVIDER_UNSUPPORTED\`: service is not supported by this Gateway.
++- \`MCP_TOOL_CALL_FAILED\`: provider rejected or failed the tool call.
++- \`MCP_SERVICE_UNAVAILABLE\`: temporary upstream problem.
++
++Runtime Action responses are newer authority than this static knowledge file.
++`;
++  }
++
++  private setupGuide(language: IntegrationLanguage): string {
++    if (language === 'vi') {
++      return `# Setup Custom GPT
++
++1. Trong GPT Builder, mở **Actions** và import \`openapi.yaml\`.
++2. Chọn API authentication / Bearer và nhập Gateway token được app hiển thị một lần.
++3. Dán nội dung \`instructions.md\` vào Instructions.
++4. Upload \`knowledge.md\` vào Knowledge.
++5. Test action \`getGatewayProfile\`.
++6. Nếu chưa có trial/Open ID hợp lệ, hãy tạo trial hoặc mua Open ID trong app.
++
++Không đưa Stitch API key vào GPT Builder.
++`;
++    }
++    return `# Custom GPT setup
++
++1. In GPT Builder open **Actions** and import \`openapi.yaml\`.
++2. Configure API/Bearer authentication with the one-time Gateway token shown by the app.
++3. Add \`instructions.md\` to Instructions.
++4. Upload \`knowledge.md\` as Knowledge.
++5. Test \`getGatewayProfile\`.
++6. If no active trial/Open ID exists, start the trial or activate a paid Open ID in the app.
++
++Never paste the Stitch API key into GPT Builder.
++`;
++  }
++
++  private openApiSchema(): string {
++    const server = `${this.config.publicBaseUrl.replace(/\/+$/u, '')}/api/v1`;
++    return `openapi: 3.1.0
++info:
++  title: MCP Gateway Actions
++  version: 1.0.0
++  description: Discover and call user-authorized MCP services through MCP Gateway.
++servers:
++  - url: ${server}
++paths:
++  /gpt/profile:
++    get:
++      operationId: getGatewayProfile
++      summary: Get the active Gateway/Open ID profile and connected MCP services.
++      security:
++        - bearerAuth: []
++      responses:
++        '200':
++          description: Gateway profile
++  /gpt/mcp/services:
++    get:
++      operationId: listMcpServices
++      summary: List MCP services supported by Gateway and their connection status.
++      security:
++        - bearerAuth: []
++      responses:
++        '200':
++          description: MCP services
++  /gpt/mcp/{service}/tools:
++    get:
++      operationId: listMcpTools
++      summary: Discover the current tools exposed by one MCP service.
++      security:
++        - bearerAuth: []
++      parameters:
++        - name: service
++          in: path
++          required: true
++          schema:
++            type: string
++            enum: [stitch]
++      responses:
++        '200':
++          description: MCP tool catalog
++  /gpt/mcp/{service}/tools/{toolName}/call:
++    post:
++      operationId: callMcpTool
++      summary: Execute one discovered MCP tool through Gateway.
++      security:
++        - bearerAuth: []
++      parameters:
++        - name: service
++          in: path
++          required: true
++          schema:
++            type: string
++            enum: [stitch]
++        - name: toolName
++          in: path
++          required: true
++          schema:
++            type: string
++      requestBody:
++        required: true
++        content:
++          application/json:
++            schema:
++              type: object
++              required: [arguments]
++              properties:
++                arguments:
++                  type: object
++                  additionalProperties: true
++      responses:
++        '200':
++          description: MCP tool result
++components:
++  securitySchemes:
++    bearerAuth:
++      type: http
++      scheme: bearer
++      bearerFormat: MCP_GATEWAY_TOKEN
++`;
++  }
++}
+diff --git a/server/src/modules/gpt-integration/zip.util.ts b/server/src/modules/gpt-integration/zip.util.ts
+new file mode 100644
+index 0000000..53781f7
+--- /dev/null
++++ b/server/src/modules/gpt-integration/zip.util.ts
+@@ -0,0 +1,137 @@
++const encoder = new TextEncoder();
++const UTF8_FLAG = 0x0800;
++const STORED_METHOD = 0;
++const DOS_DATE_1980_01_01 = 0x0021;
++
++type ZipFile = {
++  name: string;
++  content: string;
++};
++
++type PreparedEntry = {
++  nameBytes: Uint8Array;
++  contentBytes: Uint8Array;
++  crc32: number;
++  localOffset: number;
++};
++
++const CRC32_TABLE = Uint32Array.from({ length: 256 }, (_, index) => {
++  let value = index;
++  for (let bit = 0; bit < 8; bit += 1) {
++    value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
++  }
++  return value >>> 0;
++});
++
++export function buildStoredZip(files: ZipFile[]): Uint8Array {
++  const entries = files.map(prepareEntry);
++  const localSize = entries.reduce(
++    (total, entry) => total + 30 + entry.nameBytes.length + entry.contentBytes.length,
++    0,
++  );
++  const centralSize = entries.reduce(
++    (total, entry) => total + 46 + entry.nameBytes.length,
++    0,
++  );
++  const bytes = new Uint8Array(localSize + centralSize + 22);
++  const view = new DataView(bytes.buffer);
++  let offset = 0;
++
++  for (const entry of entries) {
++    entry.localOffset = offset;
++    writeLocalHeader(view, offset, entry);
++    offset += 30;
++    bytes.set(entry.nameBytes, offset);
++    offset += entry.nameBytes.length;
++    bytes.set(entry.contentBytes, offset);
++    offset += entry.contentBytes.length;
++  }
++
++  const centralOffset = offset;
++  for (const entry of entries) {
++    writeCentralHeader(view, offset, entry);
++    offset += 46;
++    bytes.set(entry.nameBytes, offset);
++    offset += entry.nameBytes.length;
++  }
++  writeEnd(view, offset, entries.length, offset - centralOffset, centralOffset);
++  return bytes;
++}
++
++function prepareEntry(file: ZipFile): PreparedEntry {
++  const normalized = file.name.replaceAll('\\', '/');
++  if (
++    !normalized ||
++    normalized.startsWith('/') ||
++    normalized.split('/').some((part) => part === '..' || part === '.')
++  ) {
++    throw new Error(`Unsafe ZIP entry name: ${file.name}`);
++  }
++  const nameBytes = encoder.encode(normalized);
++  const contentBytes = encoder.encode(file.content);
++  return {
++    nameBytes,
++    contentBytes,
++    crc32: crc32(contentBytes),
++    localOffset: 0,
++  };
++}
++
++function writeLocalHeader(view: DataView, offset: number, entry: PreparedEntry) {
++  view.setUint32(offset, 0x04034b50, true);
++  view.setUint16(offset + 4, 20, true);
++  view.setUint16(offset + 6, UTF8_FLAG, true);
++  view.setUint16(offset + 8, STORED_METHOD, true);
++  view.setUint16(offset + 10, 0, true);
++  view.setUint16(offset + 12, DOS_DATE_1980_01_01, true);
++  view.setUint32(offset + 14, entry.crc32, true);
++  view.setUint32(offset + 18, entry.contentBytes.length, true);
++  view.setUint32(offset + 22, entry.contentBytes.length, true);
++  view.setUint16(offset + 26, entry.nameBytes.length, true);
++  view.setUint16(offset + 28, 0, true);
++}
++
++function writeCentralHeader(view: DataView, offset: number, entry: PreparedEntry) {
++  view.setUint32(offset, 0x02014b50, true);
++  view.setUint16(offset + 4, 20, true);
++  view.setUint16(offset + 6, 20, true);
++  view.setUint16(offset + 8, UTF8_FLAG, true);
++  view.setUint16(offset + 10, STORED_METHOD, true);
++  view.setUint16(offset + 12, 0, true);
++  view.setUint16(offset + 14, DOS_DATE_1980_01_01, true);
++  view.setUint32(offset + 16, entry.crc32, true);
++  view.setUint32(offset + 20, entry.contentBytes.length, true);
++  view.setUint32(offset + 24, entry.contentBytes.length, true);
++  view.setUint16(offset + 28, entry.nameBytes.length, true);
++  view.setUint16(offset + 30, 0, true);
++  view.setUint16(offset + 32, 0, true);
++  view.setUint16(offset + 34, 0, true);
++  view.setUint16(offset + 36, 0, true);
++  view.setUint32(offset + 38, 0, true);
++  view.setUint32(offset + 42, entry.localOffset, true);
++}
++
++function writeEnd(
++  view: DataView,
++  offset: number,
++  count: number,
++  centralSize: number,
++  centralOffset: number,
++) {
++  view.setUint32(offset, 0x06054b50, true);
++  view.setUint16(offset + 4, 0, true);
++  view.setUint16(offset + 6, 0, true);
++  view.setUint16(offset + 8, count, true);
++  view.setUint16(offset + 10, count, true);
++  view.setUint32(offset + 12, centralSize, true);
++  view.setUint32(offset + 16, centralOffset, true);
++  view.setUint16(offset + 20, 0, true);
++}
++
++function crc32(bytes: Uint8Array): number {
++  let checksum = 0xffffffff;
++  for (const byte of bytes) {
++    checksum = CRC32_TABLE[(checksum ^ byte) & 0xff] ^ (checksum >>> 8);
++  }
++  return (checksum ^ 0xffffffff) >>> 0;
++}
+diff --git a/server/src/modules/health/health.controller.ts b/server/src/modules/health/health.controller.ts
+new file mode 100644
+index 0000000..9014f0a
+--- /dev/null
++++ b/server/src/modules/health/health.controller.ts
+@@ -0,0 +1,9 @@
++import { Controller, Get } from '@nestjs/common';
++
++@Controller('health')
++export class HealthController {
++  @Get()
++  getHealth() {
++    return { ok: true, service: 'mcp-gateway' };
++  }
++}
+diff --git a/server/src/modules/health/health.module.ts b/server/src/modules/health/health.module.ts
+new file mode 100644
+index 0000000..570bca7
+--- /dev/null
++++ b/server/src/modules/health/health.module.ts
+@@ -0,0 +1,5 @@
++import { Module } from '@nestjs/common';
++import { HealthController } from '@server/root/modules/health/health.controller';
++
++@Module({ controllers: [HealthController] })
++export class HealthModule {}
+diff --git a/server/src/modules/mcp-connections/dto/save-mcp-connection.dto.ts b/server/src/modules/mcp-connections/dto/save-mcp-connection.dto.ts
+new file mode 100644
+index 0000000..284ff9c
+--- /dev/null
++++ b/server/src/modules/mcp-connections/dto/save-mcp-connection.dto.ts
+@@ -0,0 +1,10 @@
++import { IsIn, IsString, MinLength } from 'class-validator';
++
++export class SaveMcpConnectionDto {
++  @IsIn(['stitch'])
++  provider!: 'stitch';
++
++  @IsString()
++  @MinLength(8)
++  apiKey!: string;
++}
+diff --git a/server/src/modules/mcp-connections/mcp-connections.controller.ts b/server/src/modules/mcp-connections/mcp-connections.controller.ts
+new file mode 100644
+index 0000000..db91056
+--- /dev/null
++++ b/server/src/modules/mcp-connections/mcp-connections.controller.ts
+@@ -0,0 +1,29 @@
++import { Body, Controller, Delete, Get, Param, Post, Put, Req } from '@nestjs/common';
++import type { Request } from 'express';
++import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
++import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
++
++@Controller('mcp-connections')
++export class McpConnectionsController {
++  constructor(private readonly connections: McpConnectionsService) {}
++
++  @Get()
++  list(@Req() request: Request) {
++    return this.connections.listOwn(request);
++  }
++
++  @Post('test')
++  test(@Req() request: Request, @Body() dto: SaveMcpConnectionDto) {
++    return this.connections.testOwn(request, dto);
++  }
++
++  @Put()
++  save(@Req() request: Request, @Body() dto: SaveMcpConnectionDto) {
++    return this.connections.saveOwn(request, dto);
++  }
++
++  @Delete(':provider')
++  remove(@Req() request: Request, @Param('provider') provider: string) {
++    return this.connections.removeOwn(request, provider);
++  }
++}
+diff --git a/server/src/modules/mcp-connections/mcp-connections.module.ts b/server/src/modules/mcp-connections/mcp-connections.module.ts
+new file mode 100644
+index 0000000..7dfb2e5
+--- /dev/null
++++ b/server/src/modules/mcp-connections/mcp-connections.module.ts
+@@ -0,0 +1,14 @@
++import { Module } from '@nestjs/common';
++import { AuthModule } from '@server/root/modules/auth/auth.module';
++import { McpConnectionsController } from '@server/root/modules/mcp-connections/mcp-connections.controller';
++import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
++import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
++import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
++
++@Module({
++  imports: [AuthModule],
++  controllers: [McpConnectionsController],
++  providers: [McpConnectionsService, McpProviderRegistry, StitchMcpAdapter],
++  exports: [McpConnectionsService, McpProviderRegistry, StitchMcpAdapter],
++})
++export class McpConnectionsModule {}
+diff --git a/server/src/modules/mcp-connections/mcp-connections.service.ts b/server/src/modules/mcp-connections/mcp-connections.service.ts
+new file mode 100644
+index 0000000..0d94ba0
+--- /dev/null
++++ b/server/src/modules/mcp-connections/mcp-connections.service.ts
+@@ -0,0 +1,207 @@
++import {
++  Injectable,
++  NotFoundException,
++  ServiceUnavailableException,
++} from '@nestjs/common';
++import type { Request } from 'express';
++import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++import { AuditService } from '@server/root/modules/audit/audit.service';
++import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
++import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
++
++type ConnectionRow = {
++  id: string;
++  user_id: string;
++  provider: string;
++  status: 'connected' | 'invalid' | 'unavailable';
++  credential_ciphertext: string;
++  last_verified_at: string | null;
++  last_error_code: string | null;
++  created_at: string;
++  updated_at: string;
++};
++
++@Injectable()
++export class McpConnectionsService {
++  constructor(
++    private readonly auth: AuthService,
++    private readonly audit: AuditService,
++    private readonly cipher: SecretCipherService,
++    private readonly providers: McpProviderRegistry,
++    private readonly supabase: SupabaseService,
++  ) {}
++
++  async listOwn(request: Request) {
++    const user = await this.auth.requireUser(request);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('mcp_connections')
++      .select(
++        'id,user_id,provider,status,credential_ciphertext,last_verified_at,last_error_code,created_at,updated_at',
++      )
++      .eq('user_id', user.id)
++      .order('provider')
++      .returns<ConnectionRow[]>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
++        message: 'Could not load MCP connections',
++      });
++    }
++    return (data ?? []).map((row) => this.toView(row));
++  }
++
++  async testOwn(request: Request, dto: SaveMcpConnectionDto) {
++    const user = await this.auth.requireUser(request);
++    const provider = this.providers.get(dto.provider);
++    const startedAt = Date.now();
++    try {
++      await provider.testConnection(dto.apiKey);
++      await this.audit.write({
++        userId: user.id,
++        eventType: 'mcp_connection.verified',
++        provider: provider.id,
++        success: true,
++        durationMs: Date.now() - startedAt,
++      });
++      return { provider: provider.id, status: 'connected' as const };
++    } catch (error) {
++      await this.audit.write({
++        userId: user.id,
++        eventType: 'mcp_connection.failed',
++        provider: provider.id,
++        success: false,
++        durationMs: Date.now() - startedAt,
++      });
++      throw error;
++    }
++  }
++
++  async saveOwn(request: Request, dto: SaveMcpConnectionDto) {
++    const user = await this.auth.requireUser(request);
++    const provider = this.providers.get(dto.provider);
++    await provider.testConnection(dto.apiKey);
++    const now = new Date().toISOString();
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('mcp_connections')
++      .upsert(
++        {
++          user_id: user.id,
++          provider: provider.id,
++          status: 'connected',
++          credential_ciphertext: this.cipher.encrypt(dto.apiKey.trim()),
++          credential_version: 1,
++          last_verified_at: now,
++          last_error_code: null,
++          updated_at: now,
++        },
++        { onConflict: 'user_id,provider' },
++      )
++      .select(
++        'id,user_id,provider,status,credential_ciphertext,last_verified_at,last_error_code,created_at,updated_at',
++      )
++      .single<ConnectionRow>();
++
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
++        message: 'Could not save MCP connection',
++      });
++    }
++    await this.audit.write({
++      userId: user.id,
++      eventType: 'mcp_connection.updated',
++      provider: provider.id,
++      success: true,
++    });
++    return this.toView(data);
++  }
++
++  async removeOwn(request: Request, providerId: string) {
++    const user = await this.auth.requireUser(request);
++    this.providers.get(providerId);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('mcp_connections')
++      .delete()
++      .eq('user_id', user.id)
++      .eq('provider', providerId)
++      .select('id')
++      .maybeSingle<{ id: string }>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
++        message: 'Could not delete MCP connection',
++      });
++    }
++    if (!data) {
++      throw new NotFoundException({
++        code: 'MCP_NOT_CONNECTED',
++        message: `${providerId} is not connected`,
++      });
++    }
++    await this.audit.write({
++      userId: user.id,
++      eventType: 'mcp_connection.deleted',
++      provider: providerId,
++      success: true,
++    });
++    return { deleted: true };
++  }
++
++  async getProviderApiKey(userId: string, providerId: string): Promise<string> {
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('mcp_connections')
++      .select('credential_ciphertext,status')
++      .eq('user_id', userId)
++      .eq('provider', providerId)
++      .maybeSingle<Pick<ConnectionRow, 'credential_ciphertext' | 'status'>>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
++        message: 'Could not load MCP connection',
++      });
++    }
++    if (!data || data.status !== 'connected') {
++      throw new NotFoundException({
++        code: 'MCP_NOT_CONNECTED',
++        message: `${providerId} is not connected`,
++      });
++    }
++    return this.cipher.decrypt(data.credential_ciphertext);
++  }
++
++
++  async listConnectedProviderIds(userId: string): Promise<string[]> {
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('mcp_connections')
++      .select('provider')
++      .eq('user_id', userId)
++      .eq('status', 'connected')
++      .returns<Array<{ provider: string }>>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
++        message: 'Could not load MCP connection status',
++      });
++    }
++    return (data ?? []).map((row) => row.provider);
++  }
++
++  private toView(row: ConnectionRow) {
++    return {
++      id: row.id,
++      provider: row.provider,
++      status: row.status,
++      lastVerifiedAt: row.last_verified_at,
++      lastErrorCode: row.last_error_code,
++      createdAt: row.created_at,
++      updatedAt: row.updated_at,
++    };
++  }
++}
+diff --git a/server/src/modules/mcp-gateway/dto/call-mcp-tool.dto.ts b/server/src/modules/mcp-gateway/dto/call-mcp-tool.dto.ts
+new file mode 100644
+index 0000000..5776fb3
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/dto/call-mcp-tool.dto.ts
+@@ -0,0 +1,6 @@
++import { IsObject } from 'class-validator';
++
++export class CallMcpToolDto {
++  @IsObject()
++  arguments!: Record<string, unknown>;
++}
+diff --git a/server/src/modules/mcp-gateway/gateway-access.guard.ts b/server/src/modules/mcp-gateway/gateway-access.guard.ts
+new file mode 100644
+index 0000000..9c2c66b
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/gateway-access.guard.ts
+@@ -0,0 +1,34 @@
++import {
++  CanActivate,
++  ExecutionContext,
++  Injectable,
++  UnauthorizedException,
++} from '@nestjs/common';
++import { GatewayCredentialService } from '@server/root/modules/open-id/gateway-credential.service';
++import type { GatewayRequest } from '@server/root/modules/mcp-gateway/gateway-request.types';
++
++@Injectable()
++export class GatewayAccessGuard implements CanActivate {
++  constructor(private readonly credentials: GatewayCredentialService) {}
++
++  async canActivate(context: ExecutionContext): Promise<boolean> {
++    const request = context.switchToHttp().getRequest<GatewayRequest>();
++    const token = this.readBearerToken(request);
++    if (!token) {
++      throw new UnauthorizedException({
++        code: 'UNAUTHORIZED',
++        message: 'Missing Gateway bearer token',
++      });
++    }
++    request.gatewayPrincipal = await this.credentials.authenticate(token);
++    return true;
++  }
++
++  private readBearerToken(request: GatewayRequest): string | null {
++    const header = request.headers.authorization;
++    if (!header) return null;
++    const [scheme, token] = header.split(' ');
++    if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
++    return token.trim() || null;
++  }
++}
+diff --git a/server/src/modules/mcp-gateway/gateway-request.types.ts b/server/src/modules/mcp-gateway/gateway-request.types.ts
+new file mode 100644
+index 0000000..3eadc1d
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/gateway-request.types.ts
+@@ -0,0 +1,6 @@
++import type { Request } from 'express';
++import type { GatewayPrincipal } from '@server/root/modules/open-id/gateway-credential.service';
++
++export type GatewayRequest = Request & {
++  gatewayPrincipal?: GatewayPrincipal;
++};
+diff --git a/server/src/modules/mcp-gateway/mcp-gateway.controller.ts b/server/src/modules/mcp-gateway/mcp-gateway.controller.ts
+new file mode 100644
+index 0000000..0ddf634
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/mcp-gateway.controller.ts
+@@ -0,0 +1,63 @@
++import {
++  Body,
++  Controller,
++  Get,
++  Param,
++  Post,
++  Req,
++  UnauthorizedException,
++  UseGuards,
++} from '@nestjs/common';
++import { CallMcpToolDto } from '@server/root/modules/mcp-gateway/dto/call-mcp-tool.dto';
++import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
++import type { GatewayRequest } from '@server/root/modules/mcp-gateway/gateway-request.types';
++import { McpGatewayService } from '@server/root/modules/mcp-gateway/mcp-gateway.service';
++
++@Controller('gpt')
++@UseGuards(GatewayAccessGuard)
++export class McpGatewayController {
++  constructor(private readonly gateway: McpGatewayService) {}
++
++  @Get('profile')
++  profile(@Req() request: GatewayRequest) {
++    return this.gateway.profile(this.principal(request));
++  }
++
++  @Get('mcp/services')
++  listServices(@Req() request: GatewayRequest) {
++    return this.gateway.listServices(this.principal(request));
++  }
++
++  @Get('mcp/:service/tools')
++  listTools(
++    @Req() request: GatewayRequest,
++    @Param('service') service: string,
++  ) {
++    return this.gateway.listTools(this.principal(request), service);
++  }
++
++  @Post('mcp/:service/tools/:toolName/call')
++  callTool(
++    @Req() request: GatewayRequest,
++    @Param('service') service: string,
++    @Param('toolName') toolName: string,
++    @Body() dto: CallMcpToolDto,
++  ) {
++    return this.gateway.callTool(
++      this.principal(request),
++      service,
++      toolName,
++      dto.arguments,
++    );
++  }
++
++  private principal(request: GatewayRequest) {
++    if (!request.gatewayPrincipal) {
++      throw new UnauthorizedException({
++        code: 'UNAUTHORIZED',
++        message: 'Gateway principal is missing',
++      });
++    }
++    return request.gatewayPrincipal;
++  }
++}
+diff --git a/server/src/modules/mcp-gateway/mcp-gateway.module.ts b/server/src/modules/mcp-gateway/mcp-gateway.module.ts
+new file mode 100644
+index 0000000..14dd106
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/mcp-gateway.module.ts
+@@ -0,0 +1,13 @@
++import { Module } from '@nestjs/common';
++import { McpConnectionsModule } from '@server/root/modules/mcp-connections/mcp-connections.module';
++import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
++import { McpGatewayController } from '@server/root/modules/mcp-gateway/mcp-gateway.controller';
++import { McpGatewayService } from '@server/root/modules/mcp-gateway/mcp-gateway.service';
++import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
++
++@Module({
++  imports: [OpenIdModule, McpConnectionsModule],
++  controllers: [McpGatewayController],
++  providers: [GatewayAccessGuard, McpGatewayService],
++})
++export class McpGatewayModule {}
+diff --git a/server/src/modules/mcp-gateway/mcp-gateway.service.ts b/server/src/modules/mcp-gateway/mcp-gateway.service.ts
+new file mode 100644
+index 0000000..af83878
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/mcp-gateway.service.ts
+@@ -0,0 +1,104 @@
++import { Injectable } from '@nestjs/common';
++import { AuditService } from '@server/root/modules/audit/audit.service';
++import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
++import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
++import type { GatewayPrincipal } from '@server/root/modules/open-id/gateway-credential.service';
++
++@Injectable()
++export class McpGatewayService {
++  constructor(
++    private readonly audit: AuditService,
++    private readonly connections: McpConnectionsService,
++    private readonly providers: McpProviderRegistry,
++  ) {}
++
++  async profile(principal: GatewayPrincipal) {
++    const connected = await this.connections.listConnectedProviderIds(
++      principal.user.id,
++    );
++    return {
++      openId: principal.openId,
++      entitlementKind: principal.kind,
++      membership: principal.user.membershipTier,
++      services: this.providers.list().map((provider) => ({
++        ...provider,
++        connected: connected.includes(provider.id),
++      })),
++    };
++  }
++
++  async listServices(principal: GatewayPrincipal) {
++    return (await this.profile(principal)).services;
++  }
++
++  async listTools(principal: GatewayPrincipal, providerId: string) {
++    const provider = this.providers.get(providerId);
++    const apiKey = await this.connections.getProviderApiKey(
++      principal.user.id,
++      provider.id,
++    );
++    const startedAt = Date.now();
++    try {
++      const tools = await provider.listTools(apiKey);
++      await this.audit.write({
++        userId: principal.user.id,
++        credentialId: principal.credentialId,
++        eventType: 'mcp_tools.listed',
++        provider: provider.id,
++        operation: 'tools/list',
++        success: true,
++        durationMs: Date.now() - startedAt,
++      });
++      return { service: provider.id, tools };
++    } catch (error) {
++      await this.audit.write({
++        userId: principal.user.id,
++        credentialId: principal.credentialId,
++        eventType: 'mcp_tools.list_failed',
++        provider: provider.id,
++        operation: 'tools/list',
++        success: false,
++        durationMs: Date.now() - startedAt,
++      });
++      throw error;
++    }
++  }
++
++  async callTool(
++    principal: GatewayPrincipal,
++    providerId: string,
++    toolName: string,
++    argumentsValue: Record<string, unknown>,
++  ) {
++    const provider = this.providers.get(providerId);
++    const apiKey = await this.connections.getProviderApiKey(
++      principal.user.id,
++      provider.id,
++    );
++    const startedAt = Date.now();
++    try {
++      const result = await provider.callTool(apiKey, toolName, argumentsValue);
++      await this.audit.write({
++        userId: principal.user.id,
++        credentialId: principal.credentialId,
++        eventType: 'mcp_tool.called',
++        provider: provider.id,
++        operation: toolName,
++        success: !result.isError,
++        durationMs: Date.now() - startedAt,
++      });
++      return { service: provider.id, tool: toolName, result };
++    } catch (error) {
++      await this.audit.write({
++        userId: principal.user.id,
++        credentialId: principal.credentialId,
++        eventType: 'mcp_tool.failed',
++        provider: provider.id,
++        operation: toolName,
++        success: false,
++        durationMs: Date.now() - startedAt,
++      });
++      throw error;
++    }
++  }
++}
+diff --git a/server/src/modules/mcp-gateway/providers/mcp-provider.registry.ts b/server/src/modules/mcp-gateway/providers/mcp-provider.registry.ts
+new file mode 100644
+index 0000000..280338a
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/providers/mcp-provider.registry.ts
+@@ -0,0 +1,34 @@
++import { BadRequestException, Injectable } from '@nestjs/common';
++import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
++import type {
++  McpProviderAdapter,
++  McpProviderId,
++} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
++
++@Injectable()
++export class McpProviderRegistry {
++  private readonly providers: Map<McpProviderId, McpProviderAdapter>;
++
++  constructor(stitch: StitchMcpAdapter) {
++    this.providers = new Map([[stitch.id, stitch]]);
++  }
++
++  list() {
++    return [...this.providers.values()].map((provider) => ({
++      id: provider.id,
++      name: provider.displayName,
++      status: 'available' as const,
++    }));
++  }
++
++  get(providerId: string): McpProviderAdapter {
++    const provider = this.providers.get(providerId as McpProviderId);
++    if (!provider) {
++      throw new BadRequestException({
++        code: 'MCP_PROVIDER_UNSUPPORTED',
++        message: `Unsupported MCP provider: ${providerId}`,
++      });
++    }
++    return provider;
++  }
++}
+diff --git a/server/src/modules/mcp-gateway/providers/mcp-provider.types.ts b/server/src/modules/mcp-gateway/providers/mcp-provider.types.ts
+new file mode 100644
+index 0000000..10fdc21
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/providers/mcp-provider.types.ts
+@@ -0,0 +1,27 @@
++export type McpProviderId = 'stitch';
++
++export type McpToolDefinition = {
++  name: string;
++  title?: string;
++  description?: string;
++  inputSchema?: Record<string, unknown>;
++};
++
++export type McpToolCallResult = {
++  content?: unknown;
++  structuredContent?: unknown;
++  isError?: boolean;
++  [key: string]: unknown;
++};
++
++export interface McpProviderAdapter {
++  readonly id: McpProviderId;
++  readonly displayName: string;
++  testConnection(apiKey: string): Promise<void>;
++  listTools(apiKey: string): Promise<McpToolDefinition[]>;
++  callTool(
++    apiKey: string,
++    toolName: string,
++    argumentsValue: Record<string, unknown>,
++  ): Promise<McpToolCallResult>;
++}
+diff --git a/server/src/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter.ts b/server/src/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter.ts
+new file mode 100644
+index 0000000..c29aa72
+--- /dev/null
++++ b/server/src/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter.ts
+@@ -0,0 +1,143 @@
++import {
++  BadGatewayException,
++  Injectable,
++  ServiceUnavailableException,
++  UnauthorizedException,
++} from '@nestjs/common';
++import { AppConfigService } from '@server/root/common/config/app-config.service';
++import type {
++  McpProviderAdapter,
++  McpToolCallResult,
++  McpToolDefinition,
++} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
++
++type JsonRpcResponse<T> = {
++  jsonrpc?: string;
++  id?: string | number | null;
++  result?: T;
++  error?: {
++    code?: number;
++    message?: string;
++    data?: unknown;
++  };
++};
++
++type ToolsListResult = {
++  tools?: McpToolDefinition[];
++};
++
++const STITCH_MCP_ENDPOINT = 'https://stitch.googleapis.com/mcp';
++
++@Injectable()
++export class StitchMcpAdapter implements McpProviderAdapter {
++  readonly id = 'stitch' as const;
++  readonly displayName = 'Google Stitch';
++
++  constructor(private readonly config: AppConfigService) {}
++
++  async testConnection(apiKey: string): Promise<void> {
++    await this.listTools(apiKey);
++  }
++
++  async listTools(apiKey: string): Promise<McpToolDefinition[]> {
++    const response = await this.rpc<ToolsListResult>(apiKey, 'tools/list', {});
++    return Array.isArray(response.tools) ? response.tools : [];
++  }
++
++  async callTool(
++    apiKey: string,
++    toolName: string,
++    argumentsValue: Record<string, unknown>,
++  ): Promise<McpToolCallResult> {
++    return this.rpc<McpToolCallResult>(apiKey, 'tools/call', {
++      name: toolName,
++      arguments: argumentsValue,
++    });
++  }
++
++  private async rpc<T>(
++    apiKey: string,
++    method: string,
++    params: Record<string, unknown>,
++  ): Promise<T> {
++    let response: Response;
++    try {
++      response = await fetch(STITCH_MCP_ENDPOINT, {
++        method: 'POST',
++        headers: {
++          'Content-Type': 'application/json',
++          Accept: 'application/json, text/event-stream',
++          'X-Goog-Api-Key': apiKey,
++        },
++        body: JSON.stringify({
++          jsonrpc: '2.0',
++          id: crypto.randomUUID(),
++          method,
++          params,
++        }),
++        signal: AbortSignal.timeout(this.config.upstreamTimeoutMs),
++      });
++    } catch (error) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_SERVICE_UNAVAILABLE',
++        message: 'Stitch MCP is unavailable',
++        details: { cause: error instanceof Error ? error.name : 'network_error' },
++      });
++    }
++
++    if (response.status === 401 || response.status === 403) {
++      throw new UnauthorizedException({
++        code: 'MCP_INVALID_CREDENTIAL',
++        message: 'Stitch API key is invalid or unauthorized',
++      });
++    }
++    if (response.status === 429) {
++      throw new ServiceUnavailableException({
++        code: 'MCP_RATE_LIMITED',
++        message: 'Stitch MCP rate limit was reached',
++      });
++    }
++    if (!response.ok) {
++      throw new BadGatewayException({
++        code: 'MCP_SERVICE_UNAVAILABLE',
++        message: 'Stitch MCP returned an upstream error',
++        details: { status: response.status },
++      });
++    }
++
++    const payload = await this.parseResponse<T>(response);
++    if (payload.error) {
++      throw new BadGatewayException({
++        code: 'MCP_TOOL_CALL_FAILED',
++        message: payload.error.message || 'Stitch MCP returned a JSON-RPC error',
++        details: { rpcCode: payload.error.code ?? null },
++      });
++    }
++    if (payload.result === undefined) {
++      throw new BadGatewayException({
++        code: 'MCP_INVALID_RESPONSE',
++        message: 'Stitch MCP returned no result',
++      });
++    }
++    return payload.result;
++  }
++
++  private async parseResponse<T>(response: Response): Promise<JsonRpcResponse<T>> {
++    const contentType = response.headers.get('content-type') ?? '';
++    if (contentType.includes('application/json')) {
++      return (await response.json()) as JsonRpcResponse<T>;
++    }
++
++    const text = await response.text();
++    const dataLine = text
++      .split(/\r?\n/u)
++      .find((line) => line.startsWith('data:'));
++    if (!dataLine) {
++      throw new BadGatewayException({
++        code: 'MCP_INVALID_RESPONSE',
++        message: 'Stitch MCP returned an unsupported response',
++      });
++    }
++    return JSON.parse(dataLine.slice(5).trim()) as JsonRpcResponse<T>;
++  }
++}
+diff --git a/server/src/modules/open-id/dto/create-gateway-token.dto.ts b/server/src/modules/open-id/dto/create-gateway-token.dto.ts
+new file mode 100644
+index 0000000..26557ee
+--- /dev/null
++++ b/server/src/modules/open-id/dto/create-gateway-token.dto.ts
+@@ -0,0 +1,14 @@
++import { IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
++
++export class CreateGatewayTokenDto {
++  @IsOptional()
++  @IsString()
++  @MaxLength(120)
++  label?: string;
++
++  @IsOptional()
++  @IsInt()
++  @Min(1)
++  @Max(365)
++  expiresInDays?: number;
++}
+diff --git a/server/src/modules/open-id/dto/create-open-id.dto.ts b/server/src/modules/open-id/dto/create-open-id.dto.ts
+new file mode 100644
+index 0000000..8d48f6f
+--- /dev/null
++++ b/server/src/modules/open-id/dto/create-open-id.dto.ts
+@@ -0,0 +1,8 @@
++import { IsOptional, IsString, MaxLength } from 'class-validator';
++
++export class CreateOpenIdDto {
++  @IsOptional()
++  @IsString()
++  @MaxLength(120)
++  label?: string;
++}
+diff --git a/server/src/modules/open-id/gateway-credential.service.ts b/server/src/modules/open-id/gateway-credential.service.ts
+new file mode 100644
+index 0000000..1523ff6
+--- /dev/null
++++ b/server/src/modules/open-id/gateway-credential.service.ts
+@@ -0,0 +1,146 @@
++import {
++  Injectable,
++  ServiceUnavailableException,
++  UnauthorizedException,
++} from '@nestjs/common';
++import { createHash, randomBytes } from 'node:crypto';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++import type { AppUser } from '@server/root/modules/auth/auth.types';
++
++type CredentialRow = {
++  id: string;
++  user_id: string;
++  open_id_id: string;
++  label: string | null;
++  token_prefix: string;
++  expires_at: string | null;
++  revoked_at: string | null;
++  last_used_at: string | null;
++  created_at: string;
++};
++
++type OpenIdRow = {
++  id: string;
++  user_id: string;
++  open_id: string;
++  kind: 'trial' | 'paid';
++  is_exportable: boolean;
++  status: 'active' | 'revoked';
++  expires_at: string | null;
++  revoked_at: string | null;
++  created_at: string;
++};
++
++export type GatewayPrincipal = {
++  credentialId: string;
++  openIdId: string;
++  openId: string;
++  user: AppUser;
++  kind: 'trial' | 'paid';
++};
++
++@Injectable()
++export class GatewayCredentialService {
++  constructor(
++    private readonly auth: AuthService,
++    private readonly supabase: SupabaseService,
++  ) {}
++
++  createRawToken(kind: 'trial' | 'paid', openId: string) {
++    const prefix = kind === 'trial' ? 'mcp_trial_' : 'mcp_gw_';
++    const rawToken = `${prefix}${openId}_${randomBytes(32).toString('base64url')}`;
++    return {
++      rawToken,
++      tokenHash: this.hashToken(rawToken),
++      tokenPrefix: `${rawToken.slice(0, 30)}…`,
++    };
++  }
++
++  async authenticate(rawToken: string): Promise<GatewayPrincipal> {
++    const now = new Date().toISOString();
++    const client = this.supabase.createServiceRoleClient();
++    const { data: credential, error } = await client
++      .from('gateway_credentials')
++      .select('id,user_id,open_id_id,label,token_prefix,expires_at,revoked_at,last_used_at,created_at')
++      .eq('token_hash', this.hashToken(rawToken))
++      .is('revoked_at', null)
++      .maybeSingle<CredentialRow>();
++
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'GATEWAY_AUTH_STORAGE_UNAVAILABLE',
++        message: 'Gateway credential storage is unavailable',
++      });
++    }
++    if (!credential) {
++      throw new UnauthorizedException({
++        code: 'UNAUTHORIZED',
++        message: 'Gateway token is invalid or revoked',
++      });
++    }
++    if (credential.expires_at && credential.expires_at <= now) {
++      throw new UnauthorizedException({
++        code: 'TOKEN_EXPIRED',
++        message: 'Gateway token has expired',
++      });
++    }
++
++    const { data: openId, error: openIdError } = await client
++      .from('open_ids')
++      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
++      .eq('id', credential.open_id_id)
++      .maybeSingle<OpenIdRow>();
++    if (openIdError) {
++      throw new ServiceUnavailableException({
++        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
++        message: 'Open ID storage is unavailable',
++      });
++    }
++    if (
++      !openId ||
++      openId.status !== 'active' ||
++      openId.revoked_at ||
++      (openId.expires_at && openId.expires_at <= now)
++    ) {
++      throw new UnauthorizedException({
++        code: 'OPEN_ID_REQUIRED',
++        message: 'An active Open ID is required to use MCP Gateway',
++      });
++    }
++
++    const user = await this.auth.getUserById(credential.user_id);
++    if (openId.kind === 'paid' && user.membershipTier !== 'member') {
++      throw new UnauthorizedException({
++        code: 'OPEN_ID_REQUIRED',
++        message: 'A member Open ID is required to use MCP Gateway',
++      });
++    }
++
++    const { data: usedRow, error: usageError } = await client
++      .from('gateway_credentials')
++      .update({ last_used_at: now })
++      .eq('id', credential.id)
++      .is('revoked_at', null)
++      .select('id')
++      .maybeSingle<{ id: string }>();
++    if (usageError || !usedRow) {
++      throw new ServiceUnavailableException({
++        code: 'GATEWAY_AUTH_STORAGE_UNAVAILABLE',
++        message: 'Could not record Gateway credential usage',
++      });
++    }
++
++    return {
++      credentialId: credential.id,
++      openIdId: openId.id,
++      openId: openId.open_id,
++      user,
++      kind: openId.kind,
++    };
++  }
++
++  hashToken(rawToken: string): string {
++    return createHash('sha256').update(rawToken).digest('hex');
++  }
++}
+diff --git a/server/src/modules/open-id/open-id.controller.ts b/server/src/modules/open-id/open-id.controller.ts
+new file mode 100644
+index 0000000..23a0d3f
+--- /dev/null
++++ b/server/src/modules/open-id/open-id.controller.ts
+@@ -0,0 +1,65 @@
++import {
++  Body,
++  Controller,
++  Delete,
++  Get,
++  Param,
++  Post,
++  Req,
++} from '@nestjs/common';
++import type { Request } from 'express';
++import { CreateGatewayTokenDto } from '@server/root/modules/open-id/dto/create-gateway-token.dto';
++import { CreateOpenIdDto } from '@server/root/modules/open-id/dto/create-open-id.dto';
++import { OpenIdService } from '@server/root/modules/open-id/open-id.service';
++import { TrialService } from '@server/root/modules/open-id/trial.service';
++
++@Controller('open-ids')
++export class OpenIdController {
++  constructor(
++    private readonly openIds: OpenIdService,
++    private readonly trials: TrialService,
++  ) {}
++
++  @Get()
++  list(@Req() request: Request) {
++    return this.openIds.listOwn(request);
++  }
++
++  @Post()
++  create(@Req() request: Request, @Body() dto: CreateOpenIdDto) {
++    return this.openIds.createPaid(request, dto);
++  }
++
++  @Get('trial')
++  trialStatus(@Req() request: Request) {
++    return this.trials.status(request);
++  }
++
++  @Post('trial')
++  claimTrial(@Req() request: Request) {
++    return this.trials.claim(request);
++  }
++
++  @Get(':openIdId/tokens')
++  listTokens(@Req() request: Request, @Param('openIdId') openIdId: string) {
++    return this.openIds.listTokens(request, openIdId);
++  }
++
++  @Post(':openIdId/tokens')
++  createToken(
++    @Req() request: Request,
++    @Param('openIdId') openIdId: string,
++    @Body() dto: CreateGatewayTokenDto,
++  ) {
++    return this.openIds.createToken(request, openIdId, dto);
++  }
++
++  @Delete(':openIdId/tokens/:tokenId')
++  revokeToken(
++    @Req() request: Request,
++    @Param('openIdId') openIdId: string,
++    @Param('tokenId') tokenId: string,
++  ) {
++    return this.openIds.revokeToken(request, openIdId, tokenId);
++  }
++}
+diff --git a/server/src/modules/open-id/open-id.module.ts b/server/src/modules/open-id/open-id.module.ts
+new file mode 100644
+index 0000000..a7254d7
+--- /dev/null
++++ b/server/src/modules/open-id/open-id.module.ts
+@@ -0,0 +1,14 @@
++import { Module } from '@nestjs/common';
++import { AuthModule } from '@server/root/modules/auth/auth.module';
++import { GatewayCredentialService } from '@server/root/modules/open-id/gateway-credential.service';
++import { OpenIdController } from '@server/root/modules/open-id/open-id.controller';
++import { OpenIdService } from '@server/root/modules/open-id/open-id.service';
++import { TrialService } from '@server/root/modules/open-id/trial.service';
++
++@Module({
++  imports: [AuthModule],
++  controllers: [OpenIdController],
++  providers: [GatewayCredentialService, OpenIdService, TrialService],
++  exports: [GatewayCredentialService],
++})
++export class OpenIdModule {}
+diff --git a/server/src/modules/open-id/open-id.service.ts b/server/src/modules/open-id/open-id.service.ts
+new file mode 100644
+index 0000000..e9a5a9f
+--- /dev/null
++++ b/server/src/modules/open-id/open-id.service.ts
+@@ -0,0 +1,264 @@
++import {
++  BadRequestException,
++  Injectable,
++  NotFoundException,
++  ServiceUnavailableException,
++} from '@nestjs/common';
++import { randomBytes } from 'node:crypto';
++import type { Request } from 'express';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++import { AuditService } from '@server/root/modules/audit/audit.service';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++import type { CreateGatewayTokenDto } from '@server/root/modules/open-id/dto/create-gateway-token.dto';
++import type { CreateOpenIdDto } from '@server/root/modules/open-id/dto/create-open-id.dto';
++import { GatewayCredentialService } from '@server/root/modules/open-id/gateway-credential.service';
++
++type OpenIdRow = {
++  id: string;
++  user_id: string;
++  open_id: string;
++  kind: 'trial' | 'paid';
++  is_exportable: boolean;
++  status: 'active' | 'revoked';
++  expires_at: string | null;
++  revoked_at: string | null;
++  created_at: string;
++};
++
++type CredentialRow = {
++  id: string;
++  user_id: string;
++  open_id_id: string;
++  label: string | null;
++  token_prefix: string;
++  expires_at: string | null;
++  revoked_at: string | null;
++  last_used_at: string | null;
++  created_at: string;
++};
++
++@Injectable()
++export class OpenIdService {
++  constructor(
++    private readonly auth: AuthService,
++    private readonly audit: AuditService,
++    private readonly credentials: GatewayCredentialService,
++    private readonly supabase: SupabaseService,
++  ) {}
++
++  async listOwn(request: Request) {
++    const user = await this.auth.requireUser(request);
++    if (user.membershipTier !== 'member') return [];
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('open_ids')
++      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
++      .eq('user_id', user.id)
++      .eq('kind', 'paid')
++      .order('created_at', { ascending: false })
++      .returns<OpenIdRow[]>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
++        message: 'Could not load Open IDs',
++      });
++    }
++    return data ?? [];
++  }
++
++  async createPaid(request: Request, _dto: CreateOpenIdDto) {
++    const user = await this.auth.requireUser(request);
++    if (user.membershipTier !== 'member') {
++      throw new BadRequestException({
++        code: 'MEMBERSHIP_REQUIRED',
++        message: 'Member access is required to create an Open ID',
++      });
++    }
++    const client = this.supabase.createServiceRoleClient();
++    const existing = await this.findPaidOpenId(user.id);
++    if (existing) return existing;
++
++    const openId = `oid_${randomBytes(18).toString('base64url')}`;
++    const { data, error } = await client
++      .from('open_ids')
++      .insert({
++        user_id: user.id,
++        open_id: openId,
++        kind: 'paid',
++        is_exportable: true,
++        status: 'active',
++      })
++      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
++      .single<OpenIdRow>();
++    if (error) {
++      if (error.code === '23505') {
++        const concurrent = await this.findPaidOpenId(user.id);
++        if (concurrent) return concurrent;
++      }
++      throw new ServiceUnavailableException({
++        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
++        message: 'Could not create Open ID',
++      });
++    }
++    await this.audit.write({
++      userId: user.id,
++      eventType: 'open_id.created',
++      success: true,
++      metadata: { openId: data.open_id },
++    });
++    return data;
++  }
++
++  async createToken(
++    request: Request,
++    openIdId: string,
++    dto: CreateGatewayTokenDto,
++  ) {
++    const user = await this.auth.requireUser(request);
++    if (user.membershipTier !== 'member') {
++      throw new BadRequestException({
++        code: 'MEMBERSHIP_REQUIRED',
++        message: 'Member access is required to create Gateway tokens',
++      });
++    }
++    const openId = await this.requirePaidOpenId(user.id, openIdId);
++    const token = this.credentials.createRawToken('paid', openId.open_id);
++    const expiresAt = dto.expiresInDays
++      ? new Date(Date.now() + dto.expiresInDays * 86_400_000).toISOString()
++      : null;
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('gateway_credentials')
++      .insert({
++        user_id: user.id,
++        open_id_id: openId.id,
++        label: dto.label?.trim() || null,
++        token_hash: token.tokenHash,
++        token_prefix: token.tokenPrefix,
++        expires_at: expiresAt,
++      })
++      .select('id,user_id,open_id_id,label,token_prefix,expires_at,revoked_at,last_used_at,created_at')
++      .single<CredentialRow>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'GATEWAY_TOKEN_STORAGE_UNAVAILABLE',
++        message: 'Could not create Gateway token',
++      });
++    }
++    await this.audit.write({
++      userId: user.id,
++      credentialId: data.id,
++      eventType: 'gateway_token.created',
++      success: true,
++      metadata: { openId: openId.open_id },
++    });
++    return {
++      ...data,
++      accessToken: token.rawToken,
++      notice: 'This token is shown once. Store it in your GPT Action authentication.',
++    };
++  }
++
++  async listTokens(request: Request, openIdId: string) {
++    const user = await this.auth.requireUser(request);
++    if (user.membershipTier !== 'member') {
++      throw new BadRequestException({
++        code: 'MEMBERSHIP_REQUIRED',
++        message: 'Member access is required to manage Gateway tokens',
++      });
++    }
++    await this.requirePaidOpenId(user.id, openIdId);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('gateway_credentials')
++      .select('id,user_id,open_id_id,label,token_prefix,expires_at,revoked_at,last_used_at,created_at')
++      .eq('user_id', user.id)
++      .eq('open_id_id', openIdId)
++      .order('created_at', { ascending: false })
++      .returns<CredentialRow[]>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'GATEWAY_TOKEN_STORAGE_UNAVAILABLE',
++        message: 'Could not load Gateway tokens',
++      });
++    }
++    return data ?? [];
++  }
++
++  async revokeToken(request: Request, openIdId: string, tokenId: string) {
++    const user = await this.auth.requireUser(request);
++    await this.requirePaidOpenId(user.id, openIdId);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('gateway_credentials')
++      .update({ revoked_at: new Date().toISOString() })
++      .eq('id', tokenId)
++      .eq('user_id', user.id)
++      .eq('open_id_id', openIdId)
++      .is('revoked_at', null)
++      .select('id')
++      .maybeSingle<{ id: string }>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'GATEWAY_TOKEN_STORAGE_UNAVAILABLE',
++        message: 'Could not revoke Gateway token',
++      });
++    }
++    if (!data) {
++      throw new NotFoundException({
++        code: 'GATEWAY_TOKEN_NOT_FOUND',
++        message: 'Gateway token was not found or is already revoked',
++      });
++    }
++    await this.audit.write({
++      userId: user.id,
++      credentialId: tokenId,
++      eventType: 'gateway_token.revoked',
++      success: true,
++    });
++    return { revoked: true };
++  }
++
++  private async findPaidOpenId(userId: string): Promise<OpenIdRow | null> {
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('open_ids')
++      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
++      .eq('user_id', userId)
++      .eq('kind', 'paid')
++      .eq('status', 'active')
++      .maybeSingle<OpenIdRow>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
++        message: 'Could not load Open ID',
++      });
++    }
++    return data;
++  }
++
++  private async requirePaidOpenId(userId: string, openIdId: string) {
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('open_ids')
++      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
++      .eq('id', openIdId)
++      .eq('user_id', userId)
++      .eq('kind', 'paid')
++      .eq('status', 'active')
++      .maybeSingle<OpenIdRow>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
++        message: 'Could not load Open ID',
++      });
++    }
++    if (!data) {
++      throw new NotFoundException({
++        code: 'OPEN_ID_NOT_FOUND',
++        message: 'Open ID was not found',
++      });
++    }
++    return data;
++  }
++}
+diff --git a/server/src/modules/open-id/trial.service.ts b/server/src/modules/open-id/trial.service.ts
+new file mode 100644
+index 0000000..ed71cc8
+--- /dev/null
++++ b/server/src/modules/open-id/trial.service.ts
+@@ -0,0 +1,107 @@
++import {
++  BadRequestException,
++  Injectable,
++  ServiceUnavailableException,
++} from '@nestjs/common';
++import { randomBytes } from 'node:crypto';
++import type { Request } from 'express';
++import { AuditService } from '@server/root/modules/audit/audit.service';
++import { AuthService } from '@server/root/modules/auth/auth.service';
++import { GatewayCredentialService } from '@server/root/modules/open-id/gateway-credential.service';
++import { SupabaseService } from '@server/root/common/supabase/supabase.service';
++
++type TrialRow = {
++  id: string;
++  trial_claimed_at: string;
++  expires_at: string;
++};
++
++@Injectable()
++export class TrialService {
++  constructor(
++    private readonly auth: AuthService,
++    private readonly audit: AuditService,
++    private readonly credentials: GatewayCredentialService,
++    private readonly supabase: SupabaseService,
++  ) {}
++
++  async status(request: Request) {
++    const user = await this.auth.requireUser(request);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client
++      .from('trial_entitlements')
++      .select('id,trial_claimed_at,expires_at')
++      .eq('user_id', user.id)
++      .maybeSingle<TrialRow>();
++    if (error) {
++      throw new ServiceUnavailableException({
++        code: 'TRIAL_STORAGE_UNAVAILABLE',
++        message: 'Could not load trial status',
++      });
++    }
++
++    if (!data) {
++      return {
++        status: user.membershipTier === 'guest' ? 'available' : 'not_applicable',
++        claimedAt: null,
++        expiresAt: null,
++      };
++    }
++
++    return {
++      status: data.expires_at > new Date().toISOString() ? 'active' : 'consumed',
++      claimedAt: data.trial_claimed_at,
++      expiresAt: data.expires_at,
++    };
++  }
++
++  async claim(request: Request) {
++    const user = await this.auth.requireUser(request);
++    if (user.membershipTier !== 'guest') {
++      throw new BadRequestException({
++        code: 'TRIAL_GUEST_ONLY',
++        message: 'Trial is only available to guest accounts',
++      });
++    }
++
++    const openId = `oid_trial_${randomBytes(16).toString('base64url')}`;
++    const token = this.credentials.createRawToken('trial', openId);
++    const client = this.supabase.createServiceRoleClient();
++    const { data, error } = await client.rpc('claim_gateway_trial', {
++      p_user_id: user.id,
++      p_open_id: openId,
++      p_token_hash: token.tokenHash,
++      p_token_prefix: token.tokenPrefix,
++    });
++
++    if (error) {
++      const message = `${error.message ?? ''} ${error.details ?? ''}`;
++      if (message.includes('TRIAL_ALREADY_USED')) {
++        throw new BadRequestException({
++          code: 'TRIAL_ALREADY_USED',
++          message: 'This account has already used its trial',
++        });
++      }
++      throw new ServiceUnavailableException({
++        code: 'TRIAL_STORAGE_UNAVAILABLE',
++        message: 'Could not create trial',
++      });
++    }
++
++    const row = Array.isArray(data) ? data[0] : data;
++    await this.audit.write({
++      userId: user.id,
++      eventType: 'trial.claimed',
++      credentialId: row?.credential_id ?? null,
++      success: true,
++      metadata: { expiresAt: row?.trial_expires_at ?? null },
++    });
++
++    return {
++      accessToken: token.rawToken,
++      tokenPrefix: token.tokenPrefix,
++      expiresAt: row?.trial_expires_at ?? null,
++      notice: 'This token is shown once. Store it in your GPT Action authentication.',
++    };
++  }
++}
+diff --git a/server/tsconfig.build.json b/server/tsconfig.build.json
+new file mode 100644
+index 0000000..1dcbf1d
+--- /dev/null
++++ b/server/tsconfig.build.json
+@@ -0,0 +1,8 @@
++{
++  "extends": "./tsconfig.json",
++  "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"],
++  "compilerOptions": {
++    "rootDir": "./src",
++    "incremental": false
++  }
++}
+diff --git a/server/tsconfig.json b/server/tsconfig.json
+new file mode 100644
+index 0000000..0e3449c
+--- /dev/null
++++ b/server/tsconfig.json
+@@ -0,0 +1,29 @@
++{
++  "compilerOptions": {
++    "module": "nodenext",
++    "moduleResolution": "nodenext",
++    "resolvePackageJsonExports": true,
++    "esModuleInterop": true,
++    "isolatedModules": true,
++    "declaration": true,
++    "removeComments": true,
++    "emitDecoratorMetadata": true,
++    "experimentalDecorators": true,
++    "allowSyntheticDefaultImports": true,
++    "target": "ES2023",
++    "sourceMap": true,
++    "outDir": "./dist",
++    "rootDir": ".",
++    "baseUrl": "./",
++    "incremental": true,
++    "skipLibCheck": true,
++    "strictNullChecks": true,
++    "forceConsistentCasingInFileNames": true,
++    "noImplicitAny": true,
++    "strictBindCallApply": true,
++    "noFallthroughCasesInSwitch": true,
++    "paths": {
++      "@server/root/*": ["src/*"]
++    }
++  }
++}
+diff --git a/web/.env.example b/web/.env.example
+new file mode 100644
+index 0000000..fd0451a
+--- /dev/null
++++ b/web/.env.example
+@@ -0,0 +1,4 @@
++VITE_SUPABASE_URL=
++VITE_SUPABASE_ANON_KEY=
++VITE_GATEWAY_API_BASE_URL=http://127.0.0.1:5657/api/v1
++VITE_PUBLIC_SITE_URL=http://127.0.0.1:5656
+diff --git a/web/package.json b/web/package.json
+new file mode 100644
+index 0000000..9144616
+--- /dev/null
++++ b/web/package.json
+@@ -0,0 +1,34 @@
++{
++  "name": "@mcp-gateway/web",
++  "version": "0.1.0",
++  "private": true,
++  "type": "module",
++  "sideEffects": false,
++  "scripts": {
++    "dev": "node start.mjs",
++    "build": "vite build --config vite.config.ts",
++    "preview": "vite preview --config vite.config.ts",
++    "typecheck": "tsc --noEmit -p tsconfig.json",
++    "predev": "node scripts/generate-seo.mjs",
++    "prebuild": "node scripts/generate-seo.mjs"
++  },
++  "dependencies": {
++    "@supabase/supabase-js": "^2.115.0",
++    "@tanstack/react-query": "^5.83.0",
++    "@tanstack/react-router": "^1.168.25",
++    "@tanstack/react-start": "^1.167.50",
++    "@tanstack/router-plugin": "^1.167.28",
++    "lucide-react": "^0.575.0",
++    "react": "^19.2.0",
++    "react-dom": "^19.2.0"
++  },
++  "devDependencies": {
++    "@types/node": "^24.0.0",
++    "@types/react": "^19.2.0",
++    "@types/react-dom": "^19.2.0",
++    "@vitejs/plugin-react": "^5.2.0",
++    "nitro": "3.0.260603-beta",
++    "typescript": "^5.8.3",
++    "vite": "^8.0.16"
++  }
++}
+diff --git a/web/public/robots.txt b/web/public/robots.txt
+new file mode 100644
+index 0000000..79f2e13
+--- /dev/null
++++ b/web/public/robots.txt
+@@ -0,0 +1,4 @@
++User-agent: *
++Allow: /
++Disallow: /app
++Sitemap: http://127.0.0.1:5656/sitemap.xml
+diff --git a/web/public/sitemap.xml b/web/public/sitemap.xml
+new file mode 100644
+index 0000000..08f18be
+--- /dev/null
++++ b/web/public/sitemap.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
++  <url><loc>http://127.0.0.1:5656/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
++  <url><loc>http://127.0.0.1:5656/vi</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
++</urlset>
+diff --git a/web/scripts/generate-seo.mjs b/web/scripts/generate-seo.mjs
+new file mode 100644
+index 0000000..82b2ed0
+--- /dev/null
++++ b/web/scripts/generate-seo.mjs
+@@ -0,0 +1,25 @@
++import fs from "node:fs";
++import path from "node:path";
++
++const publicDir = path.resolve(import.meta.dirname, "..", "public");
++const baseUrl = (
++  process.env.VITE_PUBLIC_SITE_URL ||
++  process.env.PUBLIC_SITE_URL ||
++  "http://127.0.0.1:5656"
++).replace(/\/+$/u, "");
++
++fs.mkdirSync(publicDir, { recursive: true });
++fs.writeFileSync(
++  path.join(publicDir, "robots.txt"),
++  `User-agent: *\nAllow: /\nDisallow: /app\nSitemap: ${baseUrl}/sitemap.xml\n`,
++);
++fs.writeFileSync(
++  path.join(publicDir, "sitemap.xml"),
++  `<?xml version="1.0" encoding="UTF-8"?>
++<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
++  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
++  <url><loc>${baseUrl}/vi</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
++</urlset>
++`,
++);
++console.log(`SEO files generated for ${baseUrl}`);
+diff --git a/web/src/modules/account/api/account.api.ts b/web/src/modules/account/api/account.api.ts
+new file mode 100644
+index 0000000..1279492
+--- /dev/null
++++ b/web/src/modules/account/api/account.api.ts
+@@ -0,0 +1,6 @@
++import type { AccountProfile } from "@/modules/auth/domain/auth.types";
++import { gatewayRequest } from "@/shared/api/gateway-api";
++
++export function getAccount(accessToken: string) {
++  return gatewayRequest<AccountProfile>("/account/me", accessToken);
++}
+diff --git a/web/src/modules/account/queries/account.queries.ts b/web/src/modules/account/queries/account.queries.ts
+new file mode 100644
+index 0000000..0ce4853
+--- /dev/null
++++ b/web/src/modules/account/queries/account.queries.ts
+@@ -0,0 +1,14 @@
++import { useQuery } from "@tanstack/react-query";
++import { getAccount } from "@/modules/account/api/account.api";
++
++export const accountKeys = {
++  all: ["account"] as const,
++};
++
++export function useAccount(accessToken: string) {
++  return useQuery({
++    queryKey: accountKeys.all,
++    queryFn: () => getAccount(accessToken),
++    enabled: Boolean(accessToken),
++  });
++}
+diff --git a/web/src/modules/auth/domain/auth.types.ts b/web/src/modules/auth/domain/auth.types.ts
+new file mode 100644
+index 0000000..633c739
+--- /dev/null
++++ b/web/src/modules/auth/domain/auth.types.ts
+@@ -0,0 +1,8 @@
++export type AccountProfile = {
++  id: string;
++  email: string | null;
++  displayName: string | null;
++  membershipTier: "guest" | "member";
++  systemRole: "user" | "admin";
++  status: "active" | "suspended";
++};
+diff --git a/web/src/modules/auth/infrastructure/supabase-browser.ts b/web/src/modules/auth/infrastructure/supabase-browser.ts
+new file mode 100644
+index 0000000..c7d59da
+--- /dev/null
++++ b/web/src/modules/auth/infrastructure/supabase-browser.ts
+@@ -0,0 +1,13 @@
++import { createClient } from "@supabase/supabase-js";
++
++const url = import.meta.env.VITE_SUPABASE_URL?.trim();
++const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
++
++if (!url || !anonKey) {
++  console.warn("Supabase browser environment is not configured.");
++}
++
++export const supabase = createClient(
++  url || "http://127.0.0.1:54321",
++  anonKey || "missing-anon-key",
++);
+diff --git a/web/src/modules/auth/presentation/components/AuthPanel.tsx b/web/src/modules/auth/presentation/components/AuthPanel.tsx
+new file mode 100644
+index 0000000..b7f17c3
+--- /dev/null
++++ b/web/src/modules/auth/presentation/components/AuthPanel.tsx
+@@ -0,0 +1,66 @@
++import { useState } from "react";
++import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function AuthPanel() {
++  const { t } = useUiLanguage();
++  const [email, setEmail] = useState("");
++  const [password, setPassword] = useState("");
++  const [message, setMessage] = useState<string | null>(null);
++  const [busy, setBusy] = useState(false);
++
++  async function submit(mode: "signin" | "signup") {
++    setBusy(true);
++    setMessage(null);
++    const result =
++      mode === "signin"
++        ? await supabase.auth.signInWithPassword({ email, password })
++        : await supabase.auth.signUp({ email, password });
++    setBusy(false);
++    setMessage(
++      result.error
++        ? result.error.message
++        : mode === "signup"
++          ? t("Đã tạo tài khoản. Kiểm tra email nếu dự án bật xác minh.", "Account created. Check email if confirmation is enabled.")
++          : t("Đăng nhập thành công.", "Signed in."),
++    );
++  }
++
++  return (
++    <section className="card auth-card">
++      <h2>{t("Đăng nhập MCP Gateway", "Sign in to MCP Gateway")}</h2>
++      <p className="muted">
++        {t(
++          "Đăng nhập để thêm MCP key, lấy GPT kit và bắt đầu trial.",
++          "Sign in to add MCP keys, download the GPT kit, and start your trial.",
++        )}
++      </p>
++      <label>
++        Email
++        <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
++      </label>
++      <label>
++        {t("Mật khẩu", "Password")}
++        <input
++          value={password}
++          onChange={(event) => setPassword(event.target.value)}
++          type="password"
++        />
++      </label>
++      <div className="row">
++        <button disabled={busy} onClick={() => void submit("signin")} type="button">
++          {t("Đăng nhập", "Sign in")}
++        </button>
++        <button
++          className="secondary"
++          disabled={busy}
++          onClick={() => void submit("signup")}
++          type="button"
++        >
++          {t("Tạo tài khoản", "Create account")}
++        </button>
++      </div>
++      {message ? <p className="notice">{message}</p> : null}
++    </section>
++  );
++}
+diff --git a/web/src/modules/auth/presentation/hooks/useSession.ts b/web/src/modules/auth/presentation/hooks/useSession.ts
+new file mode 100644
+index 0000000..b0ba592
+--- /dev/null
++++ b/web/src/modules/auth/presentation/hooks/useSession.ts
+@@ -0,0 +1,27 @@
++import { useEffect, useState } from "react";
++import type { Session } from "@supabase/supabase-js";
++import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
++
++export function useSession() {
++  const [session, setSession] = useState<Session | null>(null);
++  const [isLoading, setIsLoading] = useState(true);
++
++  useEffect(() => {
++    let active = true;
++    void supabase.auth.getSession().then(({ data }) => {
++      if (!active) return;
++      setSession(data.session);
++      setIsLoading(false);
++    });
++    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
++      setSession(nextSession);
++      setIsLoading(false);
++    });
++    return () => {
++      active = false;
++      data.subscription.unsubscribe();
++    };
++  }, []);
++
++  return { session, isLoading };
++}
+diff --git a/web/src/modules/dashboard/presentation/DashboardPage.tsx b/web/src/modules/dashboard/presentation/DashboardPage.tsx
+new file mode 100644
+index 0000000..c8ac26c
+--- /dev/null
++++ b/web/src/modules/dashboard/presentation/DashboardPage.tsx
+@@ -0,0 +1,69 @@
++import { useAccount } from "@/modules/account/queries/account.queries";
++import { AuthPanel } from "@/modules/auth/presentation/components/AuthPanel";
++import { useSession } from "@/modules/auth/presentation/hooks/useSession";
++import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
++import { GptIntegrationPanel } from "@/modules/gpt-integration/presentation/GptIntegrationPanel";
++import { McpConnectionsPanel } from "@/modules/mcp-connections/presentation/McpConnectionsPanel";
++import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
++import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function DashboardPage() {
++  const { t } = useUiLanguage();
++  const { session, isLoading } = useSession();
++  const accessToken = session?.access_token ?? "";
++  const account = useAccount(accessToken);
++
++  if (isLoading) {
++    return <main className="container dashboard"><p>{t("Đang tải…", "Loading…")}</p></main>;
++  }
++
++  if (!session) {
++    return (
++      <main className="container dashboard narrow">
++        <div className="dashboard-top">
++          <a className="brand" href="/">MCP Gateway</a>
++          <LanguageSwitcher />
++        </div>
++        <AuthPanel />
++      </main>
++    );
++  }
++
++  return (
++    <main className="container dashboard">
++      <div className="dashboard-top">
++        <div>
++          <a className="brand" href="/">MCP Gateway</a>
++          <p className="muted">{session.user.email}</p>
++        </div>
++        <div className="row">
++          <LanguageSwitcher />
++          <button className="secondary" onClick={() => void supabase.auth.signOut()} type="button">
++            {t("Đăng xuất", "Sign out")}
++          </button>
++        </div>
++      </div>
++
++      <section className="dashboard-intro">
++        <span className="eyebrow">CONTROL PLANE</span>
++        <h1>{t("Kết nối GPT của bạn với MCP.", "Connect your GPT to MCP.")}</h1>
++        <p className="lead small">
++          {t(
++            "Cấu hình provider, tải GPT Kit, rồi kích hoạt trial hoặc Open ID.",
++            "Configure a provider, download the GPT Kit, then activate a trial or paid Open ID.",
++          )}
++        </p>
++      </section>
++
++      {account.isLoading ? <p>{t("Đang tải tài khoản…", "Loading account…")}</p> : null}
++      {account.error ? <p className="notice error">{account.error.message}</p> : null}
++
++      <div className="dashboard-grid">
++        <McpConnectionsPanel accessToken={accessToken} />
++        {account.data ? <OpenIdPanel accessToken={accessToken} account={account.data} /> : null}
++        <GptIntegrationPanel accessToken={accessToken} />
++      </div>
++    </main>
++  );
++}
+diff --git a/web/src/modules/gpt-integration/presentation/GptIntegrationPanel.tsx b/web/src/modules/gpt-integration/presentation/GptIntegrationPanel.tsx
+new file mode 100644
+index 0000000..d90e9d9
+--- /dev/null
++++ b/web/src/modules/gpt-integration/presentation/GptIntegrationPanel.tsx
+@@ -0,0 +1,49 @@
++import { useState } from "react";
++import { downloadGatewayFile } from "@/shared/api/gateway-api";
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function GptIntegrationPanel({ accessToken }: { accessToken: string }) {
++  const { language, t } = useUiLanguage();
++  const [error, setError] = useState<string | null>(null);
++
++  async function downloadKit() {
++    setError(null);
++    try {
++      const blob = await downloadGatewayFile(
++        `/gpt-integration/package?language=${language}`,
++        accessToken,
++      );
++      const url = URL.createObjectURL(blob);
++      const link = document.createElement("a");
++      link.href = url;
++      link.download = `mcp-gateway-gpt-kit-${language}.zip`;
++      link.click();
++      URL.revokeObjectURL(url);
++    } catch (downloadError) {
++      setError(downloadError instanceof Error ? downloadError.message : "Download failed");
++    }
++  }
++
++  return (
++    <section className="card">
++      <span className="eyebrow">CUSTOM GPT</span>
++      <h2>{t("GPT Integration Kit", "GPT Integration Kit")}</h2>
++      <p className="muted">
++        {t(
++          "Đăng nhập là có thể tải kit. Open ID chỉ được kiểm tra khi GPT thực sự gọi Gateway.",
++          "Any signed-in user may download the kit. Open ID entitlement is enforced when GPT executes through Gateway.",
++        )}
++      </p>
++      <div className="file-list">
++        <code>instructions.md</code>
++        <code>knowledge.md</code>
++        <code>openapi.yaml</code>
++        <code>setup-guide.md</code>
++      </div>
++      <button onClick={() => void downloadKit()} type="button">
++        {t("Tải ZIP cho GPT", "Download GPT ZIP")}
++      </button>
++      {error ? <p className="notice error">{error}</p> : null}
++    </section>
++  );
++}
+diff --git a/web/src/modules/marketing/presentation/LandingPage.tsx b/web/src/modules/marketing/presentation/LandingPage.tsx
+new file mode 100644
+index 0000000..1761f7b
+--- /dev/null
++++ b/web/src/modules/marketing/presentation/LandingPage.tsx
+@@ -0,0 +1,101 @@
++import { Link } from "@tanstack/react-router";
++
++type Props = { language: "vi" | "en" };
++
++export function LandingPage({ language }: Props) {
++  const vi = language === "vi";
++  const t = (viText: string, enText: string) => (vi ? viText : enText);
++
++  return (
++    <main lang={language}>
++      <header className="site-header container">
++        <Link className="brand" to="/">MCP Gateway</Link>
++        <nav className="row">
++          <a href={vi ? "/" : "/vi"}>{vi ? "EN" : "VI"}</a>
++          <Link className="button secondary" to="/app">
++            {t("Mở ứng dụng", "Open app")}
++          </Link>
++        </nav>
++      </header>
++
++      <section className="hero container">
++        <div>
++          <span className="eyebrow">CUSTOM GPT × MCP</span>
++          <h1>
++            {t(
++              "Cho GPT của bạn dùng MCP như một coding agent.",
++              "Give your Custom GPT agent-like MCP access.",
++            )}
++          </h1>
++          <p className="lead">
++            {t(
++              "Một Gateway bảo mật để GPT tự discovery tool, chọn đúng MCP và gọi bằng credential của chính bạn — không đưa provider API key vào GPT.",
++              "One secure Gateway where GPT discovers tools, selects the right MCP service, and executes with your credentials — without exposing provider API keys to GPT.",
++            )}
++          </p>
++          <div className="row hero-actions">
++            <Link className="button" to="/app">
++              {t("Dùng thử 7 ngày", "Start 7-day trial")}
++            </Link>
++            <a className="button secondary" href="#how-it-works">
++              {t("Cách hoạt động", "How it works")}
++            </a>
++          </div>
++        </div>
++        <div className="terminal-card" aria-label="Gateway flow">
++          <code>
++            User intent{"\n"}
++            {"  ↓"}{"\n"}
++            Custom GPT{"\n"}
++            {"  ↓  listMcpTools('stitch')"}{"\n"}
++            MCP Gateway{"\n"}
++            {"  ↓  Open ID authorized"}{"\n"}
++            Google Stitch MCP
++          </code>
++        </div>
++      </section>
++
++      <section className="section container" id="how-it-works">
++        <span className="eyebrow">{t("CỐT LÕI", "CORE CONCEPT")}</span>
++        <h2>
++          {t(
++            "Open ID là quyền truy cập. GPT Kit là cách kết nối.",
++            "Open ID is the entitlement. GPT Kit is the integration.",
++          )}
++        </h2>
++        <div className="grid three">
++          <article className="card">
++            <h3>1. {t("Kết nối MCP", "Connect MCP")}</h3>
++            <p>{t("Lưu Stitch API key trong Gateway. Secret được giữ phía server.", "Store your Stitch API key in Gateway. The secret stays server-side.")}</p>
++          </article>
++          <article className="card">
++            <h3>2. {t("Thêm GPT Kit", "Install GPT Kit")}</h3>
++            <p>{t("Import Action Schema, Instructions và Knowledge vào Custom GPT.", "Import the Action Schema, Instructions, and Knowledge into your Custom GPT.")}</p>
++          </article>
++          <article className="card">
++            <h3>3. {t("Kích hoạt Open ID", "Activate Open ID")}</h3>
++            <p>{t("Guest có một trial 7 ngày. Member dùng Open ID chính thức.", "Guests get one 7-day trial. Members use a paid Open ID.")}</p>
++          </article>
++        </div>
++      </section>
++
++      <section className="section container split">
++        <div>
++          <span className="eyebrow">STITCH FIRST</span>
++          <h2>{t("Thử nghiệm đầu tiên với Google Stitch.", "First-class Google Stitch pilot.")}</h2>
++        </div>
++        <p className="lead small">
++          {t(
++            "Gateway dùng MCP tool discovery tại runtime, nên GPT không cần nhớ cứng danh sách tool của Stitch.",
++            "Gateway uses runtime MCP tool discovery, so GPT does not need a hardcoded Stitch tool catalog.",
++          )}
++        </p>
++      </section>
++
++      <footer className="footer container">
++        <strong>MCP Gateway</strong>
++        <span>{t("Kết nối Custom GPT với MCP qua một gateway có kiểm soát.", "Connect Custom GPT to MCP through one controlled gateway.")}</span>
++      </footer>
++    </main>
++  );
++}
+diff --git a/web/src/modules/mcp-connections/api/mcp-connections.api.ts b/web/src/modules/mcp-connections/api/mcp-connections.api.ts
+new file mode 100644
+index 0000000..d859085
+--- /dev/null
++++ b/web/src/modules/mcp-connections/api/mcp-connections.api.ts
+@@ -0,0 +1,30 @@
++import type { McpConnection } from "@/modules/mcp-connections/domain/mcp-connection.types";
++import { gatewayRequest } from "@/shared/api/gateway-api";
++
++export function listMcpConnections(accessToken: string) {
++  return gatewayRequest<McpConnection[]>("/mcp-connections", accessToken);
++}
++
++export function testStitch(accessToken: string, apiKey: string) {
++  return gatewayRequest<{ provider: "stitch"; status: "connected" }>(
++    "/mcp-connections/test",
++    accessToken,
++    {
++      method: "POST",
++      body: JSON.stringify({ provider: "stitch", apiKey }),
++    },
++  );
++}
++
++export function saveStitch(accessToken: string, apiKey: string) {
++  return gatewayRequest<McpConnection>("/mcp-connections", accessToken, {
++    method: "PUT",
++    body: JSON.stringify({ provider: "stitch", apiKey }),
++  });
++}
++
++export function removeStitch(accessToken: string) {
++  return gatewayRequest<{ deleted: boolean }>("/mcp-connections/stitch", accessToken, {
++    method: "DELETE",
++  });
++}
+diff --git a/web/src/modules/mcp-connections/domain/mcp-connection.types.ts b/web/src/modules/mcp-connections/domain/mcp-connection.types.ts
+new file mode 100644
+index 0000000..bad0690
+--- /dev/null
++++ b/web/src/modules/mcp-connections/domain/mcp-connection.types.ts
+@@ -0,0 +1,9 @@
++export type McpConnection = {
++  id: string;
++  provider: "stitch";
++  status: "connected" | "invalid" | "unavailable";
++  lastVerifiedAt: string | null;
++  lastErrorCode: string | null;
++  createdAt: string;
++  updatedAt: string;
++};
+diff --git a/web/src/modules/mcp-connections/presentation/McpConnectionsPanel.tsx b/web/src/modules/mcp-connections/presentation/McpConnectionsPanel.tsx
+new file mode 100644
+index 0000000..d66b997
+--- /dev/null
++++ b/web/src/modules/mcp-connections/presentation/McpConnectionsPanel.tsx
+@@ -0,0 +1,73 @@
++import { useState } from "react";
++import {
++  useMcpConnections,
++  useRemoveStitch,
++  useSaveStitch,
++  useTestStitch,
++} from "@/modules/mcp-connections/queries/mcp-connections.queries";
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
++  const { t } = useUiLanguage();
++  const [apiKey, setApiKey] = useState("");
++  const connections = useMcpConnections(accessToken);
++  const test = useTestStitch(accessToken);
++  const save = useSaveStitch(accessToken);
++  const remove = useRemoveStitch(accessToken);
++  const stitch = connections.data?.find((item) => item.provider === "stitch");
++
++  return (
++    <section className="card">
++      <div className="panel-heading">
++        <div>
++          <span className="eyebrow">MCP CONNECTION</span>
++          <h2>Google Stitch</h2>
++        </div>
++        <span className={`status ${stitch ? "good" : ""}`}>
++          {stitch ? t("Đã kết nối", "Connected") : t("Chưa kết nối", "Not connected")}
++        </span>
++      </div>
++      <p className="muted">
++        {t(
++          "API key được gửi một lần tới backend và mã hóa trước khi lưu.",
++          "The API key is sent to the backend and encrypted before storage.",
++        )}
++      </p>
++      <label>
++        Stitch API Key
++        <input
++          autoComplete="off"
++          onChange={(event) => setApiKey(event.target.value)}
++          placeholder="AIza..."
++          type="password"
++          value={apiKey}
++        />
++      </label>
++      <div className="row">
++        <button
++          disabled={!apiKey || test.isPending}
++          onClick={() => test.mutate(apiKey)}
++          type="button"
++        >
++          {t("Kiểm tra", "Test connection")}
++        </button>
++        <button
++          className="secondary"
++          disabled={!apiKey || save.isPending}
++          onClick={() => save.mutate(apiKey, { onSuccess: () => setApiKey("") })}
++          type="button"
++        >
++          {t("Lưu", "Save")}
++        </button>
++        {stitch ? (
++          <button className="danger" onClick={() => remove.mutate()} type="button">
++            {t("Ngắt kết nối", "Disconnect")}
++          </button>
++        ) : null}
++      </div>
++      {test.isSuccess ? <p className="notice success">{t("Stitch key hợp lệ.", "Stitch key is valid.")}</p> : null}
++      {test.error ? <p className="notice error">{test.error.message}</p> : null}
++      {save.error ? <p className="notice error">{save.error.message}</p> : null}
++    </section>
++  );
++}
+diff --git a/web/src/modules/mcp-connections/queries/mcp-connections.queries.ts b/web/src/modules/mcp-connections/queries/mcp-connections.queries.ts
+new file mode 100644
+index 0000000..5a94607
+--- /dev/null
++++ b/web/src/modules/mcp-connections/queries/mcp-connections.queries.ts
+@@ -0,0 +1,41 @@
++import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
++import {
++  listMcpConnections,
++  removeStitch,
++  saveStitch,
++  testStitch,
++} from "@/modules/mcp-connections/api/mcp-connections.api";
++
++export const mcpConnectionKeys = {
++  all: ["mcp-connections"] as const,
++};
++
++export function useMcpConnections(accessToken: string) {
++  return useQuery({
++    queryKey: mcpConnectionKeys.all,
++    queryFn: () => listMcpConnections(accessToken),
++    enabled: Boolean(accessToken),
++  });
++}
++
++export function useSaveStitch(accessToken: string) {
++  const queryClient = useQueryClient();
++  return useMutation({
++    mutationFn: (apiKey: string) => saveStitch(accessToken, apiKey),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
++  });
++}
++
++export function useTestStitch(accessToken: string) {
++  return useMutation({
++    mutationFn: (apiKey: string) => testStitch(accessToken, apiKey),
++  });
++}
++
++export function useRemoveStitch(accessToken: string) {
++  const queryClient = useQueryClient();
++  return useMutation({
++    mutationFn: () => removeStitch(accessToken),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: mcpConnectionKeys.all }),
++  });
++}
+diff --git a/web/src/modules/open-id/api/open-id.api.ts b/web/src/modules/open-id/api/open-id.api.ts
+new file mode 100644
+index 0000000..5e3242f
+--- /dev/null
++++ b/web/src/modules/open-id/api/open-id.api.ts
+@@ -0,0 +1,38 @@
++import type {
++  OneTimeToken,
++  OpenId,
++  TrialStatus,
++} from "@/modules/open-id/domain/open-id.types";
++import { gatewayRequest } from "@/shared/api/gateway-api";
++
++export function getTrialStatus(accessToken: string) {
++  return gatewayRequest<TrialStatus>("/open-ids/trial", accessToken);
++}
++
++export function claimTrial(accessToken: string) {
++  return gatewayRequest<OneTimeToken>("/open-ids/trial", accessToken, {
++    method: "POST",
++  });
++}
++
++export function listOpenIds(accessToken: string) {
++  return gatewayRequest<OpenId[]>("/open-ids", accessToken);
++}
++
++export function createOpenId(accessToken: string) {
++  return gatewayRequest<OpenId>("/open-ids", accessToken, {
++    method: "POST",
++    body: JSON.stringify({}),
++  });
++}
++
++export function createGatewayToken(accessToken: string, openIdId: string) {
++  return gatewayRequest<OneTimeToken & { id: string }>(
++    `/open-ids/${openIdId}/tokens`,
++    accessToken,
++    {
++      method: "POST",
++      body: JSON.stringify({}),
++    },
++  );
++}
+diff --git a/web/src/modules/open-id/domain/open-id.types.ts b/web/src/modules/open-id/domain/open-id.types.ts
+new file mode 100644
+index 0000000..2a3dad3
+--- /dev/null
++++ b/web/src/modules/open-id/domain/open-id.types.ts
+@@ -0,0 +1,24 @@
++export type TrialStatus = {
++  status: "available" | "active" | "consumed" | "not_applicable";
++  claimedAt: string | null;
++  expiresAt: string | null;
++};
++
++export type OpenId = {
++  id: string;
++  user_id: string;
++  open_id: string;
++  kind: "paid";
++  is_exportable: true;
++  status: "active" | "revoked";
++  expires_at: string | null;
++  revoked_at: string | null;
++  created_at: string;
++};
++
++export type OneTimeToken = {
++  accessToken: string;
++  tokenPrefix: string;
++  expiresAt?: string | null;
++  notice: string;
++};
+diff --git a/web/src/modules/open-id/presentation/OpenIdPanel.tsx b/web/src/modules/open-id/presentation/OpenIdPanel.tsx
+new file mode 100644
+index 0000000..3f77fcc
+--- /dev/null
++++ b/web/src/modules/open-id/presentation/OpenIdPanel.tsx
+@@ -0,0 +1,123 @@
++import { useState } from "react";
++import type { AccountProfile } from "@/modules/auth/domain/auth.types";
++import {
++  useClaimTrial,
++  useCreateGatewayToken,
++  useCreateOpenId,
++  useOpenIds,
++  useTrialStatus,
++} from "@/modules/open-id/queries/open-id.queries";
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function OpenIdPanel({
++  accessToken,
++  account,
++}: {
++  accessToken: string;
++  account: AccountProfile;
++}) {
++  const { t } = useUiLanguage();
++  const trial = useTrialStatus(accessToken);
++  const openIds = useOpenIds(accessToken);
++  const claim = useClaimTrial(accessToken);
++  const createOpenId = useCreateOpenId(accessToken);
++  const createToken = useCreateGatewayToken(accessToken);
++  const [oneTimeToken, setOneTimeToken] = useState<string | null>(null);
++
++  const isMember = account.membershipTier === "member";
++
++  return (
++    <section className="card">
++      <div className="panel-heading">
++        <div>
++          <span className="eyebrow">OPEN ID</span>
++          <h2>{t("Quyền Gateway", "Gateway entitlement")}</h2>
++        </div>
++        <span className={`status ${isMember ? "good" : ""}`}>
++          {isMember ? "Member" : "Guest"}
++        </span>
++      </div>
++
++      {!isMember ? (
++        <div className="subcard">
++          <strong>{t("Trial một lần / tài khoản", "One trial per account")}</strong>
++          <p className="muted">
++            {trial.data?.status === "active"
++              ? t(`Hết hạn: ${trial.data.expiresAt}`, `Expires: ${trial.data.expiresAt}`)
++              : trial.data?.status === "consumed"
++                ? t("Trial đã được sử dụng.", "Trial already consumed.")
++                : t("7 ngày bắt đầu khi bạn bấm tạo Trial Token.", "Your 7 days start only when you create the Trial Token.")}
++          </p>
++          {trial.data?.status === "available" ? (
++            <button
++              disabled={claim.isPending}
++              onClick={() =>
++                claim.mutate(undefined, {
++                  onSuccess: (data) => setOneTimeToken(data.accessToken),
++                })
++              }
++              type="button"
++            >
++              {t("Tạo Trial Token", "Create Trial Token")}
++            </button>
++          ) : null}
++        </div>
++      ) : (
++        <div className="subcard">
++          <div className="row spread">
++            <strong>{t("Open ID của bạn", "Your Open IDs")}</strong>
++            {!openIds.data?.length ? (
++              <button
++                disabled={createOpenId.isPending}
++                onClick={() => createOpenId.mutate()}
++                type="button"
++              >
++                {t("Kích hoạt Open ID", "Activate Open ID")}
++              </button>
++            ) : null}
++          </div>
++          {openIds.data?.length ? (
++            <div className="stack">
++              {openIds.data.map((item) => (
++                <div className="token-row" key={item.id}>
++                  <code>{item.open_id}</code>
++                  <button
++                    className="secondary"
++                    onClick={() =>
++                      createToken.mutate(item.id, {
++                        onSuccess: (data) => setOneTimeToken(data.accessToken),
++                      })
++                    }
++                    type="button"
++                  >
++                    {t("Tạo token", "Generate token")}
++                  </button>
++                </div>
++              ))}
++            </div>
++          ) : (
++            <p className="muted">{t("Chưa có Open ID.", "No Open ID yet.")}</p>
++          )}
++        </div>
++      )}
++
++      {oneTimeToken ? (
++        <div className="secret-box">
++          <strong>{t("Chỉ hiển thị một lần", "Shown once")}</strong>
++          <code>{oneTimeToken}</code>
++          <button
++            className="secondary"
++            onClick={() => void navigator.clipboard.writeText(oneTimeToken)}
++            type="button"
++          >
++            {t("Sao chép", "Copy")}
++          </button>
++        </div>
++      ) : null}
++
++      {claim.error ? <p className="notice error">{claim.error.message}</p> : null}
++      {createOpenId.error ? <p className="notice error">{createOpenId.error.message}</p> : null}
++      {createToken.error ? <p className="notice error">{createToken.error.message}</p> : null}
++    </section>
++  );
++}
+diff --git a/web/src/modules/open-id/queries/open-id.queries.ts b/web/src/modules/open-id/queries/open-id.queries.ts
+new file mode 100644
+index 0000000..3191487
+--- /dev/null
++++ b/web/src/modules/open-id/queries/open-id.queries.ts
+@@ -0,0 +1,51 @@
++import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
++import {
++  claimTrial,
++  createGatewayToken,
++  createOpenId,
++  getTrialStatus,
++  listOpenIds,
++} from "@/modules/open-id/api/open-id.api";
++
++export const openIdKeys = {
++  all: ["open-ids"] as const,
++  trial: ["open-ids", "trial"] as const,
++};
++
++export function useTrialStatus(accessToken: string) {
++  return useQuery({
++    queryKey: openIdKeys.trial,
++    queryFn: () => getTrialStatus(accessToken),
++    enabled: Boolean(accessToken),
++  });
++}
++
++export function useOpenIds(accessToken: string) {
++  return useQuery({
++    queryKey: openIdKeys.all,
++    queryFn: () => listOpenIds(accessToken),
++    enabled: Boolean(accessToken),
++  });
++}
++
++export function useClaimTrial(accessToken: string) {
++  const queryClient = useQueryClient();
++  return useMutation({
++    mutationFn: () => claimTrial(accessToken),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: openIdKeys.trial }),
++  });
++}
++
++export function useCreateOpenId(accessToken: string) {
++  const queryClient = useQueryClient();
++  return useMutation({
++    mutationFn: () => createOpenId(accessToken),
++    onSuccess: () => queryClient.invalidateQueries({ queryKey: openIdKeys.all }),
++  });
++}
++
++export function useCreateGatewayToken(accessToken: string) {
++  return useMutation({
++    mutationFn: (openIdId: string) => createGatewayToken(accessToken, openIdId),
++  });
++}
+diff --git a/web/src/routeTree.gen.ts b/web/src/routeTree.gen.ts
+new file mode 100644
+index 0000000..e3fdec5
+--- /dev/null
++++ b/web/src/routeTree.gen.ts
+@@ -0,0 +1,106 @@
++/* eslint-disable */
++// @ts-nocheck
++// Generated-compatible seed. TanStack Router will overwrite this during build.
++
++import { Route as rootRouteImport } from "./routes/__root";
++import { Route as IndexRouteImport } from "./routes/index";
++import { Route as ViRouteImport } from "./routes/vi";
++import { Route as AppRouteImport } from "./routes/app";
++
++const IndexRoute = IndexRouteImport.update({
++  id: "/",
++  path: "/",
++  getParentRoute: () => rootRouteImport,
++} as any);
++
++const ViRoute = ViRouteImport.update({
++  id: "/vi",
++  path: "/vi",
++  getParentRoute: () => rootRouteImport,
++} as any);
++
++const AppRoute = AppRouteImport.update({
++  id: "/app",
++  path: "/app",
++  getParentRoute: () => rootRouteImport,
++} as any);
++
++export interface FileRoutesByFullPath {
++  "/": typeof IndexRoute;
++  "/vi": typeof ViRoute;
++  "/app": typeof AppRoute;
++}
++
++export interface FileRoutesByTo {
++  "/": typeof IndexRoute;
++  "/vi": typeof ViRoute;
++  "/app": typeof AppRoute;
++}
++
++export interface FileRoutesById {
++  __root__: typeof rootRouteImport;
++  "/": typeof IndexRoute;
++  "/vi": typeof ViRoute;
++  "/app": typeof AppRoute;
++}
++
++export interface FileRouteTypes {
++  fileRoutesByFullPath: FileRoutesByFullPath;
++  fullPaths: "/" | "/vi" | "/app";
++  fileRoutesByTo: FileRoutesByTo;
++  to: "/" | "/vi" | "/app";
++  id: "__root__" | "/" | "/vi" | "/app";
++  fileRoutesById: FileRoutesById;
++}
++
++export interface RootRouteChildren {
++  IndexRoute: typeof IndexRoute;
++  ViRoute: typeof ViRoute;
++  AppRoute: typeof AppRoute;
++}
++
++declare module "@tanstack/react-router" {
++  interface FileRoutesByPath {
++    "/": {
++      id: "/";
++      path: "/";
++      fullPath: "/";
++      preLoaderRoute: typeof IndexRouteImport;
++      parentRoute: typeof rootRouteImport;
++    };
++    "/vi": {
++      id: "/vi";
++      path: "/vi";
++      fullPath: "/vi";
++      preLoaderRoute: typeof ViRouteImport;
++      parentRoute: typeof rootRouteImport;
++    };
++    "/app": {
++      id: "/app";
++      path: "/app";
++      fullPath: "/app";
++      preLoaderRoute: typeof AppRouteImport;
++      parentRoute: typeof rootRouteImport;
++    };
++  }
++}
++
++const rootRouteChildren: RootRouteChildren = {
++  IndexRoute,
++  ViRoute,
++  AppRoute,
++};
++
++export const routeTree = rootRouteImport
++  ._addFileChildren(rootRouteChildren)
++  ._addFileTypes<FileRouteTypes>();
++
++import type { getRouter } from "./router.tsx";
++import type { startInstance } from "./start.ts";
++declare module "@tanstack/react-start" {
++  interface Register {
++    ssr: true;
++    router: Awaited<ReturnType<typeof getRouter>>;
++    config: Awaited<ReturnType<typeof startInstance.getOptions>>;
++  }
++}
+diff --git a/web/src/router.tsx b/web/src/router.tsx
+new file mode 100644
+index 0000000..38ab74b
+--- /dev/null
++++ b/web/src/router.tsx
+@@ -0,0 +1,12 @@
++import { QueryClient } from "@tanstack/react-query";
++import { createRouter } from "@tanstack/react-router";
++import { routeTree } from "@/routeTree.gen";
++
++export const getRouter = () => {
++  const queryClient = new QueryClient();
++  return createRouter({
++    routeTree,
++    context: { queryClient },
++    scrollRestoration: true,
++  });
++};
+diff --git a/web/src/routes/__root.tsx b/web/src/routes/__root.tsx
+new file mode 100644
+index 0000000..60417ba
+--- /dev/null
++++ b/web/src/routes/__root.tsx
+@@ -0,0 +1,48 @@
++import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
++import {
++  HeadContent,
++  Outlet,
++  Scripts,
++  createRootRouteWithContext,
++} from "@tanstack/react-router";
++import type { ReactNode } from "react";
++import appCss from "@/styles.css?url";
++import { UiLanguageProvider } from "@/shared/i18n/ui-language";
++
++export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
++  head: () => ({
++    meta: [
++      { charSet: "utf-8" },
++      { name: "viewport", content: "width=device-width, initial-scale=1" },
++      { name: "theme-color", content: "#0a0d14" },
++    ],
++    links: [{ rel: "stylesheet", href: appCss }],
++  }),
++  shellComponent: RootShell,
++  component: RootComponent,
++});
++
++function RootShell({ children }: { children: ReactNode }) {
++  return (
++    <html lang="en">
++      <head>
++        <HeadContent />
++      </head>
++      <body>
++        {children}
++        <Scripts />
++      </body>
++    </html>
++  );
++}
++
++function RootComponent() {
++  const { queryClient } = Route.useRouteContext();
++  return (
++    <QueryClientProvider client={queryClient}>
++      <UiLanguageProvider>
++        <Outlet />
++      </UiLanguageProvider>
++    </QueryClientProvider>
++  );
++}
+diff --git a/web/src/routes/app.tsx b/web/src/routes/app.tsx
+new file mode 100644
+index 0000000..eba7823
+--- /dev/null
++++ b/web/src/routes/app.tsx
+@@ -0,0 +1,12 @@
++import { createFileRoute } from "@tanstack/react-router";
++import { DashboardPage } from "@/modules/dashboard/presentation/DashboardPage";
++
++export const Route = createFileRoute("/app")({
++  head: () => ({
++    meta: [
++      { title: "MCP Gateway · App" },
++      { name: "robots", content: "noindex,nofollow" },
++    ],
++  }),
++  component: DashboardPage,
++});
+diff --git a/web/src/routes/index.tsx b/web/src/routes/index.tsx
+new file mode 100644
+index 0000000..41b94cf
+--- /dev/null
++++ b/web/src/routes/index.tsx
+@@ -0,0 +1,32 @@
++import { createFileRoute } from "@tanstack/react-router";
++import { LandingPage } from "@/modules/marketing/presentation/LandingPage";
++
++const siteUrl =
++  import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/+$/u, "") ||
++  "http://127.0.0.1:5656";
++
++export const Route = createFileRoute("/")({
++  head: () => ({
++    meta: [
++      { title: "MCP Gateway for Custom GPTs | Connect GPT to MCP" },
++      {
++        name: "description",
++        content:
++          "Connect Custom GPTs to supported MCP services through a secure Open ID gateway. Runtime tool discovery, encrypted provider credentials, and Google Stitch support.",
++      },
++      { property: "og:title", content: "MCP Gateway for Custom GPTs" },
++      {
++        property: "og:description",
++        content: "Give Custom GPT agent-like MCP access through one secure Gateway.",
++      },
++      { property: "og:type", content: "website" },
++      { property: "og:url", content: `${siteUrl}/` },
++    ],
++    links: [
++      { rel: "canonical", href: `${siteUrl}/` },
++      { rel: "alternate", hrefLang: "en", href: `${siteUrl}/` },
++      { rel: "alternate", hrefLang: "vi", href: `${siteUrl}/vi` },
++    ],
++  }),
++  component: () => <LandingPage language="en" />,
++});
+diff --git a/web/src/routes/vi.tsx b/web/src/routes/vi.tsx
+new file mode 100644
+index 0000000..d5a7025
+--- /dev/null
++++ b/web/src/routes/vi.tsx
+@@ -0,0 +1,32 @@
++import { createFileRoute } from "@tanstack/react-router";
++import { LandingPage } from "@/modules/marketing/presentation/LandingPage";
++
++const siteUrl =
++  import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/+$/u, "") ||
++  "http://127.0.0.1:5656";
++
++export const Route = createFileRoute("/vi")({
++  head: () => ({
++    meta: [
++      { title: "MCP Gateway cho Custom GPT | Kết nối GPT với MCP" },
++      {
++        name: "description",
++        content:
++          "Kết nối Custom GPT với các MCP service được hỗ trợ qua Open ID Gateway bảo mật. Discovery tool runtime và hỗ trợ Google Stitch.",
++      },
++      { property: "og:title", content: "MCP Gateway cho Custom GPT" },
++      {
++        property: "og:description",
++        content: "Cho Custom GPT sử dụng MCP qua một Gateway có kiểm soát.",
++      },
++      { property: "og:type", content: "website" },
++      { property: "og:url", content: `${siteUrl}/vi` },
++    ],
++    links: [
++      { rel: "canonical", href: `${siteUrl}/vi` },
++      { rel: "alternate", hrefLang: "en", href: `${siteUrl}/` },
++      { rel: "alternate", hrefLang: "vi", href: `${siteUrl}/vi` },
++    ],
++  }),
++  component: () => <LandingPage language="vi" />,
++});
+diff --git a/web/src/server.ts b/web/src/server.ts
+new file mode 100644
+index 0000000..5cf0f25
+--- /dev/null
++++ b/web/src/server.ts
+@@ -0,0 +1,21 @@
++type ServerEntry = {
++  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
++};
++
++let serverEntryPromise: Promise<ServerEntry> | undefined;
++
++async function getServerEntry(): Promise<ServerEntry> {
++  if (!serverEntryPromise) {
++    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
++      (module) => (module.default ?? module) as ServerEntry,
++    );
++  }
++  return serverEntryPromise;
++}
++
++export default {
++  async fetch(request: Request, env: unknown, ctx: unknown) {
++    const handler = await getServerEntry();
++    return handler.fetch(request, env, ctx);
++  },
++};
+diff --git a/web/src/shared/api/gateway-api.ts b/web/src/shared/api/gateway-api.ts
+new file mode 100644
+index 0000000..55ba57f
+--- /dev/null
++++ b/web/src/shared/api/gateway-api.ts
+@@ -0,0 +1,56 @@
++const baseUrl =
++  import.meta.env.VITE_GATEWAY_API_BASE_URL?.trim() ||
++  "http://127.0.0.1:5657/api/v1";
++
++export class GatewayApiError extends Error {
++  constructor(
++    readonly status: number,
++    readonly code: string,
++    message: string,
++  ) {
++    super(message);
++  }
++}
++
++export async function gatewayRequest<T>(
++  path: string,
++  accessToken: string,
++  init?: RequestInit,
++): Promise<T> {
++  const response = await fetch(`${baseUrl}${path}`, {
++    ...init,
++    headers: {
++      "Content-Type": "application/json",
++      Authorization: `Bearer ${accessToken}`,
++      ...init?.headers,
++    },
++  });
++
++  if (!response.ok) {
++    let payload: { code?: string; message?: string } = {};
++    try {
++      payload = (await response.json()) as typeof payload;
++    } catch {
++      // Fall back to HTTP semantics.
++    }
++    throw new GatewayApiError(
++      response.status,
++      payload.code || "REQUEST_FAILED",
++      payload.message || `Request failed (${response.status})`,
++    );
++  }
++  return (await response.json()) as T;
++}
++
++export async function downloadGatewayFile(
++  path: string,
++  accessToken: string,
++): Promise<Blob> {
++  const response = await fetch(`${baseUrl}${path}`, {
++    headers: { Authorization: `Bearer ${accessToken}` },
++  });
++  if (!response.ok) {
++    throw new GatewayApiError(response.status, "DOWNLOAD_FAILED", "Download failed");
++  }
++  return response.blob();
++}
+diff --git a/web/src/shared/i18n/LanguageSwitcher.tsx b/web/src/shared/i18n/LanguageSwitcher.tsx
+new file mode 100644
+index 0000000..cb3d600
+--- /dev/null
++++ b/web/src/shared/i18n/LanguageSwitcher.tsx
+@@ -0,0 +1,23 @@
++import { useUiLanguage } from "@/shared/i18n/ui-language";
++
++export function LanguageSwitcher() {
++  const { language, setLanguage } = useUiLanguage();
++  return (
++    <div className="language-switcher" aria-label="Language">
++      <button
++        className={language === "vi" ? "active" : ""}
++        onClick={() => setLanguage("vi")}
++        type="button"
++      >
++        VI
++      </button>
++      <button
++        className={language === "en" ? "active" : ""}
++        onClick={() => setLanguage("en")}
++        type="button"
++      >
++        EN
++      </button>
++    </div>
++  );
++}
+diff --git a/web/src/shared/i18n/ui-language.tsx b/web/src/shared/i18n/ui-language.tsx
+new file mode 100644
+index 0000000..7366919
+--- /dev/null
++++ b/web/src/shared/i18n/ui-language.tsx
+@@ -0,0 +1,59 @@
++import {
++  createContext,
++  useCallback,
++  useContext,
++  useEffect,
++  useMemo,
++  useState,
++  type ReactNode,
++} from "react";
++
++export type UiLanguage = "vi" | "en";
++
++const STORAGE_KEY = "mcp-gateway.ui.language";
++
++type UiLanguageContextValue = {
++  language: UiLanguage;
++  setLanguage: (language: UiLanguage) => void;
++  t: (vi: string, en: string) => string;
++};
++
++const UiLanguageContext = createContext<UiLanguageContextValue | null>(null);
++
++export function UiLanguageProvider({ children }: { children: ReactNode }) {
++  const [language, setLanguage] = useState<UiLanguage>("en");
++
++  useEffect(() => {
++    const stored = window.localStorage.getItem(STORAGE_KEY);
++    if (stored === "vi" || stored === "en") setLanguage(stored);
++  }, []);
++
++  useEffect(() => {
++    document.documentElement.lang = language;
++    window.localStorage.setItem(STORAGE_KEY, language);
++  }, [language]);
++
++  const t = useCallback(
++    (vi: string, en: string) => (language === "vi" ? vi : en),
++    [language],
++  );
++
++  const value = useMemo(
++    () => ({ language, setLanguage, t }),
++    [language, t],
++  );
++
++  return (
++    <UiLanguageContext.Provider value={value}>
++      {children}
++    </UiLanguageContext.Provider>
++  );
++}
++
++export function useUiLanguage() {
++  const value = useContext(UiLanguageContext);
++  if (!value) {
++    throw new Error("useUiLanguage must be used inside UiLanguageProvider");
++  }
++  return value;
++}
+diff --git a/web/src/start.ts b/web/src/start.ts
+new file mode 100644
+index 0000000..45d7672
+--- /dev/null
++++ b/web/src/start.ts
+@@ -0,0 +1,9 @@
++import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
++
++const csrfMiddleware = createCsrfMiddleware({
++  filter: (context) => context.handlerType === "serverFn",
++});
++
++export const startInstance = createStart(() => ({
++  requestMiddleware: [csrfMiddleware],
++}));
+diff --git a/web/src/styles.css b/web/src/styles.css
+new file mode 100644
+index 0000000..c754093
+--- /dev/null
++++ b/web/src/styles.css
+@@ -0,0 +1,162 @@
++:root {
++  color-scheme: dark;
++  font-family:
++    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
++    sans-serif;
++  background: #0a0d14;
++  color: #f5f7fb;
++  font-synthesis: none;
++  --panel: rgba(20, 25, 38, 0.88);
++  --panel-2: rgba(31, 39, 57, 0.72);
++  --border: rgba(255, 255, 255, 0.1);
++  --muted: #aab4c8;
++  --accent: #77e6bd;
++  --accent-2: #78a7ff;
++  --danger: #ff8c8c;
++}
++
++* { box-sizing: border-box; }
++html { scroll-behavior: smooth; }
++body {
++  margin: 0;
++  min-width: 320px;
++  background:
++    radial-gradient(circle at 15% 5%, rgba(71, 125, 255, 0.17), transparent 30rem),
++    radial-gradient(circle at 85% 12%, rgba(70, 235, 176, 0.12), transparent 26rem),
++    #0a0d14;
++  color: #f5f7fb;
++}
++a { color: inherit; text-decoration: none; }
++button, input { font: inherit; }
++button, .button {
++  border: 1px solid transparent;
++  border-radius: 10px;
++  background: var(--accent);
++  color: #07140f;
++  cursor: pointer;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  font-weight: 750;
++  padding: 0.72rem 1rem;
++}
++button:disabled { cursor: not-allowed; opacity: 0.55; }
++button.secondary, .button.secondary {
++  background: transparent;
++  color: #f5f7fb;
++  border-color: var(--border);
++}
++button.danger { background: transparent; color: var(--danger); border-color: rgba(255, 140, 140, .35); }
++input {
++  width: 100%;
++  margin-top: .45rem;
++  border-radius: 10px;
++  border: 1px solid var(--border);
++  background: #0e1320;
++  color: #fff;
++  padding: .8rem .9rem;
++}
++label { color: #dfe5f0; font-size: .92rem; display: block; }
++code {
++  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
++  overflow-wrap: anywhere;
++}
++.container { width: min(1120px, calc(100% - 2rem)); margin-inline: auto; }
++.site-header, .dashboard-top {
++  min-height: 74px;
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 1rem;
++}
++.brand { font-size: 1.05rem; font-weight: 850; letter-spacing: -.02em; }
++.row { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
++.spread { justify-content: space-between; }
++.hero {
++  min-height: 660px;
++  display: grid;
++  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
++  align-items: center;
++  gap: 4rem;
++  padding-block: 5rem;
++}
++.hero h1, .dashboard-intro h1 {
++  font-size: clamp(2.6rem, 6vw, 5.3rem);
++  line-height: .98;
++  letter-spacing: -.055em;
++  margin: .6rem 0 1.4rem;
++  max-width: 900px;
++}
++.dashboard-intro h1 { font-size: clamp(2rem, 5vw, 4rem); }
++.lead { color: #c0cadb; font-size: 1.18rem; line-height: 1.75; max-width: 760px; }
++.lead.small { font-size: 1rem; }
++.eyebrow { color: var(--accent); font-size: .76rem; letter-spacing: .16em; font-weight: 850; }
++.terminal-card, .card {
++  border: 1px solid var(--border);
++  background: var(--panel);
++  border-radius: 18px;
++  box-shadow: 0 22px 80px rgba(0, 0, 0, .24);
++}
++.terminal-card { padding: 2rem; }
++.terminal-card code { white-space: pre-wrap; line-height: 2; color: #c9d4e8; }
++.section { padding-block: 5rem; }
++.section h2 { font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.04em; max-width: 780px; }
++.grid { display: grid; gap: 1rem; }
++.grid.three { grid-template-columns: repeat(3, 1fr); }
++.card { padding: 1.35rem; }
++.card h2, .card h3 { margin-top: .35rem; }
++.card p { line-height: 1.65; }
++.split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: end; }
++.footer {
++  min-height: 150px;
++  display: flex;
++  justify-content: space-between;
++  gap: 1rem;
++  align-items: center;
++  color: var(--muted);
++  border-top: 1px solid var(--border);
++}
++.dashboard { padding-bottom: 5rem; }
++.dashboard.narrow { max-width: 720px; }
++.dashboard-intro { padding: 3rem 0 2rem; }
++.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
++.dashboard-grid > :last-child { grid-column: 1 / -1; }
++.panel-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
++.status {
++  border: 1px solid var(--border);
++  color: var(--muted);
++  border-radius: 999px;
++  padding: .35rem .65rem;
++  font-size: .78rem;
++}
++.status.good { color: var(--accent); border-color: rgba(119, 230, 189, .35); }
++.muted { color: var(--muted); }
++.subcard, .secret-box {
++  margin-top: 1rem;
++  padding: 1rem;
++  background: var(--panel-2);
++  border: 1px solid var(--border);
++  border-radius: 12px;
++}
++.secret-box { display: grid; gap: .8rem; }
++.secret-box code { color: #ffe09d; }
++.stack { display: grid; gap: .7rem; margin-top: .8rem; }
++.token-row { display: flex; gap: .8rem; justify-content: space-between; align-items: center; }
++.file-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin: 1rem 0; }
++.file-list code { padding: .7rem; background: #0e1320; border-radius: 8px; border: 1px solid var(--border); }
++.notice { padding: .75rem .9rem; background: var(--panel-2); border-radius: 9px; }
++.notice.success { color: var(--accent); }
++.notice.error { color: var(--danger); }
++.auth-card { display: grid; gap: 1rem; margin-top: 4rem; }
++.language-switcher { display: flex; gap: .3rem; }
++.language-switcher button { padding: .45rem .55rem; background: transparent; color: var(--muted); }
++.language-switcher button.active { color: #0a0d14; background: var(--accent); }
++.hero-actions { margin-top: 2rem; }
++
++@media (max-width: 780px) {
++  .hero, .split, .dashboard-grid, .grid.three { grid-template-columns: 1fr; }
++  .hero { gap: 2rem; padding-block: 3.5rem; }
++  .dashboard-grid > :last-child { grid-column: auto; }
++  .footer { align-items: flex-start; flex-direction: column; justify-content: center; }
++  .token-row { align-items: flex-start; flex-direction: column; }
++}
+diff --git a/web/start.mjs b/web/start.mjs
+new file mode 100644
+index 0000000..15e81fe
+--- /dev/null
++++ b/web/start.mjs
+@@ -0,0 +1,21 @@
++import path from "node:path";
++import { spawn } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const webRoot = path.dirname(fileURLToPath(import.meta.url));
++const viteCli = path.join(webRoot, "node_modules", "vite", "bin", "vite.js");
++
++const child = spawn(
++  process.execPath,
++  [viteCli, "dev", "--host", "127.0.0.1", ...process.argv.slice(2)],
++  {
++    cwd: webRoot,
++    env: process.env,
++    stdio: "inherit",
++    shell: false,
++  },
++);
++
++child.on("exit", (code) => {
++  process.exitCode = code ?? 0;
++});
+diff --git a/web/tsconfig.json b/web/tsconfig.json
+new file mode 100644
+index 0000000..20f9bc2
+--- /dev/null
++++ b/web/tsconfig.json
+@@ -0,0 +1,21 @@
++{
++  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],
++  "compilerOptions": {
++    "target": "ES2022",
++    "jsx": "react-jsx",
++    "module": "ESNext",
++    "lib": ["ES2022", "DOM", "DOM.Iterable"],
++    "types": ["vite/client"],
++    "moduleResolution": "Bundler",
++    "allowImportingTsExtensions": true,
++    "resolveJsonModule": true,
++    "verbatimModuleSyntax": false,
++    "noEmit": true,
++    "skipLibCheck": true,
++    "strict": true,
++    "noFallthroughCasesInSwitch": true,
++    "paths": {
++      "@/*": ["./src/*"]
++    }
++  }
++}
+diff --git a/web/vite.config.ts b/web/vite.config.ts
+new file mode 100644
+index 0000000..6dce8ca
+--- /dev/null
++++ b/web/vite.config.ts
+@@ -0,0 +1,36 @@
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { tanstackStart } from "@tanstack/react-start/plugin/vite";
++import react from "@vitejs/plugin-react";
++import { nitro } from "nitro/vite";
++import { defineConfig } from "vite";
++
++const webRoot = path.dirname(fileURLToPath(import.meta.url));
++
++export default defineConfig({
++  root: webRoot,
++  resolve: {
++    alias: {
++      "@": path.join(webRoot, "src"),
++    },
++    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
++    tsconfigPaths: true,
++  },
++  server: {
++    host: "127.0.0.1",
++    port: 5656,
++    strictPort: true,
++  },
++  preview: {
++    host: "127.0.0.1",
++    port: 5656,
++    strictPort: true,
++  },
++  plugins: [
++    tanstackStart({
++      server: { entry: "server" },
++    }),
++    nitro(),
++    react(),
++  ],
++});

@@ -1,0 +1,16 @@
+{
+  "name": "mcp-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "npm --prefix web run dev",
+    "dev:server": "npm --prefix server run start:dev",
+    "build:web": "npm --prefix web run build",
+    "build:server": "npm --prefix server run build",
+    "typecheck:web": "npm --prefix web run typecheck",
+    "test:server": "npm --prefix server run test",
+    "check:source": "node scripts/check-source.mjs",
+    "check:schema": "node scripts/check-schema-contract.mjs",
+    "check": "npm run check:source && npm run check:schema"
+  }
+}
