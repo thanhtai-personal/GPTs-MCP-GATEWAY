@@ -28,7 +28,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
     "nitro": "3.0.260603-beta",
-    "typescript": "^5.8.3",
+    "typescript": "^7.0.2",
     "vite": "^8.0.16"
   },
   "license": "AGPL-3.0-or-later",
