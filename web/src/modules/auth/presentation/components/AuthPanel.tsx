@@ -1,29 +1,27 @@
 import { useState } from "react";
-import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
+import { startGoogleOAuth } from "@/modules/auth/infrastructure/google-oauth";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
 export function AuthPanel() {
   const { t } = useUiLanguage();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function submit(mode: "signin" | "signup") {
-    setBusy(true);
-    setMessage(null);
-    const result =
-      mode === "signin"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-    setBusy(false);
-    setMessage(
-      result.error
-        ? result.error.message
-        : mode === "signup"
-          ? t("Đã tạo tài khoản. Kiểm tra email nếu dự án bật xác minh.", "Account created. Check email if confirmation is enabled.")
-          : t("Đăng nhập thành công.", "Signed in."),
-    );
+  async function signInWithGoogle() {
+    setIsSigningIn(true);
+    setError(null);
+
+    try {
+      await startGoogleOAuth();
+    } catch {
+      setIsSigningIn(false);
+      setError(
+        t(
+          "Không thể bắt đầu đăng nhập Google. Kiểm tra cấu hình Supabase OAuth rồi thử lại.",
+          "Could not start Google sign-in. Check the Supabase OAuth configuration and try again.",
+        ),
+      );
+    }
   }
 
   return (
@@ -31,36 +29,29 @@ export function AuthPanel() {
       <h2>{t("Đăng nhập MCP Gateway", "Sign in to MCP Gateway")}</h2>
       <p className="muted">
         {t(
-          "Đăng nhập để thêm MCP key, lấy GPT kit và bắt đầu trial.",
-          "Sign in to add MCP keys, download the GPT kit, and start your trial.",
+          "Dùng tài khoản Google để thêm MCP key, lấy GPT kit và bắt đầu trial.",
+          "Use your Google account to add MCP keys, download the GPT kit, and start your trial.",
         )}
       </p>
-      <label>
-        Email
-        <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
-      </label>
-      <label>
-        {t("Mật khẩu", "Password")}
-        <input
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          type="password"
-        />
-      </label>
-      <div className="row">
-        <button disabled={busy} onClick={() => void submit("signin")} type="button">
-          {t("Đăng nhập", "Sign in")}
-        </button>
-        <button
-          className="secondary"
-          disabled={busy}
-          onClick={() => void submit("signup")}
-          type="button"
-        >
-          {t("Tạo tài khoản", "Create account")}
-        </button>
-      </div>
-      {message ? <p className="notice">{message}</p> : null}
+
+      <button
+        disabled={isSigningIn}
+        onClick={() => void signInWithGoogle()}
+        type="button"
+      >
+        {isSigningIn
+          ? t("Đang chuyển đến Google…", "Redirecting to Google…")
+          : t("Tiếp tục với Google", "Continue with Google")}
+      </button>
+
+      <p className="muted">
+        {t(
+          "Đăng nhập được xử lý bởi Google và Supabase Auth. MCP Gateway không nhận mật khẩu Google của bạn.",
+          "Sign-in is handled by Google and Supabase Auth. MCP Gateway never receives your Google password.",
+        )}
+      </p>
+
+      {error ? <p className="notice error">{error}</p> : null}
     </section>
   );
 }
