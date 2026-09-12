@@ -1,4 +1,4 @@
-import { KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
+import { ChevronDown, KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type {
   McpConnection,
@@ -13,11 +13,19 @@ import {
   useTestMcpConnection,
 } from "@/modules/mcp-connections/queries/mcp-connections.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+import {
+  ProviderViewToolbar,
+  type ProviderViewMode,
+} from "@/modules/mcp-connections/presentation/ProviderViewToolbar";
 
 export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
   const { t } = useUiLanguage();
   const providers = useMcpProviders(accessToken);
   const connections = useMcpConnections(accessToken);
+  const [viewMode, setViewMode] = useState<ProviderViewMode>("grid");
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   if (providers.isLoading || connections.isLoading) {
     return (
@@ -42,6 +50,29 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
 
   const providerList = providers.data ?? [];
   const connectionList = connections.data ?? [];
+  const allExpanded =
+    providerList.length > 0 &&
+    providerList.every((provider) => expandedProviders.has(provider.id));
+
+  const toggleProvider = (providerId: string) => {
+    setExpandedProviders((current) => {
+      const next = new Set(current);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllProviders = () => {
+    setExpandedProviders(
+      allExpanded
+        ? new Set()
+        : new Set(providerList.map((provider) => provider.id)),
+    );
+  };
 
   return (
     <div className="provider-list cinematic-connectors">
@@ -67,14 +98,23 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
         <div><span>TRANSPORT</span><strong>MCP</strong><small>Runtime tool discovery</small></div>
       </div>
 
-      <div className="dashboard-grid dashboard-grid--providers">
+      <ProviderViewToolbar
+        allExpanded={allExpanded}
+        onToggleAll={toggleAllProviders}
+        onViewModeChange={setViewMode}
+        viewMode={viewMode}
+      />
+
+      <div className={`provider-frame provider-frame--${viewMode}`}>
         {providerList.map((provider) => (
           <McpProviderCard
             accessToken={accessToken}
             connection={connectionList.find(
               (connection) => connection.provider === provider.id,
             )}
+            expanded={expandedProviders.has(provider.id)}
             key={provider.id}
+            onToggle={() => toggleProvider(provider.id)}
             provider={provider}
           />
         ))}
@@ -94,17 +134,23 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
 function McpProviderCard({
   accessToken,
   connection,
+  expanded,
+  onToggle,
   provider,
 }: {
   accessToken: string;
   connection?: McpConnection;
+  expanded: boolean;
+  onToggle: () => void;
   provider: McpProvider;
 }) {
   const { t } = useUiLanguage();
   const isConnected = connection?.status === "connected";
 
   return (
-    <section className="card provider-card">
+    <section
+      className={`card provider-card ${expanded ? "is-expanded" : "is-collapsed"}`}
+    >
       <div className="provider-card__header">
         <div className="provider-card__identity">
           <span className="provider-logo">
@@ -115,17 +161,32 @@ function McpProviderCard({
             <h2>{provider.name}</h2>
           </div>
         </div>
-        <span className={`status ${isConnected ? "good" : ""}`}>
-          {isConnected
-            ? t("Đã kết nối", "Connected")
-            : provider.status === "pending_review"
-              ? t("Đang chờ xét duyệt", "Pending review")
-              : provider.status === "provider_restricted"
-                ? t("Provider đang giới hạn", "Provider restricted")
-                : provider.status === "requires_configuration"
-                  ? t("Cần cấu hình", "Setup required")
-                  : t("Chưa kết nối", "Not connected")}
-        </span>
+        <div className="provider-card__header-actions">
+          <span className={`status ${isConnected ? "good" : ""}`}>
+            {isConnected
+              ? t("Đã kết nối", "Connected")
+              : provider.status === "pending_review"
+                ? t("Đang chờ xét duyệt", "Pending review")
+                : provider.status === "provider_restricted"
+                  ? t("Provider đang giới hạn", "Provider restricted")
+                  : provider.status === "requires_configuration"
+                    ? t("Cần cấu hình", "Setup required")
+                    : t("Chưa kết nối", "Not connected")}
+          </span>
+          <button
+            aria-expanded={expanded}
+            aria-label={
+              expanded
+                ? t(`Thu gọn ${provider.name}`, `Collapse ${provider.name}`)
+                : t(`Mở rộng ${provider.name}`, `Expand ${provider.name}`)
+            }
+            className="provider-card__toggle"
+            onClick={onToggle}
+            type="button"
+          >
+            <ChevronDown className={expanded ? "is-expanded" : ""} size={17} />
+          </button>
+        </div>
       </div>
 
       <div className="provider-card__meta">
@@ -134,9 +195,15 @@ function McpProviderCard({
           {provider.credential.kind === "api_key" ? <KeyRound size={14} /> : <Link2 size={14} />}
           {provider.credential.kind === "api_key" ? "API KEY" : "OAUTH"}
         </span>
+        {!expanded && connection?.lastVerifiedAt ? (
+          <span className="provider-card__verified-compact">
+            {t("Xác minh", "Verified")} <code>{connection.lastVerifiedAt}</code>
+          </span>
+        ) : null}
       </div>
 
-      <div className="provider-card__form">
+      <div className="provider-card__collapsible" hidden={!expanded}>
+        <div className="provider-card__form">
         {provider.credential.kind === "api_key" ? (
           <ApiKeyConnectionForm
             accessToken={accessToken}
@@ -155,12 +222,13 @@ function McpProviderCard({
         )}
       </div>
 
-      {connection?.lastVerifiedAt ? (
-        <div className="provider-card__footer">
-          <span>{t("Xác minh gần nhất", "Last verified")}</span>
-          <code>{connection.lastVerifiedAt}</code>
-        </div>
-      ) : null}
+        {connection?.lastVerifiedAt ? (
+          <div className="provider-card__footer">
+            <span>{t("Xác minh gần nhất", "Last verified")}</span>
+            <code>{connection.lastVerifiedAt}</code>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
