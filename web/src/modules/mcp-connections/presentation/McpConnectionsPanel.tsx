@@ -44,7 +44,7 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
   const connectionList = connections.data ?? [];
 
   return (
-    <div className="provider-list">
+    <div className="provider-list cinematic-connectors">
       <div className="provider-summary">
         <div>
           <span className="provider-summary__value">{providerList.length}</span>
@@ -58,6 +58,13 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
           <span className="provider-summary__value">Stitch</span>
           <span>{t("Provider khả dụng", "Provider khả dụng")}</span>
         </div>
+      </div>
+
+      <div className="connector-diagnostics">
+        <div><span>CATALOG</span><strong>{providerList.length} APPROVED</strong><small>Gateway-defined providers</small></div>
+        <div><span>CONNECTIONS</span><strong>{connectionList.length} SAVED</strong><small>Account-owned credentials</small></div>
+        <div><span>SECURITY</span><strong>ENCRYPTED</strong><small>Credentials never enter GPT context</small></div>
+        <div><span>TRANSPORT</span><strong>MCP</strong><small>Runtime tool discovery</small></div>
       </div>
 
       <div className="dashboard-grid dashboard-grid--providers">

@@ -69,8 +69,15 @@ export function GptIntegrationPanel({
   const routingConvention = "Intent → Capability → MCP Service → MCP Tool → Arguments → Gateway Call";
 
   return (
-    <div className="gpt-integration-layout">
-      <section className="card integration-hero-card">
+    <div className="gpt-integration-layout cinematic-gpt-workbench">
+      <div className="workbench-diagnostics">
+        <div><span>KIT</span><strong>READY</strong><small>Instructions · Knowledge · Schema</small></div>
+        <div><span>DISCOVERY</span><strong>DYNAMIC</strong><small>Runtime tool catalog</small></div>
+        <div><span>ENTITLEMENT</span><strong>{entitlementReady ? "ACTIVE" : "SETUP ONLY"}</strong><small>Open ID execution boundary</small></div>
+        <div><span>PROVIDER</span><strong>STITCH</strong><small>Phase 1 supported MCP</small></div>
+      </div>
+
+      <section className="card integration-hero-card integration-hero-card--cinematic">
         <div className="panel-heading">
           <div>
             <span className="eyebrow">GPT INTEGRATION KIT</span>

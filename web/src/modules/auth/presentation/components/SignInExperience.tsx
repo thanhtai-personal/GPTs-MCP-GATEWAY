@@ -8,7 +8,7 @@ export function SignInExperience() {
   const { t } = useUiLanguage();
 
   return (
-    <main className="auth-page auth-page--stitch">
+    <main className="auth-page auth-page--stitch auth-page--cinematic-v2">
       <section className="auth-showcase">
         <div className="auth-showcase__top">
           <a className="brand brand--large" href="/">

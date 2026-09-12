@@ -29,8 +29,15 @@ export function OpenIdPanel({
   const trialStatus = trial.data?.status ?? "available";
 
   return (
-    <div className="open-id-layout">
-      <section className="card open-id-product-card">
+    <div className="open-id-layout cinematic-entitlements">
+      <div className="entitlement-diagnostics">
+        <div><span>ACCOUNT</span><strong>{isMember ? "MEMBER" : "GUEST"}</strong><small>Commercial access tier</small></div>
+        <div><span>TRIAL</span><strong>{trialStatus.toUpperCase()}</strong><small>One trial per account lifetime</small></div>
+        <div><span>OPEN ID</span><strong>{isMember ? "ACTIVE" : "REQUIRED"}</strong><small>Execution entitlement</small></div>
+        <div><span>BOUNDARY</span><strong>ENFORCED</strong><small>Every real MCP call</small></div>
+      </div>
+
+      <section className="card open-id-product-card open-id-product-card--cinematic">
         <div className="panel-heading">
           <div>
             <span className="eyebrow">CORE PRODUCT</span>

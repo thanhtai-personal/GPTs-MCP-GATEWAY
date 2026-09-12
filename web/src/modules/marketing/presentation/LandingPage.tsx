@@ -1,17 +1,20 @@
 import {
   ArrowRight,
   Boxes,
-  CircleDot,
   Code2,
   KeyRound,
-  LockKeyhole,
   PlugZap,
   ShieldCheck,
-  Sparkles,
   Waypoints,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { ConsoleRow, GatewayInspector, JourneyStep, KitFile, MarketingStep, SystemStatus } from "@/modules/marketing/presentation/LandingVisuals";
+import {
+  IdentityOrbit,
+  JourneyStep,
+  KitFile,
+  LiveRouterConsole,
+  MarketingStep,
+} from "@/modules/marketing/presentation/LandingVisuals";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 
 type Props = { language: "vi" | "en" };
@@ -21,18 +24,25 @@ export function LandingPage({ language }: Props) {
   const t = (viText: string, enText: string) => (vi ? viText : enText);
 
   return (
-    <main className="landing landing--redesigned" lang={language}>
-      <header className="site-header container">
+    <main className="landing landing--supercharged-v2" lang={language}>
+      <div className="landing-v2-bg" aria-hidden="true">
+        <i className="landing-v2-bg__grid" />
+        <i className="landing-v2-bg__orb landing-v2-bg__orb--indigo" />
+        <i className="landing-v2-bg__orb landing-v2-bg__orb--cyan" />
+        <i className="landing-v2-bg__beam" />
+      </div>
+
+      <header className="site-header site-header--v2 container">
         <Link className="brand brand--large" to="/">
-          <span className="brand-mark"><PlugZap size={18} /></span>
+          <span className="brand-mark"><PlugZap size={17} /></span>
           <span>MCP Gateway</span>
-          <small className="brand-live"><i /> LIVE</small>
+          <small className="brand-live"><i /> GATEWAY ACTIVE</small>
         </Link>
 
         <nav className="landing-nav" aria-label={t("Điều hướng chính", "Primary navigation")}>
-          <a href="#how-it-works">{t("Cách hoạt động", "How It Works")}</a>
-          <a href="#mcp-services">MCP Services</a>
+          <a href="#control-plane">{t("Cách hoạt động", "How It Works")}</a>
           <a href="#open-id">Open ID</a>
+          <a href="#mcp-services">MCP Services</a>
           <a href="#gpt-integration">GPT Integration</a>
         </nav>
 
@@ -40,302 +50,248 @@ export function LandingPage({ language }: Props) {
           <ThemeToggle compact />
           <a className="language-link" href={vi ? "/" : "/vi"}>{vi ? "EN" : "VI"}</a>
           <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In")}</Link>
-          <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={15} /></Link>
+          <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={14} /></Link>
         </div>
       </header>
 
-      <section className="hero hero--redesigned hero--supercharged container">
-        <div className="hero-grid-glow" aria-hidden="true" />
-        <div className="hero-copy">
-          <div className="hero-pill"><span /> CUSTOM GPT × MCP CONTROL PLANE</div>
-          <h1>
-            {t(
-              "Kết nối Custom GPT\nvới MCP services qua\nmột Gateway bảo mật.",
-              "Connect your Custom GPT\nto MCP services through\none secure Gateway.",
-            )}
-          </h1>
-          <p className="lead">
-            {t(
-              "Discovery và gọi MCP tools động như Google Stitch trong khi Gateway kiểm soát authorization, Open ID entitlement và provider credentials của bạn.",
-              "Dynamically discover and invoke MCP tools such as Google Stitch while Gateway securely manages authorization, Open ID entitlement, and your provider credentials.",
-            )}
-          </p>
-          <div className="row hero-actions">
-            <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={17} /></Link>
-            <a className="button secondary" href="#how-it-works">{t("Xem cách hoạt động", "See How It Works")}</a>
-          </div>
-          <div className="hero-proofline">
-            <span><strong>01</strong> Custom GPT</span>
-            <i />
-            <span><strong>02</strong> Gateway</span>
-            <i />
-            <span><strong>03</strong> Open ID</span>
-            <i />
-            <span><strong>04</strong> MCP</span>
-          </div>
-          <div className="hero-meta hero-meta--status">
-            <span><i className="status-dot status-dot--success" /> Google Stitch {t("khả dụng", "Available")}</span>
-            <span><i className="status-dot status-dot--cyan" /> 7-Day Trial</span>
-            <span><i className="status-dot status-dot--success" /> Open ID Protected</span>
-          </div>
+      <section className="landing-hero-v2 container">
+        <div className="landing-hero-v2__badge">
+          <span className="status-dot status-dot--cyan" />
+          CUSTOM GPT × MCP CONTROL PLANE
+          <small>OPEN ID ENFORCED</small>
         </div>
 
-        <GatewayInspector t={t} />
-      </section>
+        <h1>
+          {t(
+            "Kết nối Custom GPT của bạn với MCP services qua một Gateway bảo mật.",
+            "Connect your Custom GPT to MCP services through one secure Gateway.",
+          )}
+        </h1>
 
-      <section className="landing-status-strip landing-status-strip--cinematic">
-        <div className="container landing-status-grid">
-          <SystemStatus label="Gateway" value="OPERATIONAL" tone="success" />
-          <SystemStatus label="Open ID" value="ENFORCED" tone="success" />
-          <SystemStatus label="Google Stitch" value="AVAILABLE" tone="cyan" />
-          <SystemStatus label="Credentials" value="ENCRYPTED" tone="cyan" />
-          <SystemStatus label="Dynamic Discovery" value="ENABLED" tone="success" />
+        <p>
+          {t(
+            "Discovery và gọi MCP tools động qua Zero-trust Gateway với provider credentials được mã hóa, Open ID entitlement bắt buộc và context của GPT luôn sạch.",
+            "Dynamically discover and invoke MCP tools through a zero-trust Gateway with encrypted provider credentials, mandatory Open ID entitlement, and clean GPT context.",
+          )}
+        </p>
+
+        <div className="landing-hero-v2__actions">
+          <Link className="button" to="/app">{t("Bắt đầu thử 7 ngày", "Start Free 7-Day Trial")}<ArrowRight size={15} /></Link>
+          <a className="button secondary" href="#control-plane">{t("Khám phá Live Protocol", "Inspect Live Protocol")}</a>
+        </div>
+
+        <div className="landing-hero-v2__status">
+          <span><i className="status-dot status-dot--success" /> Google Stitch Available</span>
+          <span><i className="status-dot status-dot--cyan" /> 7-Day Trial Included</span>
+          <span><i className="status-dot status-dot--success" /> Open ID Protected</span>
         </div>
       </section>
 
-      <section className="section container" id="how-it-works">
-        <div className="section-heading section-heading--marketing">
-          <div>
-            <span className="eyebrow">WHY MCP GATEWAY</span>
-            <h2>{t("Custom GPT cần một MCP control plane bảo mật.", "Custom GPTs need a secure MCP control plane.")}</h2>
-          </div>
-          <p className="muted">
-            {t(
-              "Một protocol ổn định ở phía GPT, discovery và authorization tập trung ở Gateway.",
-              "One stable protocol in GPT, with discovery and authorization centralized in Gateway.",
-            )}
-          </p>
+      <section className="landing-stage container">
+        <IdentityOrbit t={t} />
+        <LiveRouterConsole t={t} />
+      </section>
+
+      <section className="landing-section landing-section--problem container" id="control-plane">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">ARCHITECTURAL VALUE</span>
+          <h2>{t("Custom GPT cần một MCP control plane bảo mật.", "Custom GPTs need a secure MCP control plane.")}</h2>
+          <p>{t("Xóa credential khỏi GPT context, kiểm soát entitlement và discovery tool động ở Gateway.", "Keep credentials out of GPT context, enforce entitlement, and discover tools dynamically at Gateway.")}</p>
         </div>
 
-        <div className="comparison-grid">
-          <article className="card comparison-card comparison-card--muted">
-            <span className="eyebrow">WITHOUT GATEWAY</span>
-            <h3>{t("Tích hợp bị gắn cứng", "Brittle integrations")}</h3>
-            <div className="mini-route">
-              <span>Custom GPT</span><i>→</i><span>{t("Hardcoded tools", "Hardcoded tools")}</span><i>→</i><span>{t("Provider auth riêng", "Provider-specific auth")}</span>
+        <div className="control-plane-compare">
+          <article className="control-plane-card control-plane-card--bad">
+            <div className="control-plane-card__top">
+              <span>WITHOUT GATEWAY</span>
+              <strong>LEGACY RISK</strong>
             </div>
+            <h3>{t("Tích hợp mong manh, credential rò rỉ.", "Fragile, leaky & brittle integration")}</h3>
+            <ul>
+              <li>Provider keys end up in GPT instructions/context.</li>
+              <li>Tool catalogs become stale and hardcoded.</li>
+              <li>No central entitlement boundary before execution.</li>
+              <li>Provider auth semantics leak into GPT logic.</li>
+            </ul>
+            <small>RESULT: credential sprawl · stale tools · weak control</small>
           </article>
-          <article className="card comparison-card comparison-card--active">
-            <span className="eyebrow">WITH MCP GATEWAY</span>
-            <h3>{t("Một execution boundary", "One execution boundary")}</h3>
-            <div className="mini-route">
-              <span>Custom GPT</span><i>→</i><span>Gateway</span><i>→</i><span>Open ID</span><i>→</i><span>MCP Discovery</span>
+
+          <article className="control-plane-card control-plane-card--good">
+            <div className="control-plane-card__top">
+              <span>WITH MCP GATEWAY</span>
+              <strong>ZERO-TRUST ROUTE</strong>
             </div>
+            <h3>{t("Zero-trust entitlement & dynamic discovery.", "Zero-Trust Entitlement & Dynamic Discovery")}</h3>
+            <ul>
+              <li>Gateway stores provider credentials outside GPT context.</li>
+              <li>Open ID authorizes every real MCP execution.</li>
+              <li>Tools are discovered at runtime from approved providers.</li>
+              <li>One stable Action protocol drives every MCP service.</li>
+            </ul>
+            <small>RESULT: controlled execution · runtime truth · clean GPT context</small>
           </article>
         </div>
+      </section>
 
-        <div className="workflow-grid">
-          <MarketingStep index="01" icon={<Boxes />} title={t("Kết nối MCP Provider", "Connect an MCP Provider")} detail={t("Thêm credential Google Stitch của bạn. Credential luôn ở Gateway.", "Add your own Google Stitch credential. Provider credentials stay inside Gateway.")} />
-          <MarketingStep index="02" icon={<Code2 />} title={t("Cấu hình GPT", "Configure Your GPT")} detail={t("Cài Instructions, Knowledge và Action Schema miễn phí.", "Install the free Gateway Instructions, Knowledge, and Action Schema.")} />
-          <MarketingStep index="03" icon={<KeyRound />} title={t("Kích hoạt access", "Activate Gateway Access")} detail={t("Bắt đầu trial 7 ngày một lần hoặc kích hoạt Open ID.", "Start your one-time 7-day trial or activate a permanent Open ID.")} />
-          <MarketingStep index="04" icon={<Waypoints />} title={t("Dùng MCP động", "Use MCP Dynamically")} detail={t("GPT discovery tools runtime và gọi chúng qua Gateway.", "Your GPT discovers MCP tools at runtime and calls them through Gateway.")} />
+      <section className="landing-section container">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">THIS IS HOW IT FLOWS</span>
+          <h2>{t("Architecture Execution Pipeline", "Architecture Execution Pipeline")}</h2>
+          <p>{t("Một đường thực thi duy nhất từ provider credential đến MCP execution.", "One controlled execution path from provider credential to MCP execution.")}</p>
         </div>
 
-        <div className="protocol-strip">
-          <code>listMcpServices</code><span>→</span><code>listMcpTools</code><span>→</span><code>getMcpToolSchema</code><span>→</span><code>callMcpTool</code>
+        <div className="architecture-pipeline">
+          <MarketingStep index="01" icon={<Boxes />} title={t("Kết nối MCP Provider", "Connect MCP Provider")} detail={t("Lưu credential trong Gateway, không đưa vào GPT.", "Store provider credentials inside Gateway, never GPT.")} />
+          <MarketingStep index="02" icon={<Code2 />} title={t("Cấu hình Custom GPT", "Configure Your GPT")} detail={t("Instructions tối giản + Knowledge + Action Schema.", "Minimal Instructions + Knowledge + Action Schema.")} />
+          <MarketingStep index="03" icon={<KeyRound />} title={t("Kích hoạt quyền", "Activate Access")} detail={t("Trial Open ID hoặc paid Open ID authorize execution.", "Trial Open ID or paid Open ID authorizes execution.")} />
+          <MarketingStep index="04" icon={<Waypoints />} title={t("Dùng MCP động", "Use MCP Dynamically")} detail={t("Discovery tool runtime rồi execute qua Gateway.", "Discover runtime tools and execute through Gateway.")} />
+        </div>
+
+        <div className="pipeline-protocol">
+          <span>Gateway Runtime Sequence</span>
+          <code>listMcpServices</code><i>→</i><code>listMcpTools</code><i>→</i><code>getMcpToolSchema</code><i>→</i><code>callMcpTool</code>
         </div>
       </section>
 
-      <section className="section container open-id-marketing open-id-marketing--cinematic" id="open-id">
-        <div className="open-id-marketing__copy">
-          <span className="eyebrow">CORE PRODUCT · OPEN ID</span>
+      <section className="landing-section open-id-v2 container" id="open-id">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">ACCESS &amp; ENTITLEMENTS</span>
           <h2>{t("Open ID là quyền truy cập Gateway.", "Open ID is your Gateway access.")}</h2>
-          <p className="lead small">
-            {t(
-              "Mọi MCP execution đều phải được authorize bởi một Open ID entitlement đang hoạt động. Gateway Token chỉ là credential kỹ thuật.",
-              "Every MCP execution is authorized through an active Open ID entitlement. A Gateway Token is only a technical authentication credential.",
-            )}
-          </p>
-          <div className="product-distinction">
-            <div><small>OPEN ID</small><strong>{t("Sản phẩm / entitlement", "Product / entitlement")}</strong></div>
-            <div><small>GATEWAY TOKEN</small><strong>{t("Credential kỹ thuật", "Technical credential")}</strong></div>
-          </div>
-          <div className="row">
-            <a className="button" href="/app#open-id">{t("Lấy Open ID", "Get Open ID")}<ArrowRight size={16} /></a>
-            <a className="button secondary" href="/app#open-id">{t("Thử miễn phí 7 ngày", "Try Free for 7 Days")}</a>
-          </div>
+          <p>{t("Mọi MCP execution phải resolve được một active Open ID entitlement.", "Every MCP execution must resolve an active Open ID entitlement.")}</p>
         </div>
 
-        <div className="open-id-product-card">
-          <div className="open-id-product-card__top">
-            <span className="brand-mark"><KeyRound size={17} /></span>
-            <div><small>OPEN ID</small><strong>oid_9F••••••••42</strong></div>
-            <span className="status good"><CircleDot size={12} /> ACTIVE</span>
-          </div>
-          <dl>
-            <div><dt>Gateway Access</dt><dd>ENABLED</dd></div>
-            <div><dt>MCP Services</dt><dd>SUPPORTED PROVIDERS</dd></div>
-            <div><dt>Entitlement</dt><dd>MEMBER</dd></div>
-            <div><dt>Security Boundary</dt><dd>ENFORCED</dd></div>
-          </dl>
-          <div className="open-id-product-card__foot"><ShieldCheck size={16} /> Open ID verification required for every MCP execution</div>
-        </div>
-      </section>
-
-      <section className="section container provider-marketing provider-marketing--cinematic" id="mcp-services">
-        <div className="section-heading section-heading--marketing">
-          <div>
-            <span className="eyebrow">FIRST MCP PROVIDER</span>
-            <h2>{t("Bắt đầu với Google Stitch.", "Start with Google Stitch.")}</h2>
-          </div>
-          <p className="muted">
-            {t("Gateway chỉ hỗ trợ các MCP service đã được phê duyệt.", "Gateway supports approved MCP services rather than arbitrary MCP URLs.")}
-          </p>
-        </div>
-
-        <div className="provider-showcase provider-showcase--featured">
-          <article className="card provider-showcase__active provider-showcase__active--large">
-            <div className="provider-showcase__logo">S</div>
-            <div className="provider-showcase__body">
-              <span className="eyebrow">MCP PROVIDER</span>
-              <h3>Google Stitch</h3>
-              <div className="provider-meta">
-                <span><small>Status</small><strong>AVAILABLE</strong></span>
-                <span><small>Credential</small><strong>USER OWNED</strong></span>
-                <span><small>Gateway support</small><strong>ACTIVE</strong></span>
-              </div>
-              <div className="capability-list">
-                <span>Project Discovery</span><span>Screen Discovery</span><span>Screen Inspection</span><span>UI Generation</span>
-              </div>
-              <div className="provider-operation"><code>service: stitch</code><code>tool: list_screens</code><strong>200 OK</strong></div>
+        <div className="open-id-v2__grid">
+          <article className="open-id-v2__card">
+            <div className="open-id-v2__status"><i className="status-dot status-dot--success" /> MASTER OPEN ID ENTITLEMENT <span>STATUS: MEMBER ACTIVE</span></div>
+            <small>ENTITLEMENT ID</small>
+            <div className="open-id-v2__identifier"><code>oid_••••••••••••9a1</code><button className="secondary compact-button" type="button">Copy</button></div>
+            <div className="open-id-v2__facts">
+              <span><small>Gateway Access</small><strong>ENABLED</strong></span>
+              <span><small>MCP Services</small><strong>ALL APPROVED</strong></span>
+              <span><small>Credential Security</small><strong>GATEWAY HELD</strong></span>
+              <span><small>Execution Policy</small><strong>ENFORCED</strong></span>
             </div>
-            <a className="button secondary" href="/app#mcp-services">{t("Kết nối Stitch", "Connect Google Stitch")}</a>
+            <div className="open-id-v2__actions">
+              <Link className="button" to="/app#open-id">{t("Lấy Open ID", "Get Permanent Open ID")}</Link>
+              <Link className="button secondary" to="/app#open-id">{t("Bắt đầu trial", "Start 7-Day Trial")}</Link>
+            </div>
           </article>
 
-          <div className="provider-coming-grid">
-            <article className="card provider-showcase__muted"><div className="provider-showcase__logo">G</div><div><span className="eyebrow">COMING SOON</span><h3>GitHub</h3></div></article>
-            <article className="card provider-showcase__muted"><div className="provider-showcase__logo">F</div><div><span className="eyebrow">COMING SOON</span><h3>Figma</h3></div></article>
+          <div className="open-id-v2__notes">
+            <article><KeyRound size={18} /><div><strong>OPEN ID ≠ TOKEN</strong><p>{t("Open ID là sản phẩm/entitlement. Gateway Token chỉ là credential kỹ thuật.", "Open ID is the product entitlement. Gateway Token is only a technical credential.")}</p></div></article>
+            <article><ShieldCheck size={18} /><div><strong>GATEWAY TOKEN VALIDATION</strong><p>{t("Token resolve về owner, Open ID và entitlement trước khi Gateway gọi provider.", "Token resolves to owner, Open ID, and entitlement before Gateway calls a provider.")}</p></div></article>
+            <article className="good"><ShieldCheck size={18} /><div><strong>NO PROVIDER KEYS IN GPT CONTEXT</strong><p>{t("Credential provider luôn ở boundary phía Gateway.", "Provider credentials remain inside the Gateway boundary.")}</p></div></article>
           </div>
         </div>
       </section>
 
-      <section className="section container discovery-section discovery-section--cinematic">
-        <div>
-          <span className="eyebrow">DYNAMIC MCP DISCOVERY</span>
-          <h2>{t("GPT discovery tools ở runtime.", "Your GPT discovers tools at runtime.")}</h2>
-          <p className="lead small">
-            {t(
-              "Không cần hardcode toàn bộ Stitch tool catalog trong GPT. Gateway cung cấp capability MCP hiện tại ở runtime.",
-              "No hardcoded Stitch tool catalog is required inside your GPT. Gateway exposes the current MCP capabilities at runtime.",
-            )}
-          </p>
-          <span className="status good"><CircleDot size={12} /> DYNAMIC DISCOVERY ENABLED</span>
+      <section className="landing-section container" id="mcp-services">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">FIRST PROVIDER INTEGRATION</span>
+          <h2>{t("Bắt đầu với Google Stitch.", "Start with Google Stitch.")}</h2>
+          <p>{t("Hỗ trợ provider được phê duyệt, credential thuộc chính user.", "Approved providers only, with user-owned credentials.")}</p>
         </div>
-        <div className="discovery-console">
-          <ConsoleRow label="USER" value={'"Update the UI using Stitch."'} />
-          <ConsoleRow label="INTENT" value="UI modification" />
-          <ConsoleRow label="CAPABILITY" value="UI generation" />
-          <ConsoleRow label="SERVICE" value="stitch" />
-          <ConsoleRow label="DISCOVERY" value={'listMcpTools("stitch")'} />
-          <ConsoleRow label="SCHEMA" value="getMcpToolSchema(...)" />
-          <ConsoleRow label="EXECUTION" value="callMcpTool(...)" active />
-          <ConsoleRow label="RESULT" value="MCP RESPONSE · COMPLETE" success />
-        </div>
-      </section>
 
-      <section className="section container security-section security-section--cinematic" id="security">
-        <div>
-          <span className="eyebrow">SECURITY BOUNDARY</span>
-          <h2>{t("Provider credentials không bao giờ thành GPT context.", "Your provider credentials never become GPT context.")}</h2>
-          <p className="lead small">
-            {t(
-              "Gateway resolve Token → Open ID → Owner → Entitlement → MCP Connection trước khi dùng credential được mã hóa của account.",
-              "Gateway resolves Token → Open ID → Owner → Entitlement → MCP Connection before using the account's encrypted provider credential.",
-            )}
-          </p>
-          <div className="security-badges">
-            <span>OPEN ID VERIFIED</span><span>ENTITLEMENT ACTIVE</span><span>CREDENTIAL ENCRYPTED</span><span>PROVIDER AUTHORIZED</span>
+        <article className="stitch-provider-v2">
+          <div className="stitch-provider-v2__header">
+            <div className="provider-showcase__logo">S</div>
+            <div><span className="eyebrow">GOOGLE STITCH MCP PROVIDER</span><h3>Connected through Gateway</h3></div>
+            <span className="status good">AVAILABLE</span>
           </div>
-        </div>
-        <div className="security-terminal">
-          <div><Sparkles size={16} /><span>Custom GPT</span><code>Gateway Token only</code></div>
-          <div><PlugZap size={16} /><span>MCP Gateway</span><code>resolve entitlement</code></div>
-          <div><KeyRound size={16} /><span>Open ID</span><code>verified</code></div>
-          <div><LockKeyhole size={16} /><span>Encrypted credential</span><code>server-side</code></div>
-          <div><ShieldCheck size={16} /><span>Google Stitch</span><code>authorized request</code></div>
+
+          <div className="stitch-provider-v2__body">
+            <div className="stitch-provider-v2__capabilities">
+              <span><small>CAPABILITY</small><strong>Project Discovery</strong></span>
+              <span><small>CAPABILITY</small><strong>Screen Discovery</strong></span>
+              <span><small>CAPABILITY</small><strong>Screen Inspection</strong></span>
+              <span><small>CAPABILITY</small><strong>UI Generation</strong></span>
+            </div>
+            <div className="stitch-provider-v2__trace">
+              <code>service = "stitch"</code>
+              <code>tool = "list_screens"</code>
+              <code>transport = "MCP"</code>
+              <strong>200 OK</strong>
+            </div>
+          </div>
+          <Link className="button secondary" to="/app#mcp-services">{t("Kết nối Stitch", "Connect Google Stitch")}</Link>
+        </article>
+
+        <div className="coming-provider-row">
+          <article><span>G</span><div><strong>GitHub MCP Provider</strong><small>COMING SOON</small></div></article>
+          <article><span>F</span><div><strong>Figma MCP Provider</strong><small>COMING SOON</small></div></article>
         </div>
       </section>
 
-      <section className="section container gpt-kit-marketing gpt-kit-marketing--cinematic" id="gpt-integration">
-        <div>
-          <span className="eyebrow">GPT INTEGRATION KIT · FREE</span>
+      <section className="landing-section container" id="gpt-integration">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">ZERO-COST SETUP</span>
           <h2>{t("Cấu hình GPT trước khi mua.", "Configure your GPT before you buy.")}</h2>
-          <p className="lead small">
-            {t(
-              "Integration kit miễn phí. Gateway execution chỉ bắt đầu khi có active trial hoặc Open ID.",
-              "The integration kit is free. Gateway execution begins only after an active trial or Open ID is available.",
-            )}
-          </p>
-          <div className="row">
-            <a className="button" href="/app#gpt-integration">{t("Xem GPT Integration", "View GPT Integration")}<ArrowRight size={16} /></a>
-          </div>
+          <p>{t("Integration kit miễn phí. Execution chỉ bắt đầu khi trial hoặc Open ID active.", "The integration kit is free. Execution starts only when trial or Open ID is active.")}</p>
         </div>
-        <div className="kit-file-list">
-          <KitFile name="instructions.md" />
-          <KitFile name="GPTS-MCP-GATEWAY-Knowledge.md" />
-          <KitFile name="openapi.yaml" />
-          <KitFile name="setup-guide.md" />
-          <small><LockKeyhole size={13} /> NO PROVIDER CREDENTIALS INCLUDED</small>
+
+        <div className="gpt-kit-v2">
+          <div className="gpt-kit-v2__files">
+            <KitFile name="instructions.md" />
+            <KitFile name="GPTS-MCP-GATEWAY-Knowledge.md" />
+            <KitFile name="openapi.yaml" />
+            <KitFile name="setup-guide.md" />
+          </div>
+          <div className="gpt-kit-v2__footer">
+            <span><ShieldCheck size={14} /> NO OPEN ID OR PROVIDER CREDENTIALS INCLUDED</span>
+            <Link className="button" to="/app#gpt-integration">{t("Tải GPT Integration Kit", "Download GPT Integration Kit")}</Link>
+          </div>
         </div>
       </section>
 
-      <section className="section container onboarding-section onboarding-section--cinematic">
-        <div className="section-heading section-heading--marketing">
-          <div>
-            <span className="eyebrow">ACTUAL PRODUCT JOURNEY</span>
-            <h2>{t("Setup trước. Trial chỉ bắt đầu khi bạn chọn.", "Set up first. Trial starts only when you choose.")}</h2>
-          </div>
+      <section className="landing-section container">
+        <div className="landing-section__heading landing-section__heading--centered">
+          <span className="eyebrow">CLEAR PATH TO PRODUCTION</span>
+          <h2>{t("Onboarding Funnel & Trial Clarity", "Onboarding Funnel & Trial Clarity")}</h2>
+          <p>{t("Trial chỉ bắt đầu khi user chủ động tạo Trial Token.", "The trial starts only when the user explicitly creates a Trial Token.")}</p>
         </div>
-        <div className="journey-row">
-          <JourneyStep label={t("Đăng ký", "Register")} />
-          <JourneyStep label={t("Kết nối Stitch", "Connect Stitch")} />
-          <JourneyStep label={t("Tải GPT Kit", "Download GPT Kit")} />
-          <JourneyStep label={t("Cấu hình GPT", "Configure GPT")} />
-          <JourneyStep label="Create Trial Token" active />
+
+        <div className="journey-row journey-row--v2">
+          <JourneyStep label="Register" />
+          <JourneyStep label="Connect Stitch" />
+          <JourneyStep label="Configure GPT" />
+          <JourneyStep label="Create Trial" active />
           <JourneyStep label="7-Day Trial" />
           <JourneyStep label="Get Open ID" />
         </div>
-        <p className="journey-note">
-          {t(
-            "Trial không bắt đầu khi đăng ký, kết nối Stitch hoặc tải GPT Kit. Nó bắt đầu chính xác khi user tạo Trial Token.",
-            "Trial does not start on registration, Stitch connection, or GPT Kit download. It starts exactly when the user creates the Trial Token.",
-          )}
-        </p>
+
+        <div className="journey-note journey-note--v2">
+          <span>i</span>
+          <strong>Trial does not start on Register / Stitch / GPT Kit.</strong>
+          <small>Trial starts exactly when you click Create Trial Token.</small>
+        </div>
       </section>
 
-      <section className="section container final-cta final-cta--technical final-cta--supercharged">
-        <div>
-          <span className="eyebrow">GATEWAY READY</span>
-          <h2>{t("Đưa MCP capability thật vào Custom GPT.", "Give your Custom GPT real MCP capabilities.")}</h2>
-          <p className="lead small">
-            {t(
-              "Cấu hình GPT, kết nối Google Stitch và trải nghiệm MCP qua Gateway với trial 7 ngày.",
-              "Configure your GPT, connect Google Stitch, and experience MCP through Gateway with a 7-day trial.",
-            )}
-          </p>
+      <section className="landing-section container">
+        <article className="final-cta final-cta--supercharged-v2">
+          <span className="eyebrow">PRODUCTION-GRADE CONTROL PLANE</span>
+          <h2>{t("Cho Custom GPT khả năng MCP thực sự.", "Give your Custom GPT real MCP capabilities.")}</h2>
+          <p>{t("Kết nối Stitch, cấu hình GPT, thử Gateway 7 ngày rồi kích hoạt Open ID khi sẵn sàng.", "Connect Stitch, configure your GPT, try Gateway for 7 days, then activate Open ID when ready.")}</p>
           <div className="row">
-            <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={17} /></Link>
-            <a className="button secondary" href="/app#open-id">{t("Lấy Open ID", "Get Open ID")}</a>
+            <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}</Link>
+            <Link className="button secondary" to="/app#open-id">{t("Lấy Open ID", "Get Open ID")}</Link>
           </div>
-        </div>
-        <div className="final-cta__status">
-          <SystemStatus label="Gateway" value="OPERATIONAL" tone="success" />
-          <SystemStatus label="Stitch" value="AVAILABLE" tone="cyan" />
-          <SystemStatus label="Open ID" value="ENFORCEMENT ACTIVE" tone="success" />
-        </div>
+          <div className="final-cta__status">
+            <span><i className="status-dot status-dot--success" /> Gateway Operational</span>
+            <span><i className="status-dot status-dot--cyan" /> Stitch Available</span>
+            <span><i className="status-dot status-dot--success" /> Open ID Enforcement Active</span>
+          </div>
+        </article>
       </section>
 
-      <footer className="footer footer--expanded container">
-        <div>
-          <a className="brand" href="/"><span className="brand-mark"><PlugZap size={16} /></span>MCP Gateway</a>
-          <p className="muted">{t("Secure MCP control plane cho Custom GPT.", "Secure MCP control plane for Custom GPT.")}</p>
+      <footer className="site-footer site-footer--v2">
+        <div className="container site-footer__row">
+          <div className="footer-brand">
+            <div className="brand"><span className="brand-mark"><PlugZap size={15} /></span>MCP Gateway</div>
+            <small>MCP GATEWAY CONTROL PLANE</small>
+          </div>
+          <div className="footer-links"><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>
+          <div className="footer-links"><strong>Account</strong><Link to="/app">Sign In</Link><Link to="/app">Create Account</Link></div>
+          <div className="footer-system"><code>OPEN ID ENFORCEMENT: ACTIVE</code><span>STITCH MCP: AVAILABLE</span></div>
         </div>
-        <div className="footer-links">
-          <div><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>
-          <div><strong>Account</strong><Link to="/app">{t("Đăng nhập", "Sign In")}</Link><Link to="/app">{t("Tạo tài khoản", "Create Account")}</Link></div>
-          <div><strong>Language</strong><a href="/">English</a><a href="/vi">Tiếng Việt</a></div>
-        </div>
-        <div className="footer-system"><code>MCP GATEWAY CONTROL PLANE</code><span><i className="status-dot status-dot--success" /> OPEN ID ENFORCEMENT: ACTIVE</span><span><i className="status-dot status-dot--cyan" /> STITCH MCP: AVAILABLE</span></div>
       </footer>
     </main>
   );

@@ -12,7 +12,6 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  Waypoints,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAccount } from "@/modules/account/queries/account.queries";
@@ -25,6 +24,7 @@ import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
+import { CinematicOverview } from "@/modules/dashboard/presentation/CinematicOverview";
 
 type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
 const SCREEN_IDS = new Set<AppScreen>([
@@ -163,7 +163,7 @@ export function DashboardPage() {
           {account.error ? <p className="notice error">{account.error.message}</p> : null}
 
           {activeScreen === "overview" ? (
-            <OverviewScreen
+            <CinematicOverview
               isMember={account.data?.membershipTier === "member"}
               onNavigate={setScreen}
             />
@@ -247,118 +247,7 @@ function AppNavItem({
   );
 }
 
-function OverviewScreen({
-  isMember,
-  onNavigate,
-}: {
-  isMember?: boolean;
-  onNavigate: (screen: AppScreen) => void;
-}) {
-  const { t } = useUiLanguage();
 
-  return (
-    <>
-      <section className="dashboard-intro dashboard-intro--screen">
-        <div>
-          <span className="eyebrow">CONTROL PLANE</span>
-          <h1>{t("MCP Gateway Console", "MCP Gateway Console")}</h1>
-          <p className="lead small">
-            {t(
-              "Một control plane cho provider credential, Open ID entitlement và Custom GPT integration.",
-              "One control plane for provider credentials, Open ID entitlement, and Custom GPT integration.",
-            )}
-          </p>
-        </div>
-        <span className="status good"><ShieldCheck size={14} /> {t("Gateway sẵn sàng", "Gateway ready")}</span>
-      </section>
-
-      <section className="overview-stats" aria-label={t("Trạng thái Gateway", "Gateway status")}>
-        <div className="overview-stat">
-          <span className="overview-stat__label">MCP PROVIDER</span>
-          <strong>Google Stitch</strong>
-          <small>{t("Phase 1 provider", "Phase 1 provider")}</small>
-        </div>
-        <div className="overview-stat">
-          <span className="overview-stat__label">ENTITLEMENT</span>
-          <strong>{isMember ? "Open ID" : "Trial / Open ID"}</strong>
-          <small>{isMember ? t("Member access", "Member access") : t("Guest access", "Guest access")}</small>
-        </div>
-        <div className="overview-stat">
-          <span className="overview-stat__label">GPT ROUTING</span>
-          <strong>Runtime discovery</strong>
-          <small>Intent → Service → Tool → Schema</small>
-        </div>
-      </section>
-
-      <section className="overview-grid">
-        <button className="overview-action-card" onClick={() => onNavigate("mcp-services")} type="button">
-          <span className="feature-icon"><Boxes /></span>
-          <span className="overview-action-card__index">01</span>
-          <strong>MCP Services</strong>
-          <p>{t("Kết nối Google Stitch và quản lý credential phía Gateway.", "Connect Google Stitch and manage provider credentials on Gateway.")}</p>
-          <span className="overview-action-card__link">{t("Quản lý provider", "Manage providers")} →</span>
-        </button>
-        <button className="overview-action-card" onClick={() => onNavigate("open-id")} type="button">
-          <span className="feature-icon"><KeyRound /></span>
-          <span className="overview-action-card__index">02</span>
-          <strong>Open ID Hub</strong>
-          <p>{t("Claim trial, quản lý Open ID và tạo Gateway token.", "Claim trial, manage Open ID, and generate Gateway tokens.")}</p>
-          <span className="overview-action-card__link">{t("Quản lý quyền", "Manage access")} →</span>
-        </button>
-        <button className="overview-action-card" onClick={() => onNavigate("gpt-integration")} type="button">
-          <span className="feature-icon"><Sparkles /></span>
-          <span className="overview-action-card__index">03</span>
-          <strong>GPT Integration</strong>
-          <p>{t("Tải kit, từng file cấu hình và làm theo setup guide.", "Download the kit, individual configuration files, and follow the setup guide.")}</p>
-          <span className="overview-action-card__link">{t("Cấu hình GPT", "Configure GPT")} →</span>
-        </button>
-      </section>
-
-      <section className="gateway-route-card">
-        <div className="panel-heading">
-          <div>
-            <span className="eyebrow">GATEWAY ROUTING</span>
-            <h2>{t("Execution boundary", "Execution boundary")}</h2>
-          </div>
-          <span className="status good">{t("Open ID enforced", "Open ID enforced")}</span>
-        </div>
-        <div className="route-pipeline">
-          <RouteStep index="01" label="Custom GPT" detail={t("Hiểu intent", "Understand intent")} />
-          <Waypoints size={18} />
-          <RouteStep index="02" label="Gateway" detail={t("Kiểm tra entitlement", "Resolve entitlement")} active />
-          <Waypoints size={18} />
-          <RouteStep index="03" label="MCP service" detail={t("Discovery + execute", "Discover + execute")} />
-        </div>
-        <p className="muted route-note">
-          {t(
-            "Invariant: Custom GPT không thể truy cập MCP nếu request không được authorize qua active Gateway Open ID entitlement.",
-            "Invariant: a Custom GPT cannot access MCP unless the request is authorized through an active Gateway Open ID entitlement.",
-          )}
-        </p>
-      </section>
-    </>
-  );
-}
-
-function RouteStep({
-  active = false,
-  detail,
-  index,
-  label,
-}: {
-  active?: boolean;
-  detail: string;
-  index: string;
-  label: string;
-}) {
-  return (
-    <div className={`route-step ${active ? "active" : ""}`}>
-      <span>{index}</span>
-      <strong>{label}</strong>
-      <small>{detail}</small>
-    </div>
-  );
-}
 
 function ConsoleScreenHeader({
   badge,

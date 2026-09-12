@@ -1,6 +1,143 @@
 import type { ReactNode } from "react";
 import { Braces } from "lucide-react";
 
+export function IdentityOrbit({ t }: { t: (vi: string, en: string) => string }) {
+  return (
+    <section className="identity-orbit" aria-label={t("Gateway identity layer", "Gateway identity layer")}>
+      <div className="identity-orbit__header">
+        <span className="eyebrow">01 · VALIDATED IDENTITY LAYER &amp; SCOPES</span>
+        <div>
+          <span className="status">OID: USER ACTIVE</span>
+          <span className="status good">CLAIMS: 4/4</span>
+        </div>
+      </div>
+
+      <div className="identity-orbit__stage">
+        <div className="identity-orbit__ellipse identity-orbit__ellipse--one" />
+        <div className="identity-orbit__ellipse identity-orbit__ellipse--two" />
+        <div className="identity-orbit__ellipse identity-orbit__ellipse--three" />
+        <div className="identity-orbit__pulse" />
+
+        <div className="identity-orbit__core">
+          <span>OID</span>
+          <strong>OPEN ID</strong>
+          <small>ENTITLEMENT ACTIVE</small>
+        </div>
+
+        <OrbitNode className="identity-orbit__node--gpt" label="CUSTOM GPT" value="AUTHORIZED" tone="cyan" />
+        <OrbitNode className="identity-orbit__node--gateway" label="GATEWAY" value="VERIFIED" tone="success" />
+        <OrbitNode className="identity-orbit__node--provider" label="MCP PROVIDER" value="STITCH" tone="cyan" />
+        <OrbitNode className="identity-orbit__node--token" label="GATEWAY TOKEN" value="SCOPED" tone="success" />
+      </div>
+
+      <div className="identity-orbit__footer">
+        <span><i className="status-dot status-dot--success" /> END-TO-END CLAIMS PROTECTED</span>
+        <span>CRYPTO: <b>CHACHA20-POLY1305</b></span>
+        <span>JWT CLAIMS: <b>4 VALID</b></span>
+      </div>
+    </section>
+  );
+}
+
+function OrbitNode({
+  className,
+  label,
+  tone,
+  value,
+}: {
+  className: string;
+  label: string;
+  tone: "cyan" | "success";
+  value: string;
+}) {
+  return (
+    <div className={`identity-orbit__node ${className} identity-orbit__node--${tone}`}>
+      <span />
+      <strong>{label}</strong>
+      <small>{value}</small>
+    </div>
+  );
+}
+
+export function LiveRouterConsole({
+  t,
+}: {
+  t: (vi: string, en: string) => string;
+}) {
+  const requests = [
+    ["GET", "listMcpServices", "14.2ms", "200"],
+    ["POST", "listMcpTools · stitch", "42.8ms", "200"],
+    ["POST", "getMcpToolSchema · generate_screen", "31.4ms", "200"],
+    ["POST", "callMcpTool · stitch", "118.7ms", "200"],
+    ["GET", "Open ID entitlement resolve", "8.1ms", "200"],
+  ];
+
+  return (
+    <section className="live-router-console" aria-label="Live MCP router console">
+      <div className="live-router-console__bar">
+        <span className="window-dots"><i /><i /><i /></span>
+        <strong>LIVE MCP ROUTER CONSOLE // NETWORK INSPECTOR</strong>
+        <span className="status good">TRAFFIC LIVE</span>
+      </div>
+
+      <div className="live-router-console__tabs">
+        <span className="active">REQUEST FLOW</span>
+        <span>CLAIMS</span>
+        <span>PROVIDER</span>
+        <span>LATENCY</span>
+        <small>RATE 24.8 req/s</small>
+      </div>
+
+      <div className="live-router-console__body">
+        <div className="live-router-console__requests">
+          <div className="console-section-title">
+            <span>CRYPTOSIGNED TRACE / LIVE</span>
+            <span>TRACE: MCP_GATEWAY_01</span>
+          </div>
+          {requests.map(([method, route, latency, status], index) => (
+            <div className={`router-request ${index === 3 ? "active" : ""}`} key={route}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <b>{method}</b>
+              <code>{route}</code>
+              <small>{latency}</small>
+              <strong>{status}</strong>
+            </div>
+          ))}
+          <div className="router-result">
+            <span>RESULT</span>
+            <strong>{t("Tool invocation hoàn tất", "Tool invocation complete")}</strong>
+            <small>Provider response normalized → Gateway response envelope</small>
+          </div>
+        </div>
+
+        <aside className="live-router-console__inspector">
+          <div className="router-inspector-card">
+            <span className="eyebrow">OPEN ID CLAIM</span>
+            <dl>
+              <div><dt>Subject</dt><dd>usr_•••8f91</dd></div>
+              <div><dt>Scope</dt><dd>mcp.execute</dd></div>
+              <div><dt>Provider</dt><dd>stitch</dd></div>
+              <div><dt>Entitlement</dt><dd>ACTIVE</dd></div>
+            </dl>
+          </div>
+          <div className="router-inspector-card">
+            <span className="eyebrow">LIVE SYSTEM STREAM</span>
+            <div className="router-bars" aria-hidden="true">
+              <i /><i /><i /><i /><i /><i /><i /><i />
+            </div>
+            <small>p95 118ms · auth 8ms · discovery 42ms</small>
+          </div>
+          <div className="router-inspector-card router-inspector-card--secure">
+            <span>SECURE EXECUTION BOUNDARY</span>
+            <strong>OPEN ID ENFORCED</strong>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+
 export function GatewayInspector({ t }: { t: (vi: string, en: string) => string }) {
   return (
     <div className="gateway-inspector gateway-inspector--cinematic" aria-label="Gateway execution inspector">
