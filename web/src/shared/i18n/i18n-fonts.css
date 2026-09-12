@@ -1,0 +1,57 @@
+:root {
+  --ui-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", "Noto Sans", Arial, sans-serif;
+}
+
+html, body, button, input, select, textarea {
+  font-family: var(--ui-font-sans);
+}
+
+:lang(vi) {
+  --ui-font-sans: "Segoe UI Variable", "Segoe UI", "Noto Sans", Arial, sans-serif;
+}
+
+:lang(zh-CN), :lang(zh) {
+  --ui-font-sans: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+}
+
+:lang(ko) {
+  --ui-font-sans: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", system-ui, sans-serif;
+}
+
+:lang(ja) {
+  --ui-font-sans: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans CJK JP", system-ui, sans-serif;
+}
+
+.landing-hero-v2 h1, .landing-section h2, .console-screen h1, .auth-showcase h1 {
+  font-family: var(--ui-font-sans);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.language-switcher--select {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  padding: .32rem .45rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.language-switcher--select select {
+  max-width: 7.5rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.language-switcher--select option { color: #111827; background: #fff; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
