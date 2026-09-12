@@ -2781,3 +2781,48 @@ label { color: var(--text-2); }
     text-overflow: ellipsis;
   }
 }
+
+
+/* Sign-in form spacing regression
+   The Stitch sign-in block previously reset .auth-card padding to 0. */
+.auth-form-pane__content {
+  width: min(470px, calc(100% - 3rem));
+}
+
+.auth-card {
+  gap: 1.25rem;
+  padding: clamp(1.5rem, 2.8vw, 2rem);
+  border-radius: 18px;
+}
+
+.auth-card__heading {
+  margin-bottom: .15rem;
+}
+
+.auth-card h2 {
+  margin: .5rem 0 .55rem;
+}
+
+.auth-google-button {
+  min-height: 50px;
+}
+
+.auth-security-note {
+  padding: .9rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .auth-form-pane__content {
+    width: min(100% - 2rem, 470px);
+  }
+
+  .auth-card {
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .auth-security-note {
+    padding: .8rem .85rem;
+  }
+}
