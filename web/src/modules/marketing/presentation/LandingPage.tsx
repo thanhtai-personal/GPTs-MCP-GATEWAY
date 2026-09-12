@@ -44,7 +44,8 @@ export function LandingPage({ language }: Props) {
         </div>
       </header>
 
-      <section className="hero hero--redesigned container">
+      <section className="hero hero--redesigned hero--supercharged container">
+        <div className="hero-grid-glow" aria-hidden="true" />
         <div className="hero-copy">
           <div className="hero-pill"><span /> CUSTOM GPT × MCP CONTROL PLANE</div>
           <h1>
@@ -63,6 +64,15 @@ export function LandingPage({ language }: Props) {
             <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={17} /></Link>
             <a className="button secondary" href="#how-it-works">{t("Xem cách hoạt động", "See How It Works")}</a>
           </div>
+          <div className="hero-proofline">
+            <span><strong>01</strong> Custom GPT</span>
+            <i />
+            <span><strong>02</strong> Gateway</span>
+            <i />
+            <span><strong>03</strong> Open ID</span>
+            <i />
+            <span><strong>04</strong> MCP</span>
+          </div>
           <div className="hero-meta hero-meta--status">
             <span><i className="status-dot status-dot--success" /> Google Stitch {t("khả dụng", "Available")}</span>
             <span><i className="status-dot status-dot--cyan" /> 7-Day Trial</span>
@@ -73,7 +83,7 @@ export function LandingPage({ language }: Props) {
         <GatewayInspector t={t} />
       </section>
 
-      <section className="landing-status-strip">
+      <section className="landing-status-strip landing-status-strip--cinematic">
         <div className="container landing-status-grid">
           <SystemStatus label="Gateway" value="OPERATIONAL" tone="success" />
           <SystemStatus label="Open ID" value="ENFORCED" tone="success" />
@@ -126,7 +136,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container open-id-marketing" id="open-id">
+      <section className="section container open-id-marketing open-id-marketing--cinematic" id="open-id">
         <div className="open-id-marketing__copy">
           <span className="eyebrow">CORE PRODUCT · OPEN ID</span>
           <h2>{t("Open ID là quyền truy cập Gateway.", "Open ID is your Gateway access.")}</h2>
@@ -162,7 +172,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container provider-marketing" id="mcp-services">
+      <section className="section container provider-marketing provider-marketing--cinematic" id="mcp-services">
         <div className="section-heading section-heading--marketing">
           <div>
             <span className="eyebrow">FIRST MCP PROVIDER</span>
@@ -199,7 +209,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container discovery-section">
+      <section className="section container discovery-section discovery-section--cinematic">
         <div>
           <span className="eyebrow">DYNAMIC MCP DISCOVERY</span>
           <h2>{t("GPT discovery tools ở runtime.", "Your GPT discovers tools at runtime.")}</h2>
@@ -223,7 +233,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container security-section" id="security">
+      <section className="section container security-section security-section--cinematic" id="security">
         <div>
           <span className="eyebrow">SECURITY BOUNDARY</span>
           <h2>{t("Provider credentials không bao giờ thành GPT context.", "Your provider credentials never become GPT context.")}</h2>
@@ -246,7 +256,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container gpt-kit-marketing" id="gpt-integration">
+      <section className="section container gpt-kit-marketing gpt-kit-marketing--cinematic" id="gpt-integration">
         <div>
           <span className="eyebrow">GPT INTEGRATION KIT · FREE</span>
           <h2>{t("Cấu hình GPT trước khi mua.", "Configure your GPT before you buy.")}</h2>
@@ -269,7 +279,7 @@ export function LandingPage({ language }: Props) {
         </div>
       </section>
 
-      <section className="section container onboarding-section">
+      <section className="section container onboarding-section onboarding-section--cinematic">
         <div className="section-heading section-heading--marketing">
           <div>
             <span className="eyebrow">ACTUAL PRODUCT JOURNEY</span>
@@ -293,7 +303,7 @@ export function LandingPage({ language }: Props) {
         </p>
       </section>
 
-      <section className="section container final-cta final-cta--technical">
+      <section className="section container final-cta final-cta--technical final-cta--supercharged">
         <div>
           <span className="eyebrow">GATEWAY READY</span>
           <h2>{t("Đưa MCP capability thật vào Custom GPT.", "Give your Custom GPT real MCP capabilities.")}</h2>

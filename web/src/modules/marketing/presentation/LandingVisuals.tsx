@@ -3,7 +3,12 @@ import { Braces } from "lucide-react";
 
 export function GatewayInspector({ t }: { t: (vi: string, en: string) => string }) {
   return (
-    <div className="gateway-inspector" aria-label="Gateway execution inspector">
+    <div className="gateway-inspector gateway-inspector--cinematic" aria-label="Gateway execution inspector">
+      <div className="gateway-inspector__ambient" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
       <div className="gateway-inspector__bar">
         <span className="window-dots"><i /><i /><i /></span>
         <strong>Gateway Inspector</strong>
@@ -21,6 +26,7 @@ export function GatewayInspector({ t }: { t: (vi: string, en: string) => string 
         <InspectorNode step="05" label="GOOGLE STITCH" value="CONNECTED" success />
         <InspectorNode step="06" label="RESULT" value="SUCCESS · COMPLETE" success />
       </div>
+      <div className="gateway-inspector__pulse" aria-hidden="true"><i /></div>
       <div className="gateway-inspector__metrics">
         <span><small>Latency</small><strong>84ms</strong></span>
         <span><small>Open ID</small><strong>ACTIVE</strong></span>
