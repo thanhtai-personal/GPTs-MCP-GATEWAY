@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   Post,
   Put,
@@ -47,11 +46,8 @@ export class McpConnectionsController {
   }
 
   @Post('google-workspace/oauth/start')
-  startGoogleWorkspaceOAuth(
-    @Req() request: Request,
-    @Body() dto: StartMcpOAuthDto,
-  ) {
-    return this.googleWorkspaceOAuth.start(request, dto);
+  startGoogleWorkspaceOAuth(@Req() request: Request) {
+    return this.googleWorkspaceOAuth.start(request);
   }
 
   @Get('google-workspace/oauth/callback')
@@ -61,9 +57,7 @@ export class McpConnectionsController {
     @Query('error') oauthError: string | undefined,
     @Res() response: Response,
   ) {
-    const returnTo = state
-      ? this.googleWorkspaceOAuth.returnToFromState(state)
-      : undefined;
+    const returnTo = '#mcp-services';
 
     if (oauthError || !code || !state) {
       response.redirect(
@@ -78,13 +72,13 @@ export class McpConnectionsController {
     }
 
     try {
-      const result = await this.googleWorkspaceOAuth.complete(code, state);
+      await this.googleWorkspaceOAuth.complete(code, state);
       response.redirect(
         this.webRedirect(
           'google-workspace',
           'connected',
           undefined,
-          result.returnTo ?? returnTo,
+          returnTo,
         ),
       );
     } catch (error) {
@@ -171,11 +165,16 @@ export class McpConnectionsController {
   }
 
   private errorCode(error: unknown): string {
-    if (!(error instanceof HttpException)) {
+    if (
+      typeof error !== 'object' ||
+      error === null ||
+      !('getResponse' in error) ||
+      typeof error.getResponse !== 'function'
+    ) {
       return 'MCP_OAUTH_FAILED';
     }
 
-    const response = error.getResponse();
+    const response: unknown = error.getResponse();
     if (
       typeof response === 'object' &&
       response !== null &&

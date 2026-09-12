@@ -132,3 +132,17 @@ reports `GOOGLE_WORKSPACE_MCP_ACCESS_REJECTED` instead of incorrectly asking
 the user to reconnect. For a Developer Preview test account, verify enrollment
 of both the Workspace account and Google Cloud project and verify the MCP APIs
 are enabled.
+
+
+## Post-consent navigation
+
+Google Workspace is configured from MCP Services, so this provider-specific
+OAuth callback always returns to:
+
+```text
+/app#mcp-services
+```
+
+The Google Workspace flow intentionally does not preserve another app screen.
+Both successful consent and callback errors return to MCP Services so the user
+can immediately see the connection state and retry/configure the provider.

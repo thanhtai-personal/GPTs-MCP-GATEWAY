@@ -10,7 +10,6 @@ import type { Request } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
 import { AuthService } from '@server/root/modules/auth/auth.service';
-import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { isJsonObject } from '@server/root/modules/mcp-gateway/mcp-json';
 import type { McpOAuthCredential } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
@@ -38,7 +37,6 @@ const REQUIRED_EFFECTIVE_SCOPES = [
 type GoogleWorkspaceOAuthState = {
   version: 1;
   userId: string;
-  returnTo?: string;
   issuedAt: number;
 };
 
@@ -59,7 +57,7 @@ export class GoogleWorkspaceOAuthService {
     private readonly connections: McpConnectionsService,
   ) {}
 
-  async start(request: Request, dto: StartMcpOAuthDto) {
+  async start(request: Request) {
     const user = await this.auth.requireUser(request);
     const clientId = this.requireClientId();
 
@@ -67,7 +65,6 @@ export class GoogleWorkspaceOAuthService {
       JSON.stringify({
         version: 1,
         userId: user.id,
-        ...(dto.returnTo ? { returnTo: dto.returnTo } : {}),
         issuedAt: Date.now(),
       } satisfies GoogleWorkspaceOAuthState),
     );
@@ -103,10 +100,7 @@ export class GoogleWorkspaceOAuthService {
           credential,
         );
 
-      return {
-        connection,
-        ...(state.returnTo ? { returnTo: state.returnTo } : {}),
-      };
+      return { connection };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         const response = error.getResponse();
@@ -125,14 +119,6 @@ export class GoogleWorkspaceOAuthService {
         }
       }
       throw error;
-    }
-  }
-
-  returnToFromState(stateValue: string): string | undefined {
-    try {
-      return this.readState(stateValue).returnTo;
-    } catch {
-      return undefined;
     }
   }
 
@@ -288,9 +274,6 @@ export class GoogleWorkspaceOAuthService {
       !isJsonObject(parsed) ||
       parsed.version !== 1 ||
       typeof parsed.userId !== 'string' ||
-      ('returnTo' in parsed &&
-        parsed.returnTo !== undefined &&
-        typeof parsed.returnTo !== 'string') ||
       typeof parsed.issuedAt !== 'number'
     ) {
       throw this.invalidState();

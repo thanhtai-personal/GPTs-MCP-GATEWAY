@@ -128,10 +128,7 @@ export function OAuthConnectionForm({
             if (isGoogleWorkspaceProvider) {
               setGooglePending(true);
               setGoogleError(null);
-              void startGoogleWorkspaceOAuth(
-                accessToken,
-                currentReturnTarget(),
-              )
+              void startGoogleWorkspaceOAuth(accessToken)
                 .then(({ authorizationUrl }) => {
                   window.location.assign(authorizationUrl);
                 })

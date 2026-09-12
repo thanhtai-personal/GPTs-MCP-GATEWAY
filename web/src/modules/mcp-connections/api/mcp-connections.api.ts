@@ -68,15 +68,11 @@ export function removeMcpConnection(accessToken: string, provider: string) {
 }
 
 
-export function startGoogleWorkspaceOAuth(
-  accessToken: string,
-  returnTo: string,
-) {
+export function startGoogleWorkspaceOAuth(accessToken: string) {
   return gatewayRequest<{
     provider: "google-workspace";
     authorizationUrl: string;
   }>("/mcp-connections/google-workspace/oauth/start", accessToken, {
     method: "POST",
-    body: JSON.stringify({ returnTo }),
   });
 }
