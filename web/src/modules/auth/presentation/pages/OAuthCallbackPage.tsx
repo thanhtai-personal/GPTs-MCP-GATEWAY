@@ -3,12 +3,12 @@ import {
   Circle,
   CircleAlert,
   LockKeyhole,
-  PlugZap,
   ShieldCheck,
 } from "lucide-react";
 import { useGoogleOAuthCallback } from "@/modules/auth/presentation/hooks/useGoogleOAuthCallback";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
+import { BrandLogo } from "@/shared/branding/BrandLogo";
 
 const loadingSteps = [
   { label: "GOOGLE OAUTH", status: "VERIFIED", state: "complete" },
@@ -41,8 +41,7 @@ export function OAuthCallbackPage() {
 
       <section className="oauth-callback__shell">
         <a className="oauth-callback__brand" href="/">
-          <span className="brand-mark"><PlugZap size={19} /></span>
-          <span>MCP Gateway</span>
+          <BrandLogo variant="lockup" />
         </a>
 
         <article className="oauth-handshake">

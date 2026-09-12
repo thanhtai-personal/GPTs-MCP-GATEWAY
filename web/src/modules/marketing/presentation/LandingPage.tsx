@@ -3,7 +3,6 @@ import {
   Boxes,
   Code2,
   KeyRound,
-  PlugZap,
   ShieldCheck,
   Waypoints,
 } from "lucide-react";
@@ -16,6 +15,7 @@ import {
   MarketingStep,
 } from "@/modules/marketing/presentation/LandingVisuals";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
+import { BrandLogo } from "@/shared/branding/BrandLogo";
 
 type Props = { language: "vi" | "en" };
 
@@ -34,8 +34,7 @@ export function LandingPage({ language }: Props) {
 
       <header className="site-header site-header--v2 container">
         <Link className="brand brand--large" to="/">
-          <span className="brand-mark"><PlugZap size={17} /></span>
-          <span>MCP Gateway</span>
+          <BrandLogo />
           <small className="brand-live"><i /> GATEWAY ACTIVE</small>
         </Link>
 
@@ -285,7 +284,7 @@ export function LandingPage({ language }: Props) {
       <footer className="site-footer site-footer--v2">
         <div className="container site-footer__row">
           <div className="footer-brand">
-            <div className="brand"><span className="brand-mark"><PlugZap size={15} /></span>MCP Gateway</div>
+            <BrandLogo variant="lockup" />
             <small>MCP GATEWAY CONTROL PLANE</small>
           </div>
           <div className="footer-links"><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>

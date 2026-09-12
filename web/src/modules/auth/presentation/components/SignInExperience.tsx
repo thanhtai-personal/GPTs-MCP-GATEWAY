@@ -1,8 +1,9 @@
-import { Boxes, KeyRound, PlugZap, ShieldCheck, Sparkles } from "lucide-react";
+import { Boxes, KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { AuthPanel } from "@/modules/auth/presentation/components/AuthPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
+import { BrandLogo } from "@/shared/branding/BrandLogo";
 
 export function SignInExperience() {
   const { t } = useUiLanguage();
@@ -11,9 +12,8 @@ export function SignInExperience() {
     <main className="auth-page auth-page--stitch auth-page--cinematic-v2">
       <section className="auth-showcase">
         <div className="auth-showcase__top">
-          <a className="brand brand--large" href="/">
-            <span className="brand-mark"><PlugZap size={18} /></span>
-            MCP Gateway
+          <a className="brand brand--large auth-brand-lockup" href="/">
+            <BrandLogo variant="lockup" />
           </a>
           <span className="status good"><span className="status-dot status-dot--success" /> LIVE</span>
         </div>
@@ -31,7 +31,7 @@ export function SignInExperience() {
           <div className="auth-route-preview" aria-label="Gateway access flow">
             <div><Sparkles size={16} /><span>Custom GPT</span></div>
             <i>↓</i>
-            <div className="active"><PlugZap size={16} /><span>Gateway</span></div>
+            <div className="active"><ShieldCheck size={16} /><span>Gateway</span></div>
             <i>↓</i>
             <div><KeyRound size={16} /><span>Open ID</span></div>
             <i>↓</i>

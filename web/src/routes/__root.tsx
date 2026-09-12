@@ -17,7 +17,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#090a0f" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/brand/mcp-gateway-app-icon.png" },
+      { rel: "apple-touch-icon", href: "/brand/mcp-gateway-app-icon.png" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

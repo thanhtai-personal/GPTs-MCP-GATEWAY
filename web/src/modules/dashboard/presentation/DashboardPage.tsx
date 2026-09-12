@@ -7,7 +7,6 @@ import {
   KeyRound,
   LayoutDashboard,
   LogOut,
-  PlugZap,
   Search,
   Settings,
   ShieldCheck,
@@ -24,6 +23,7 @@ import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
+import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { CinematicOverview } from "@/modules/dashboard/presentation/CinematicOverview";
 
 type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
@@ -69,8 +69,7 @@ export function DashboardPage() {
     <main className="app-shell">
       <aside className="app-sidebar">
         <a className="brand brand--large" href="/">
-          <span className="brand-mark"><PlugZap size={18} /></span>
-          MCP Gateway
+          <BrandLogo />
         </a>
 
         <nav className="app-nav" aria-label={t("Điều hướng Console", "Console navigation")}>

@@ -5220,3 +5220,137 @@ label { color: var(--text-2); }
     padding-inline: .85rem;
   }
 }
+
+
+/* ==========================================================================
+   MCP Gateway supplied brand assets
+   ========================================================================== */
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--text-1, var(--text));
+}
+
+.brand-logo__asset {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.brand-logo__asset--light {
+  display: none;
+}
+
+:root[data-theme="light"] .brand-logo__asset--dark {
+  display: none;
+}
+
+:root[data-theme="light"] .brand-logo__asset--light {
+  display: block;
+}
+
+.brand-logo--compact {
+  gap: .62rem;
+}
+
+.brand-logo__mark {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--live) 12%, transparent), transparent 72%),
+    color-mix(in srgb, var(--surface-2) 76%, transparent);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--brand) 13%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--brand) 15%, var(--line));
+}
+
+.brand-logo__mark .brand-logo__asset {
+  width: 26px;
+  height: 26px;
+}
+
+.brand-logo__name {
+  color: var(--text-1);
+  font-size: .98rem;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+
+.brand-logo--lockup {
+  width: min(100%, 238px);
+}
+
+.brand-logo--lockup .brand-logo__asset {
+  width: 100%;
+  height: auto;
+}
+
+.site-header--v2 .brand-logo__mark {
+  width: 34px;
+  height: 34px;
+}
+
+.site-header--v2 .brand-logo__name {
+  font-size: 1rem;
+}
+
+.app-sidebar .brand-logo--compact {
+  max-width: 100%;
+}
+
+.app-sidebar .brand-logo__name {
+  font-size: .92rem;
+}
+
+.footer-brand .brand-logo--lockup {
+  width: 205px;
+}
+
+.auth-brand-lockup {
+  width: min(260px, 100%);
+}
+
+.auth-brand-lockup .brand-logo--lockup {
+  width: 100%;
+}
+
+.oauth-callback__brand .brand-logo--lockup {
+  width: 220px;
+}
+
+@media (max-width: 640px) {
+  .brand-logo__mark {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+  }
+
+  .brand-logo__mark .brand-logo__asset {
+    width: 24px;
+    height: 24px;
+  }
+
+  .brand-logo__name {
+    font-size: .9rem;
+  }
+
+  .site-header--v2 .brand-live {
+    display: none;
+  }
+
+  .footer-brand .brand-logo--lockup,
+  .oauth-callback__brand .brand-logo--lockup {
+    width: 188px;
+  }
+}
