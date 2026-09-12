@@ -22,7 +22,7 @@
 ## GPT kit
 ZIP contains:
 - `instructions.md`
-- `knowledge.md`
+- `GPTS-MCP-GATEWAY-Knowledge.md`
 - `openapi.yaml`
 - `setup-guide.md`
 

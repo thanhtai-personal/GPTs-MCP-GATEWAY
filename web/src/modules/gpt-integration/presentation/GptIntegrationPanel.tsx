@@ -1,6 +1,14 @@
+import { Download, FileCode2, FileText, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { downloadGatewayFile } from "@/shared/api/gateway-api";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+
+const KIT_FILES = [
+  { name: "instructions.md", icon: FileText },
+  { name: "GPTS-MCP-GATEWAY-Knowledge.md", icon: FileText },
+  { name: "openapi.yaml", icon: FileCode2 },
+  { name: "setup-guide.md", icon: FileText },
+];
 
 export function GptIntegrationPanel({ accessToken }: { accessToken: string }) {
   const { language, t } = useUiLanguage();
@@ -25,23 +33,27 @@ export function GptIntegrationPanel({ accessToken }: { accessToken: string }) {
   }
 
   return (
-    <section className="card">
-      <span className="eyebrow">CUSTOM GPT</span>
-      <h2>{t("GPT Integration Kit", "GPT Integration Kit")}</h2>
+    <section className="card card--feature">
+      <div className="panel-heading">
+        <div>
+          <span className="eyebrow">INTEGRATION KIT</span>
+          <h3>{t("Sẵn sàng cho Custom GPT", "Ready for Custom GPT")}</h3>
+        </div>
+        <span className="status good"><ShieldCheck size={14} />{t("Gateway-ready", "Gateway-ready")}</span>
+      </div>
       <p className="muted">
         {t(
-          "Đăng nhập là có thể tải kit. Open ID chỉ được kiểm tra khi GPT thực sự gọi Gateway.",
-          "Any signed-in user may download the kit. Open ID entitlement is enforced when GPT executes through Gateway.",
+          "Kit chứa Action schema, instructions tối giản và Knowledge đầy đủ để GPT tự nhận diện khi cần gọi MCP.",
+          "The kit contains the Action schema, minimal instructions, and complete Knowledge so GPT can automatically recognize when MCP is needed.",
         )}
       </p>
       <div className="file-list">
-        <code>instructions.md</code>
-        <code>knowledge.md</code>
-        <code>openapi.yaml</code>
-        <code>setup-guide.md</code>
+        {KIT_FILES.map(({ name, icon: Icon }) => (
+          <div className="file-item" key={name}><Icon size={17} /><code>{name}</code></div>
+        ))}
       </div>
       <button onClick={() => void downloadKit()} type="button">
-        {t("Tải ZIP cho GPT", "Download GPT ZIP")}
+        <Download size={17} />{t("Tải GPT Integration Kit", "Download GPT Integration Kit")}
       </button>
       {error ? <p className="notice error">{error}</p> : null}
     </section>

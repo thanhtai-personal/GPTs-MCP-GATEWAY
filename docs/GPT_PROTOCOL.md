@@ -11,7 +11,7 @@ An authenticated app user can download:
 ```text
 mcp-gateway-gpt-kit-{language}.zip
 ├── instructions.md
-├── knowledge.md
+├── GPTS-MCP-GATEWAY-Knowledge.md
 ├── openapi.yaml
 └── setup-guide.md
 ```

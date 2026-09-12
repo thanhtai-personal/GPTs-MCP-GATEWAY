@@ -150,7 +150,7 @@ The generated ZIP contains:
 
 ```text
 instructions.md
-knowledge.md
+GPTS-MCP-GATEWAY-Knowledge.md
 openapi.yaml
 setup-guide.md
 ```

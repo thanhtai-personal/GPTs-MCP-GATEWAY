@@ -64,7 +64,7 @@ ZIP được generate gồm:
 
 ```text
 instructions.md
-knowledge.md
+GPTS-MCP-GATEWAY-Knowledge.md
 openapi.yaml
 setup-guide.md
 ```

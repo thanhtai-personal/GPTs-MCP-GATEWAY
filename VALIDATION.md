@@ -18,7 +18,7 @@ Validation performed in the artifact environment on 2026-09-11.
 - GPT ZIP utility executable smoke test
   - generated archive opened successfully;
   - CRC test passed;
-  - entries: `instructions.md`, `knowledge.md`, `openapi.yaml`, `setup-guide.md`.
+  - entries: `instructions.md`, `GPTS-MCP-GATEWAY-Knowledge.md`, `openapi.yaml`, `setup-guide.md`.
 - Generated OpenAPI template
   - parsed successfully as OpenAPI `3.1.0`;
   - includes `getGatewayProfile`, `listMcpServices`, `listMcpTools`, `callMcpTool`.
