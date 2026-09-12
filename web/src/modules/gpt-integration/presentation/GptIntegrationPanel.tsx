@@ -217,8 +217,11 @@ export function GptIntegrationPanel({
         </div>
 
         <aside className="integration-inspector" aria-label="Gateway Inspector">
-          <div className="integration-inspector__header">
-            <div><span className="eyebrow">GATEWAY INSPECTOR</span><strong>Execution sandbox</strong></div>
+          <div className="integration-inspector__header" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
+            <div style={{ display: "grid", gap: "0.2rem", minWidth: 0 }}>
+              <span className="eyebrow">GATEWAY INSPECTOR</span>
+              <strong style={{ display: "block", lineHeight: 1.2 }}>Execution sandbox</strong>
+            </div>
             <span className={`status ${entitlementReady ? "good" : ""}`}>{entitlementReady ? "AUTHORIZED" : "SETUP ONLY"}</span>
           </div>
           <div className="integration-inspector__body">
