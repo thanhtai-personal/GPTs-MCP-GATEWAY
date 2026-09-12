@@ -31,6 +31,7 @@ function provider(
             resourceUrl: 'https://mcp.example.test/mcp',
             protectedResourceMetadataUrl:
               'https://mcp.example.test/.well-known/oauth-protected-resource',
+            authorizationServerOrigins: ['https://mcp.example.test'],
             clientId: 'client',
           },
         }

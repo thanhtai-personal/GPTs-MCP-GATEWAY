@@ -48,6 +48,7 @@ describe('McpProviderRegistry', () => {
         resourceUrl: 'https://mcp.figma.com/mcp',
         protectedResourceMetadataUrl:
           'https://mcp.figma.com/.well-known/oauth-protected-resource',
+        authorizationServerOrigins: ['https://api.figma.com'],
       },
     };
     const registry = new McpProviderRegistry([oauthProvider]);
@@ -71,6 +72,7 @@ describe('McpProviderRegistry', () => {
         resourceUrl: 'https://mcp.figma.com/mcp',
         protectedResourceMetadataUrl:
           'https://mcp.figma.com/.well-known/oauth-protected-resource',
+        authorizationServerOrigins: ['https://api.figma.com'],
       },
     };
     const registry = new McpProviderRegistry([figmaProvider]);
@@ -92,6 +94,7 @@ describe('McpProviderRegistry', () => {
         resourceUrl: 'https://mcp.lovable.dev',
         protectedResourceMetadataUrl:
           'https://mcp.lovable.dev/.well-known/oauth-protected-resource',
+        authorizationServerOrigins: ['https://lovable.dev'],
       },
     };
     const registry = new McpProviderRegistry([lovableProvider]);
