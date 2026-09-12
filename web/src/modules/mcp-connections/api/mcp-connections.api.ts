@@ -74,7 +74,7 @@ export function connectGoogleWorkspace(
   providerRefreshToken: string,
 ) {
   return gatewayRequest<{
-    providers: McpConnection[];
+    connection: McpConnection;
     status: "connected";
   }>("/mcp-connections/google-workspace", accessToken, {
     method: "POST",

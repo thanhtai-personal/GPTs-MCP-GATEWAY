@@ -55,12 +55,21 @@ Google Docs   https://docsmcp.googleapis.com/mcp/v1
 Google Sheets https://sheetsmcp.googleapis.com/mcp/v1
 ```
 
-A single consent action connects both provider IDs:
+A single consent action creates one encrypted connection config:
+
+```text
+google-workspace
+```
+
+That one credential powers two runtime MCP service IDs:
 
 ```text
 google-docs
 google-sheets
 ```
+
+The MCP Services UI therefore shows one **Google Workspace** card while GPT
+runtime discovery still exposes separate Docs and Sheets services and skills.
 
 ## Developer Preview
 

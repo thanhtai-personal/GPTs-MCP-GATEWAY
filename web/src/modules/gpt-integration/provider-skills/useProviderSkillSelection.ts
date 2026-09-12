@@ -11,6 +11,15 @@ function isProviderSkillId(value: string): value is ProviderSkillId {
   return PROVIDER_SKILL_IDS.includes(value as ProviderSkillId);
 }
 
+function connectedProviderIds(providerIds: string[]) {
+  const connected = new Set(providerIds);
+  if (connected.has("google-workspace")) {
+    connected.add("google-docs");
+    connected.add("google-sheets");
+  }
+  return connected;
+}
+
 export function useProviderSkillSelection(accessToken: string) {
   const connections = useMcpConnections(accessToken);
   const [enabled, setEnabled] = useState<ProviderSkillId[]>([]);
@@ -39,7 +48,7 @@ export function useProviderSkillSelection(accessToken: string) {
     }
 
     if (!connections.isPending) {
-      const connected = new Set(
+      const connected = connectedProviderIds(
         (connections.data ?? []).map((connection) => connection.provider),
       );
       setEnabled(PROVIDER_SKILL_IDS.filter((id) => connected.has(id)));
@@ -53,7 +62,10 @@ export function useProviderSkillSelection(accessToken: string) {
   }, [enabled, initialized]);
 
   const connectedIds = useMemo(
-    () => new Set((connections.data ?? []).map((connection) => connection.provider)),
+    () =>
+      connectedProviderIds(
+        (connections.data ?? []).map((connection) => connection.provider),
+      ),
     [connections.data],
   );
 

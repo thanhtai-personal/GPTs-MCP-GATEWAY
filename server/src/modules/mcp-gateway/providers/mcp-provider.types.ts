@@ -94,6 +94,10 @@ export interface McpProviderAdapter {
   readonly id: string;
   readonly displayName: string;
   readonly credential: McpProviderCredentialDefinition;
+  readonly credentialOwner?: {
+    id: string;
+    displayName: string;
+  };
   readonly oauth?: McpOAuthProviderConfig;
   readonly catalogStatus?: McpProviderCatalogStatus;
 

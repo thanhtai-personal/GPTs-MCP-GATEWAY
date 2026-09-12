@@ -16,6 +16,10 @@ const ENDPOINT = 'https://sheetsmcp.googleapis.com/mcp/v1';
 @Injectable()
 export class GoogleSheetsMcpAdapter implements McpProviderAdapter {
   readonly id = 'google-sheets' as const;
+  readonly credentialOwner = {
+    id: 'google-workspace',
+    displayName: 'Google Workspace',
+  } as const;
   readonly displayName = 'Google Sheets';
   readonly credential: McpProviderCredentialDefinition;
 

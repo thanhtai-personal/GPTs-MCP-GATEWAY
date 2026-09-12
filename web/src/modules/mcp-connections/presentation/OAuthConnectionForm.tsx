@@ -44,8 +44,7 @@ export function OAuthConnectionForm({
   const remove = useRemoveMcpConnection(accessToken);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googlePending, setGooglePending] = useState(false);
-  const isGoogleWorkspaceProvider =
-    providerId === "google-docs" || providerId === "google-sheets";
+  const isGoogleWorkspaceProvider = providerId === "google-workspace";
   const [accessMode, setAccessMode] = useState<McpProviderAccessMode>(
     connection?.accessMode ??
       credential.accessModes?.default ??

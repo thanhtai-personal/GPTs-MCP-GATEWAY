@@ -16,6 +16,10 @@ const ENDPOINT = 'https://docsmcp.googleapis.com/mcp/v1';
 @Injectable()
 export class GoogleDocsMcpAdapter implements McpProviderAdapter {
   readonly id = 'google-docs' as const;
+  readonly credentialOwner = {
+    id: 'google-workspace',
+    displayName: 'Google Workspace',
+  } as const;
   readonly displayName = 'Google Docs';
   readonly credential: McpProviderCredentialDefinition;
 

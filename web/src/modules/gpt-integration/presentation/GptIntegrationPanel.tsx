@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ProviderSkillSelector } from "@/modules/gpt-integration/provider-skills/ProviderSkillSelector";
+import { GptSetupWalkthrough } from "@/modules/gpt-integration/presentation/GptSetupWalkthrough";
 import { PROVIDER_SKILL_OPTIONS } from "@/modules/gpt-integration/provider-skills/provider-skill.types";
 import { useProviderSkillSelection } from "@/modules/gpt-integration/provider-skills/useProviderSkillSelection";
 import { useTrialStatus } from "@/modules/open-id/queries/open-id.queries";
@@ -144,6 +145,8 @@ export function GptIntegrationPanel({
         enabled={skills.enabled}
         onToggle={skills.toggle}
       />
+
+      <GptSetupWalkthrough />
 
       <div className="integration-workbench">
         <div className="integration-workbench__main">

@@ -50,6 +50,10 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
 
   const providerList = providers.data ?? [];
   const connectionList = connections.data ?? [];
+  const runtimeServiceCount = providerList.reduce(
+    (count, provider) => count + provider.serviceIds.length,
+    0,
+  );
   const allExpanded =
     providerList.length > 0 &&
     providerList.every((provider) => expandedProviders.has(provider.id));
@@ -78,8 +82,8 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
     <div className="provider-list cinematic-connectors">
       <div className="provider-summary">
         <div>
-          <span className="provider-summary__value">{providerList.length}</span>
-          <span>{t("Provider catalog", "Provider catalog")}</span>
+          <span className="provider-summary__value">{runtimeServiceCount}</span>
+          <span>{t("MCP services", "MCP services")}</span>
         </div>
         <div>
           <span className="provider-summary__value">{connectionList.length}</span>
@@ -94,7 +98,7 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
       </div>
 
       <div className="connector-diagnostics">
-        <div><span>CATALOG</span><strong>{providerList.length} APPROVED</strong><small>Gateway-defined providers</small></div>
+        <div><span>CATALOG</span><strong>{providerList.length} CONFIGS</strong><small>{runtimeServiceCount} runtime MCP services</small></div>
         <div><span>CONNECTIONS</span><strong>{connectionList.length} SAVED</strong><small>Account-owned credentials</small></div>
         <div><span>SECURITY</span><strong>ENCRYPTED</strong><small>Credentials never enter GPT context</small></div>
         <div><span>TRANSPORT</span><strong>MCP</strong><small>Runtime tool discovery</small></div>
@@ -163,11 +167,9 @@ function McpProviderCard({
                   ? <Github size={20} />
                   : provider.id === "notion"
                     ? <BookOpenText size={20} />
-                    : provider.id === "google-docs"
-                      ? <FileText size={20} />
-                      : provider.id === "google-sheets"
-                        ? <Table2 size={20} />
-                        : <PlugZap size={20} />
+                    : provider.id === "google-workspace"
+                      ? "G"
+                      : <PlugZap size={20} />
             }
           </span>
           <div>
@@ -209,39 +211,53 @@ function McpProviderCard({
           {provider.credential.kind === "api_key" ? <KeyRound size={14} /> : <Link2 size={14} />}
           {provider.credential.kind === "api_key" ? "API KEY" : "OAUTH"}
         </span>
-        {!expanded && connection?.lastVerifiedAt ? (
+        {provider.id === "google-workspace" ? (
+          <span className="provider-card__services">
+            <FileText size={14} /> DOCS
+            <Table2 size={14} /> SHEETS
+          </span>
+        ) : null}
+        {connection?.lastVerifiedAt ? (
           <span className="provider-card__verified-compact">
             {t("Xác minh", "Verified")} <code>{connection.lastVerifiedAt}</code>
           </span>
         ) : null}
       </div>
 
-      <div className="provider-card__collapsible" hidden={!expanded}>
-        <div className="provider-card__form">
-        {provider.credential.kind === "api_key" ? (
-          <ApiKeyConnectionForm
-            accessToken={accessToken}
-            connection={connection}
-            credential={provider.credential}
-            providerId={provider.id}
-          />
-        ) : (
-          <OAuthConnectionForm
-            accessToken={accessToken}
-            connection={connection}
-            credential={provider.credential}
-            providerId={provider.id}
-            providerStatus={provider.status}
-          />
-        )}
-      </div>
-
-        {connection?.lastVerifiedAt ? (
-          <div className="provider-card__footer">
-            <span>{t("Xác minh gần nhất", "Last verified")}</span>
-            <code>{connection.lastVerifiedAt}</code>
+      <div
+        aria-hidden={!expanded}
+        className={`motion-collapse provider-card__collapsible ${
+          expanded ? "is-open" : ""
+        }`}
+        inert={!expanded}
+      >
+        <div className="motion-collapse__inner">
+          <div className="provider-card__form">
+            {provider.credential.kind === "api_key" ? (
+              <ApiKeyConnectionForm
+                accessToken={accessToken}
+                connection={connection}
+                credential={provider.credential}
+                providerId={provider.id}
+              />
+            ) : (
+              <OAuthConnectionForm
+                accessToken={accessToken}
+                connection={connection}
+                credential={provider.credential}
+                providerId={provider.id}
+                providerStatus={provider.status}
+              />
+            )}
           </div>
-        ) : null}
+
+          {connection?.lastVerifiedAt ? (
+            <div className="provider-card__footer">
+              <span>{t("Xác minh gần nhất", "Last verified")}</span>
+              <code>{connection.lastVerifiedAt}</code>
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );

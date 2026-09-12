@@ -37,6 +37,7 @@ export type McpProviderCredential =
 export type McpProvider = {
   id: string;
   name: string;
+  serviceIds: string[];
   status: "available" | "requires_configuration" | "pending_review" | "provider_restricted";
   credential: McpProviderCredential;
 };
