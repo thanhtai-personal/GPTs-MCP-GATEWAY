@@ -1,19 +1,6 @@
-import {
-  ArrowRight,
-  Boxes,
-  Code2,
-  KeyRound,
-  ShieldCheck,
-  Waypoints,
-} from "lucide-react";
+import { ArrowRight, Boxes, Code2, KeyRound, ShieldCheck, Waypoints } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import {
-  IdentityOrbit,
-  JourneyStep,
-  KitFile,
-  LiveRouterConsole,
-  MarketingStep,
-} from "@/modules/marketing/presentation/LandingVisuals";
+import { IdentityOrbit, JourneyStep, KitFile, LiveRouterConsole, MarketingStep } from "@/modules/marketing/presentation/LandingVisuals";
 import { WorkflowTransformationSection } from "@/modules/marketing/presentation/WorkflowTransformationSection";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
@@ -21,402 +8,70 @@ import { useLandingScrollReveal } from "@/modules/marketing/presentation/hooks/u
 import { usePublicLandingVideo } from "@/modules/site-settings/queries/site-settings.queries";
 import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
 import { useSession } from "@/modules/auth/presentation/hooks/useSession";
+import { createUiTranslator, UI_LANGUAGE_OPTIONS, type UiLanguage } from "@/shared/i18n/ui-language";
 
-type Props = { language: "vi" | "en" };
+type Props = { language: UiLanguage };
+
+function languagePath(language: UiLanguage) { return language === "en" ? "/" : `/${language}`; }
 
 export function LandingPage({ language }: Props) {
-  const vi = language === "vi";
-  const t = (viText: string, enText: string) => (vi ? viText : enText);
+  const t = createUiTranslator(language);
   const revealRootRef = useLandingScrollReveal();
   const walkthrough = usePublicLandingVideo();
   const { session } = useSession();
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const signOut = async () => { await supabase.auth.signOut(); };
 
   return (
-    <main className="landing landing--supercharged-v2" lang={language} ref={revealRootRef}>
-      <div className="landing-v2-bg" aria-hidden="true">
-        <i className="landing-v2-bg__grid" />
-        <i className="landing-v2-bg__orb landing-v2-bg__orb--indigo" />
-        <i className="landing-v2-bg__orb landing-v2-bg__orb--cyan" />
-        <i className="landing-v2-bg__beam" />
-      </div>
+    <main className="landing landing--supercharged-v2" lang={language === "zh" ? "zh-CN" : language} ref={revealRootRef}>
+      <div className="landing-v2-bg" aria-hidden="true"><i className="landing-v2-bg__grid" /><i className="landing-v2-bg__orb landing-v2-bg__orb--indigo" /><i className="landing-v2-bg__orb landing-v2-bg__orb--cyan" /><i className="landing-v2-bg__beam" /></div>
 
       <header className="site-header site-header--v2 container">
-        <Link className="brand brand--large" to="/">
-          <BrandLogo />
-          <small className="brand-live"><i /> GATEWAY ACTIVE</small>
-        </Link>
-
-        <nav className="landing-nav" aria-label={t("Điều hướng chính", "Primary navigation")}>
-          <a href="#control-plane">{t("Cách hoạt động", "How It Works")}</a>
-          <a href="#open-id">Open ID</a>
-          <a href="#mcp-services">MCP Services</a>
-          <a href="#gpt-integration">GPT Integration</a>
-        </nav>
-
+        <Link className="brand brand--large" to="/"><BrandLogo /><small className="brand-live"><i /> {t("GATEWAY ĐANG HOẠT ĐỘNG", "GATEWAY ACTIVE", "GATEWAY 运行中", "GATEWAY 활성", "GATEWAY 稼働中")}</small></Link>
+        <nav className="landing-nav" aria-label={t("Điều hướng chính", "Primary navigation", "主导航", "기본 탐색", "メインナビゲーション")}><a href="#control-plane">{t("Cách hoạt động", "How It Works", "工作原理", "작동 방식", "仕組み")}</a><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></nav>
         <div className="site-header__actions">
           <ThemeToggle compact />
-          <a className="language-link" href={vi ? "/" : "/vi"}>{vi ? "EN" : "VI"}</a>
-          {session ? (
-            <a
-              className="button secondary button--quiet"
-              href="/app"
-              onClick={(event) => {
-                event.preventDefault();
-                void signOut();
-              }}
-            >
-              {t("Đăng xuất", "Sign Out")}
-            </a>
-          ) : (
-            <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In")}</Link>
-          )}
-          <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={14} /></Link>
+          <label className="language-switcher language-switcher--select"><span className="sr-only">Language</span><select aria-label="Language" value={language} onChange={(event) => { window.location.href = languagePath(event.target.value as UiLanguage); }}>{UI_LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+          {session ? <a className="button secondary button--quiet" href="/app" onClick={(event) => { event.preventDefault(); void signOut(); }}>{t("Đăng xuất", "Sign Out", "退出登录", "로그아웃", "ログアウト")}</a> : <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In", "登录", "로그인", "ログイン")}</Link>}
+          <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free", "免费开始", "무료로 시작", "無料で始める")}<ArrowRight size={14} /></Link>
         </div>
       </header>
 
       <section className="landing-hero-v2 container">
-        <div className="landing-hero-v2__badge" data-reveal="fade-down">
-          <span className="status-dot status-dot--cyan" />
-          CUSTOM GPT × MCP CONTROL PLANE
-          <small>OPEN ID ENFORCED</small>
-        </div>
-
-        <h1 data-reveal="zoom-in">
-          {t(
-            "Kết nối Custom GPT của bạn với MCP services qua một Gateway bảo mật.",
-            "Connect your Custom GPT to MCP services through one secure Gateway.",
-          )}
-        </h1>
-
-        <p data-reveal="fade-up">
-          {t(
-            "Discovery và gọi MCP tools động qua Zero-trust Gateway với provider credentials được mã hóa, Open ID entitlement bắt buộc và context của GPT luôn sạch.",
-            "Dynamically discover and invoke MCP tools through a zero-trust Gateway with encrypted provider credentials, mandatory Open ID entitlement, and clean GPT context.",
-          )}
-        </p>
-
-        <div className="landing-hero-v2__actions" data-reveal="fade-up">
-          <Link className="button" to="/app">{t("Bắt đầu thử 7 ngày", "Start Free 7-Day Trial")}<ArrowRight size={15} /></Link>
-          <a className="button secondary" href="#control-plane">{t("Khám phá Live Protocol", "Inspect Live Protocol")}</a>
-        </div>
-
-        <div className="landing-hero-v2__status" data-reveal-group>
-          <span><i className="status-dot status-dot--success" /> Google Stitch Available</span>
-          <span><i className="status-dot status-dot--cyan" /> 7-Day Trial Included</span>
-          <span><i className="status-dot status-dot--success" /> Open ID Protected</span>
-        </div>
+        <div className="landing-hero-v2__badge" data-reveal="fade-down"><span className="status-dot status-dot--cyan" />CUSTOM GPT × MCP CONTROL PLANE<small>{t("OPEN ID ĐƯỢC BẮT BUỘC", "OPEN ID ENFORCED", "OPEN ID 已强制", "OPEN ID 적용됨", "OPEN ID 適用中")}</small></div>
+        <h1 data-reveal="zoom-in">{t("Kết nối Custom GPT của bạn với MCP services qua một Gateway bảo mật.", "Connect your Custom GPT to MCP services through one secure Gateway.", "通过一个安全 Gateway 将你的 Custom GPT 连接到 MCP 服务。", "하나의 안전한 Gateway를 통해 Custom GPT를 MCP 서비스에 연결하세요.", "1つの安全な Gateway を通じて Custom GPT を MCP サービスに接続します。")}</h1>
+        <p data-reveal="fade-up">{t("Discovery và gọi MCP tools động qua Zero-trust Gateway với provider credentials được mã hóa, Open ID entitlement bắt buộc và context của GPT luôn sạch.", "Dynamically discover and invoke MCP tools through a zero-trust Gateway with encrypted provider credentials, mandatory Open ID entitlement, and clean GPT context.", "通过零信任 Gateway 动态发现并调用 MCP 工具；Provider 凭据加密、Open ID entitlement 强制执行，同时保持 GPT context 干净。", "Zero-trust Gateway를 통해 MCP 도구를 동적으로 검색하고 호출합니다. Provider 자격 증명은 암호화되고 Open ID entitlement가 강제되며 GPT context는 깨끗하게 유지됩니다.", "Zero-trust Gateway を通じて MCP ツールを動的に発見・実行します。Provider 認証情報は暗号化され、Open ID entitlement が必須で、GPT context はクリーンに保たれます。")}</p>
+        <div className="landing-hero-v2__actions" data-reveal="fade-up"><Link className="button" to="/app">{t("Bắt đầu thử 7 ngày", "Start Free 7-Day Trial", "开始 7 天免费试用", "7일 무료 체험 시작", "7日間無料トライアルを開始")}<ArrowRight size={15} /></Link><a className="button secondary" href="#control-plane">{t("Khám phá Live Protocol", "Inspect Live Protocol", "查看实时协议", "라이브 프로토콜 확인", "ライブプロトコルを確認")}</a></div>
+        <div className="landing-hero-v2__status" data-reveal-group><span><i className="status-dot status-dot--success" /> {t("Google Stitch khả dụng", "Google Stitch Available", "Google Stitch 可用", "Google Stitch 사용 가능", "Google Stitch 利用可能")}</span><span><i className="status-dot status-dot--cyan" /> {t("Có thử nghiệm 7 ngày", "7-Day Trial Included", "包含 7 天试用", "7일 체험 포함", "7日間トライアル付き")}</span><span><i className="status-dot status-dot--success" /> {t("Được Open ID bảo vệ", "Open ID Protected", "受 Open ID 保护", "Open ID로 보호됨", "Open ID で保護")}</span></div>
       </section>
 
-      <section className="landing-stage container">
-        <IdentityOrbit t={t} />
-        <LiveRouterConsole t={t} />
-      </section>
+      <section className="landing-stage container"><IdentityOrbit t={t} /><LiveRouterConsole t={t} /></section>
 
       <section className="landing-section landing-section--problem container" id="control-plane">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">ARCHITECTURAL VALUE</span>
-          <h2>{t("Custom GPT cần một MCP control plane bảo mật.", "Custom GPTs need a secure MCP control plane.")}</h2>
-          <p>{t("Xóa credential khỏi GPT context, kiểm soát entitlement và discovery tool động ở Gateway.", "Keep credentials out of GPT context, enforce entitlement, and discover tools dynamically at Gateway.")}</p>
-        </div>
-
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("GIÁ TRỊ KIẾN TRÚC", "ARCHITECTURAL VALUE", "架构价值", "아키텍처 가치", "アーキテクチャ価値")}</span><h2>{t("Custom GPT cần một MCP control plane bảo mật.", "Custom GPTs need a secure MCP control plane.", "Custom GPT 需要安全的 MCP control plane。", "Custom GPT에는 안전한 MCP control plane이 필요합니다.", "Custom GPT には安全な MCP control plane が必要です。")}</h2><p>{t("Xóa credential khỏi GPT context, kiểm soát entitlement và discovery tool động ở Gateway.", "Keep credentials out of GPT context, enforce entitlement, and discover tools dynamically at Gateway.", "让凭据远离 GPT context，在 Gateway 强制 entitlement，并动态发现工具。", "자격 증명을 GPT context 밖에 두고 Gateway에서 entitlement를 적용하며 도구를 동적으로 검색합니다.", "認証情報を GPT context の外に置き、Gateway で entitlement を適用し、ツールを動的に発見します。")}</p></div>
         <div className="control-plane-compare" data-reveal-group>
-          <article className="control-plane-card control-plane-card--bad">
-            <div className="control-plane-card__top">
-              <span>WITHOUT GATEWAY</span>
-              <strong>LEGACY RISK</strong>
-            </div>
-            <h3>{t("Tích hợp mong manh, credential rò rỉ.", "Fragile, leaky & brittle integration")}</h3>
-            <ul>
-              <li>Provider keys end up in GPT instructions/context.</li>
-              <li>Tool catalogs become stale and hardcoded.</li>
-              <li>No central entitlement boundary before execution.</li>
-              <li>Provider auth semantics leak into GPT logic.</li>
-            </ul>
-            <small>RESULT: credential sprawl · stale tools · weak control</small>
-          </article>
-
-          <article className="control-plane-card control-plane-card--good">
-            <div className="control-plane-card__top">
-              <span>WITH MCP GATEWAY</span>
-              <strong>ZERO-TRUST ROUTE</strong>
-            </div>
-            <h3>{t("Zero-trust entitlement & dynamic discovery.", "Zero-Trust Entitlement & Dynamic Discovery")}</h3>
-            <ul>
-              <li>Gateway stores provider credentials outside GPT context.</li>
-              <li>Open ID authorizes every real MCP execution.</li>
-              <li>Tools are discovered at runtime from approved providers.</li>
-              <li>One stable Action protocol drives every MCP service.</li>
-            </ul>
-            <small>RESULT: controlled execution · runtime truth · clean GPT context</small>
-          </article>
+          <article className="control-plane-card control-plane-card--bad"><div className="control-plane-card__top"><span>{t("KHÔNG CÓ GATEWAY", "WITHOUT GATEWAY", "无 GATEWAY", "GATEWAY 없음", "GATEWAY なし")}</span><strong>{t("RỦI RO CŨ", "LEGACY RISK", "传统风险", "레거시 위험", "レガシーリスク")}</strong></div><h3>{t("Tích hợp mong manh, credential dễ rò rỉ.", "Fragile, leaky & brittle integration", "脆弱且容易泄露凭据的集成", "취약하고 자격 증명이 노출되기 쉬운 통합", "脆弱で認証情報が漏れやすい統合")}</h3><ul><li>{t("Provider key bị đưa vào GPT instructions/context.", "Provider keys end up in GPT instructions/context.", "Provider key 进入 GPT instructions/context。", "Provider key가 GPT instructions/context에 들어갑니다.", "Provider key が GPT instructions/context に入ります。")}</li><li>{t("Tool catalog nhanh lỗi thời và bị hardcode.", "Tool catalogs become stale and hardcoded.", "Tool catalog 容易过时且被硬编码。", "Tool catalog가 금방 오래되고 하드코딩됩니다.", "Tool catalog が古くなりハードコードされます。")}</li><li>{t("Không có entitlement boundary tập trung trước execution.", "No central entitlement boundary before execution.", "执行前没有统一 entitlement 边界。", "실행 전에 중앙 entitlement 경계가 없습니다.", "実行前に中央 entitlement 境界がありません。")}</li><li>{t("Provider auth semantics tràn vào logic GPT.", "Provider auth semantics leak into GPT logic.", "Provider 认证语义渗入 GPT 逻辑。", "Provider 인증 의미가 GPT 로직으로 새어 들어갑니다.", "Provider 認証の意味論が GPT ロジックに漏れます。")}</li></ul><small>{t("KẾT QUẢ: credential phân tán · tool lỗi thời · kiểm soát yếu", "RESULT: credential sprawl · stale tools · weak control", "结果：凭据分散 · 工具过时 · 控制薄弱", "결과: 자격 증명 분산 · 오래된 도구 · 약한 제어", "結果: 認証情報の分散 · 古いツール · 弱い制御")}</small></article>
+          <article className="control-plane-card control-plane-card--good"><div className="control-plane-card__top"><span>{t("CÓ MCP GATEWAY", "WITH MCP GATEWAY", "使用 MCP GATEWAY", "MCP GATEWAY 사용", "MCP GATEWAY あり")}</span><strong>{t("TUYẾN ZERO-TRUST", "ZERO-TRUST ROUTE", "零信任路径", "제로 트러스트 경로", "ゼロトラスト経路")}</strong></div><h3>{t("Zero-trust entitlement & dynamic discovery.", "Zero-Trust Entitlement & Dynamic Discovery", "零信任 Entitlement 与动态发现", "제로 트러스트 Entitlement 및 동적 검색", "ゼロトラスト Entitlement と動的発見")}</h3><ul><li>{t("Gateway giữ provider credentials ngoài GPT context.", "Gateway stores provider credentials outside GPT context.", "Gateway 将 Provider 凭据保存在 GPT context 之外。", "Gateway는 Provider 자격 증명을 GPT context 외부에 저장합니다.", "Gateway は Provider 認証情報を GPT context の外に保存します。")}</li><li>{t("Open ID authorize mọi MCP execution thực tế.", "Open ID authorizes every real MCP execution.", "Open ID 授权每次真实 MCP 执行。", "Open ID가 모든 실제 MCP 실행을 승인합니다.", "Open ID がすべての実 MCP 実行を認可します。")}</li><li>{t("Tool được discovery runtime từ provider đã duyệt.", "Tools are discovered at runtime from approved providers.", "工具在运行时从已批准的 Provider 中发现。", "승인된 Provider에서 런타임에 도구를 검색합니다.", "承認済み Provider から実行時にツールを発見します。")}</li><li>{t("Một Action protocol ổn định điều khiển mọi MCP service.", "One stable Action protocol drives every MCP service.", "一个稳定的 Action protocol 驱动所有 MCP 服务。", "하나의 안정적인 Action protocol이 모든 MCP 서비스를 구동합니다.", "1つの安定した Action protocol がすべての MCP サービスを駆動します。")}</li></ul><small>{t("KẾT QUẢ: execution có kiểm soát · runtime truth · GPT context sạch", "RESULT: controlled execution · runtime truth · clean GPT context", "结果：受控执行 · 运行时事实 · 干净 GPT context", "결과: 제어된 실행 · 런타임 사실 · 깨끗한 GPT context", "結果: 制御された実行 · 実行時の事実 · クリーンな GPT context")}</small></article>
         </div>
       </section>
 
-      <section className="landing-section container">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">THIS IS HOW IT FLOWS</span>
-          <h2>{t("Architecture Execution Pipeline", "Architecture Execution Pipeline")}</h2>
-          <p>{t("Một đường thực thi duy nhất từ provider credential đến MCP execution.", "One controlled execution path from provider credential to MCP execution.")}</p>
-        </div>
+      <section className="landing-section container"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("LUỒNG THỰC THI", "THIS IS HOW IT FLOWS", "执行流程", "실행 흐름", "実行フロー")}</span><h2>{t("Pipeline thực thi kiến trúc", "Architecture Execution Pipeline", "架构执行流水线", "아키텍처 실행 파이프라인", "アーキテクチャ実行パイプライン")}</h2><p>{t("Một đường thực thi duy nhất từ provider credential đến MCP execution.", "One controlled execution path from provider credential to MCP execution.", "从 Provider 凭据到 MCP 执行的一条受控路径。", "Provider 자격 증명에서 MCP 실행까지 하나의 제어된 경로입니다.", "Provider 認証情報から MCP 実行まで1本の制御された経路です。")}</p></div><div className="architecture-pipeline" data-reveal-group><MarketingStep index="01" icon={<Boxes />} title={t("Kết nối MCP Provider", "Connect MCP Provider", "连接 MCP Provider", "MCP Provider 연결", "MCP Provider を接続")} detail={t("Lưu credential trong Gateway, không đưa vào GPT.", "Store provider credentials inside Gateway, never GPT.", "凭据保存在 Gateway 中，不进入 GPT。", "자격 증명은 Gateway에 저장하고 GPT에는 넣지 않습니다.", "認証情報は Gateway に保存し、GPT には入れません。")} /><MarketingStep index="02" icon={<Code2 />} title={t("Cấu hình Custom GPT", "Configure Your GPT", "配置 Custom GPT", "Custom GPT 구성", "Custom GPT を設定")} detail={t("Instructions tối giản + Knowledge + Action Schema.", "Minimal Instructions + Knowledge + Action Schema.", "精简 Instructions + Knowledge + Action Schema。", "최소 Instructions + Knowledge + Action Schema.", "最小限の Instructions + Knowledge + Action Schema。")} /><MarketingStep index="03" icon={<KeyRound />} title={t("Kích hoạt quyền", "Activate Access", "激活访问权限", "액세스 활성화", "アクセスを有効化")} detail={t("Trial Open ID hoặc paid Open ID authorize execution.", "Trial Open ID or paid Open ID authorizes execution.", "Trial Open ID 或付费 Open ID 授权执行。", "Trial Open ID 또는 유료 Open ID가 실행을 승인합니다.", "Trial Open ID または有料 Open ID が実行を認可します。")} /><MarketingStep index="04" icon={<Waypoints />} title={t("Dùng MCP động", "Use MCP Dynamically", "动态使用 MCP", "MCP 동적 사용", "MCP を動的に利用")} detail={t("Discovery tool runtime rồi execute qua Gateway.", "Discover runtime tools and execute through Gateway.", "运行时发现工具并通过 Gateway 执行。", "런타임 도구를 검색하고 Gateway를 통해 실행합니다.", "実行時にツールを発見し Gateway 経由で実行します。")} /></div><div className="pipeline-protocol" data-reveal="fade-up"><span>Gateway Runtime Sequence</span><code>listMcpServices</code><i>→</i><code>listMcpTools</code><i>→</i><code>getMcpToolSchema</code><i>→</i><code>callMcpTool</code></div></section>
 
-        <div className="architecture-pipeline" data-reveal-group>
-          <MarketingStep index="01" icon={<Boxes />} title={t("Kết nối MCP Provider", "Connect MCP Provider")} detail={t("Lưu credential trong Gateway, không đưa vào GPT.", "Store provider credentials inside Gateway, never GPT.")} />
-          <MarketingStep index="02" icon={<Code2 />} title={t("Cấu hình Custom GPT", "Configure Your GPT")} detail={t("Instructions tối giản + Knowledge + Action Schema.", "Minimal Instructions + Knowledge + Action Schema.")} />
-          <MarketingStep index="03" icon={<KeyRound />} title={t("Kích hoạt quyền", "Activate Access")} detail={t("Trial Open ID hoặc paid Open ID authorize execution.", "Trial Open ID or paid Open ID authorizes execution.")} />
-          <MarketingStep index="04" icon={<Waypoints />} title={t("Dùng MCP động", "Use MCP Dynamically")} detail={t("Discovery tool runtime rồi execute qua Gateway.", "Discover runtime tools and execute through Gateway.")} />
-        </div>
+      <section className="landing-section open-id-v2 container" id="open-id"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("TRUY CẬP & ENTITLEMENT", "ACCESS & ENTITLEMENTS", "访问与 ENTITLEMENT", "액세스 및 ENTITLEMENT", "アクセスと ENTITLEMENT")}</span><h2>{t("Open ID là quyền truy cập Gateway.", "Open ID is your Gateway access.", "Open ID 是你的 Gateway 访问权限。", "Open ID는 Gateway 액세스 권한입니다.", "Open ID は Gateway へのアクセス権です。")}</h2><p>{t("Mọi MCP execution phải resolve được một active Open ID entitlement.", "Every MCP execution must resolve an active Open ID entitlement.", "每次 MCP 执行都必须解析到有效的 Open ID entitlement。", "모든 MCP 실행은 활성 Open ID entitlement를 확인해야 합니다.", "すべての MCP 実行は有効な Open ID entitlement を解決する必要があります。")}</p></div><div className="open-id-v2__grid" data-reveal-group><article className="open-id-v2__card"><div className="open-id-v2__status"><i className="status-dot status-dot--success" /> MASTER OPEN ID ENTITLEMENT <span>{t("TRẠNG THÁI: MEMBER ĐANG HOẠT ĐỘNG", "STATUS: MEMBER ACTIVE", "状态：会员有效", "상태: 멤버 활성", "状態: メンバー有効")}</span></div><small>ENTITLEMENT ID</small><div className="open-id-v2__identifier"><code>oid_••••••••••••9a1</code><button className="secondary compact-button" type="button">{t("Sao chép", "Copy", "复制", "복사", "コピー")}</button></div><div className="open-id-v2__facts"><span><small>{t("Truy cập Gateway", "Gateway Access", "Gateway 访问", "Gateway 액세스", "Gateway アクセス")}</small><strong>{t("ĐÃ BẬT", "ENABLED", "已启用", "활성화됨", "有効")}</strong></span><span><small>MCP Services</small><strong>{t("TẤT CẢ ĐÃ DUYỆT", "ALL APPROVED", "全部已批准", "모두 승인됨", "すべて承認済み")}</strong></span><span><small>{t("Bảo mật credential", "Credential Security", "凭据安全", "자격 증명 보안", "認証情報セキュリティ")}</small><strong>{t("GATEWAY GIỮ", "GATEWAY HELD", "由 GATEWAY 保管", "GATEWAY 보관", "GATEWAY 保管")}</strong></span><span><small>{t("Chính sách execution", "Execution Policy", "执行策略", "실행 정책", "実行ポリシー")}</small><strong>{t("ĐANG BẮT BUỘC", "ENFORCED", "已强制", "적용됨", "適用中")}</strong></span></div><div className="open-id-v2__actions"><Link className="button" to="/app#open-id">{t("Lấy Open ID", "Get Permanent Open ID", "获取永久 Open ID", "영구 Open ID 받기", "Permanent Open ID を取得")}</Link><Link className="button secondary" to="/app#open-id">{t("Bắt đầu trial", "Start 7-Day Trial", "开始 7 天试用", "7일 체험 시작", "7日間トライアル開始")}</Link></div></article><div className="open-id-v2__notes"><article><KeyRound size={18} /><div><strong>OPEN ID ≠ TOKEN</strong><p>{t("Open ID là sản phẩm/entitlement. Gateway Token chỉ là credential kỹ thuật.", "Open ID is the product entitlement. Gateway Token is only a technical credential.", "Open ID 是产品 entitlement；Gateway Token 只是技术凭据。", "Open ID는 제품 entitlement이며 Gateway Token은 기술 자격 증명일 뿐입니다.", "Open ID は製品 entitlement であり、Gateway Token は技術的な認証情報にすぎません。")}</p></div></article><article><ShieldCheck size={18} /><div><strong>GATEWAY TOKEN VALIDATION</strong><p>{t("Token resolve về owner, Open ID và entitlement trước khi Gateway gọi provider.", "Token resolves to owner, Open ID, and entitlement before Gateway calls a provider.", "Gateway 调用 Provider 前，Token 会解析到 owner、Open ID 和 entitlement。", "Gateway가 Provider를 호출하기 전에 Token이 owner, Open ID 및 entitlement로 확인됩니다.", "Gateway が Provider を呼ぶ前に Token は owner、Open ID、entitlement に解決されます。")}</p></div></article><article className="good"><ShieldCheck size={18} /><div><strong>NO PROVIDER KEYS IN GPT CONTEXT</strong><p>{t("Credential provider luôn ở boundary phía Gateway.", "Provider credentials remain inside the Gateway boundary.", "Provider 凭据始终留在 Gateway 边界内。", "Provider 자격 증명은 항상 Gateway 경계 내부에 있습니다.", "Provider 認証情報は常に Gateway 境界内に留まります。")}</p></div></article></div></div></section>
 
-        <div className="pipeline-protocol" data-reveal="fade-up">
-          <span>Gateway Runtime Sequence</span>
-          <code>listMcpServices</code><i>→</i><code>listMcpTools</code><i>→</i><code>getMcpToolSchema</code><i>→</i><code>callMcpTool</code>
-        </div>
-      </section>
+      <section className="landing-section container" id="mcp-services"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("TÍCH HỢP PROVIDER", "PROVIDER INTEGRATIONS", "PROVIDER 集成", "PROVIDER 통합", "PROVIDER 統合")}</span><h2>{t("Bắt đầu với Stitch, làm việc trực tiếp với GitHub.", "Start with Stitch, work directly with GitHub.", "从 Stitch 开始，直接使用 GitHub。", "Stitch로 시작하고 GitHub와 직접 작업하세요.", "Stitch から始め、GitHub と直接作業します。")}</h2><p>{t("Provider được kết nối qua Gateway với credential thuộc chính user.", "Providers connect through Gateway with user-owned credentials.", "Provider 通过 Gateway 使用用户自己的凭据连接。", "Provider는 사용자가 소유한 자격 증명으로 Gateway를 통해 연결됩니다.", "Provider はユーザー所有の認証情報で Gateway 経由で接続されます。")}</p></div><article className="stitch-provider-v2" data-reveal="zoom-in"><div className="stitch-provider-v2__header"><div className="provider-showcase__logo">S</div><div><span className="eyebrow">GOOGLE STITCH MCP PROVIDER</span><h3>{t("Kết nối qua Gateway", "Connected through Gateway", "通过 Gateway 连接", "Gateway를 통해 연결", "Gateway 経由で接続")}</h3></div><span className="status good">{t("KHẢ DỤNG", "AVAILABLE", "可用", "사용 가능", "利用可能")}</span></div><div className="stitch-provider-v2__body"><div className="stitch-provider-v2__capabilities"><span><small>CAPABILITY</small><strong>Project Discovery</strong></span><span><small>CAPABILITY</small><strong>Screen Discovery</strong></span><span><small>CAPABILITY</small><strong>Screen Inspection</strong></span><span><small>CAPABILITY</small><strong>UI Generation</strong></span></div><div className="stitch-provider-v2__trace"><code>service = "stitch"</code><code>tool = "list_screens"</code><code>transport = "MCP"</code><strong>200 OK</strong></div></div><Link className="button secondary" to="/app#mcp-services">{t("Kết nối Stitch", "Connect Google Stitch", "连接 Google Stitch", "Google Stitch 연결", "Google Stitch を接続")}</Link></article><div className="coming-provider-row"><article><span>G</span><div><strong>GitHub MCP Provider</strong><small>{t("KHẢ DỤNG · ĐỌC / GHI", "AVAILABLE · READ / WRITE", "可用 · 读 / 写", "사용 가능 · 읽기 / 쓰기", "利用可能 · 読み / 書き")}</small></div></article><article><span>F</span><div><strong>Figma MCP Provider</strong><small>{t("SẮP RA MẮT", "COMING SOON", "即将推出", "출시 예정", "近日対応")}</small></div></article></div></section>
 
-      <section className="landing-section open-id-v2 container" id="open-id">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">ACCESS &amp; ENTITLEMENTS</span>
-          <h2>{t("Open ID là quyền truy cập Gateway.", "Open ID is your Gateway access.")}</h2>
-          <p>{t("Mọi MCP execution phải resolve được một active Open ID entitlement.", "Every MCP execution must resolve an active Open ID entitlement.")}</p>
-        </div>
-
-        <div className="open-id-v2__grid" data-reveal-group>
-          <article className="open-id-v2__card">
-            <div className="open-id-v2__status"><i className="status-dot status-dot--success" /> MASTER OPEN ID ENTITLEMENT <span>STATUS: MEMBER ACTIVE</span></div>
-            <small>ENTITLEMENT ID</small>
-            <div className="open-id-v2__identifier"><code>oid_••••••••••••9a1</code><button className="secondary compact-button" type="button">Copy</button></div>
-            <div className="open-id-v2__facts">
-              <span><small>Gateway Access</small><strong>ENABLED</strong></span>
-              <span><small>MCP Services</small><strong>ALL APPROVED</strong></span>
-              <span><small>Credential Security</small><strong>GATEWAY HELD</strong></span>
-              <span><small>Execution Policy</small><strong>ENFORCED</strong></span>
-            </div>
-            <div className="open-id-v2__actions">
-              <Link className="button" to="/app#open-id">{t("Lấy Open ID", "Get Permanent Open ID")}</Link>
-              <Link className="button secondary" to="/app#open-id">{t("Bắt đầu trial", "Start 7-Day Trial")}</Link>
-            </div>
-          </article>
-
-          <div className="open-id-v2__notes">
-            <article><KeyRound size={18} /><div><strong>OPEN ID ≠ TOKEN</strong><p>{t("Open ID là sản phẩm/entitlement. Gateway Token chỉ là credential kỹ thuật.", "Open ID is the product entitlement. Gateway Token is only a technical credential.")}</p></div></article>
-            <article><ShieldCheck size={18} /><div><strong>GATEWAY TOKEN VALIDATION</strong><p>{t("Token resolve về owner, Open ID và entitlement trước khi Gateway gọi provider.", "Token resolves to owner, Open ID, and entitlement before Gateway calls a provider.")}</p></div></article>
-            <article className="good"><ShieldCheck size={18} /><div><strong>NO PROVIDER KEYS IN GPT CONTEXT</strong><p>{t("Credential provider luôn ở boundary phía Gateway.", "Provider credentials remain inside the Gateway boundary.")}</p></div></article>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-section container" id="mcp-services">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">PROVIDER INTEGRATIONS</span>
-          <h2>{t("Bắt đầu với Stitch, làm việc trực tiếp với GitHub.", "Start with Stitch, work directly with GitHub.")}</h2>
-          <p>{t("Provider được kết nối qua Gateway với credential thuộc chính user.", "Providers connect through Gateway with user-owned credentials.")}</p>
-        </div>
-
-        <article className="stitch-provider-v2" data-reveal="zoom-in">
-          <div className="stitch-provider-v2__header">
-            <div className="provider-showcase__logo">S</div>
-            <div><span className="eyebrow">GOOGLE STITCH MCP PROVIDER</span><h3>Connected through Gateway</h3></div>
-            <span className="status good">AVAILABLE</span>
-          </div>
-
-          <div className="stitch-provider-v2__body">
-            <div className="stitch-provider-v2__capabilities">
-              <span><small>CAPABILITY</small><strong>Project Discovery</strong></span>
-              <span><small>CAPABILITY</small><strong>Screen Discovery</strong></span>
-              <span><small>CAPABILITY</small><strong>Screen Inspection</strong></span>
-              <span><small>CAPABILITY</small><strong>UI Generation</strong></span>
-            </div>
-            <div className="stitch-provider-v2__trace">
-              <code>service = "stitch"</code>
-              <code>tool = "list_screens"</code>
-              <code>transport = "MCP"</code>
-              <strong>200 OK</strong>
-            </div>
-          </div>
-          <Link className="button secondary" to="/app#mcp-services">{t("Kết nối Stitch", "Connect Google Stitch")}</Link>
-        </article>
-
-        <div className="coming-provider-row">
-          <article><span>G</span><div><strong>GitHub MCP Provider</strong><small>AVAILABLE · READ / WRITE</small></div></article>
-          <article><span>F</span><div><strong>Figma MCP Provider</strong><small>COMING SOON</small></div></article>
-        </div>
-      </section>
-
-      <section className="landing-section container" id="gpt-integration">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">ZERO-COST SETUP</span>
-          <h2>{t("Cấu hình GPT trước khi mua.", "Configure your GPT before you buy.")}</h2>
-          <p>{t("Integration kit miễn phí. Execution chỉ bắt đầu khi trial hoặc Open ID active.", "The integration kit is free. Execution starts only when trial or Open ID is active.")}</p>
-        </div>
-
-        <div className="gpt-kit-v2">
-          <div className="gpt-kit-v2__files">
-            <KitFile name="instructions.md" />
-            <KitFile name="GPTS-MCP-GATEWAY-Knowledge.md" />
-            <KitFile name="openapi.yaml" />
-            <KitFile name="setup-guide.md" />
-          </div>
-          <div className="gpt-kit-v2__footer">
-            <span><ShieldCheck size={14} /> NO OPEN ID OR PROVIDER CREDENTIALS INCLUDED</span>
-            <Link className="button" to="/app#gpt-integration">{t("Tải GPT Integration Kit", "Download GPT Integration Kit")}</Link>
-          </div>
-        </div>
-      </section>
+      <section className="landing-section container" id="gpt-integration"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("SETUP MIỄN PHÍ", "ZERO-COST SETUP", "零成本设置", "무료 설정", "無料セットアップ")}</span><h2>{t("Cấu hình GPT trước khi mua.", "Configure your GPT before you buy.", "购买前先配置 GPT。", "구매 전에 GPT를 구성하세요.", "購入前に GPT を設定できます。")}</h2><p>{t("Integration kit miễn phí. Execution chỉ bắt đầu khi trial hoặc Open ID active.", "The integration kit is free. Execution starts only when trial or Open ID is active.", "Integration kit 免费。只有 Trial 或 Open ID 激活后才会开始执行。", "Integration kit는 무료이며 Trial 또는 Open ID가 활성화된 경우에만 실행이 시작됩니다.", "Integration kit は無料です。Trial または Open ID が有効になった時だけ実行が始まります。")}</p></div><div className="gpt-kit-v2"><div className="gpt-kit-v2__files"><KitFile name="instructions.md" /><KitFile name="GPTS-MCP-GATEWAY-Knowledge.md" /><KitFile name="openapi.yaml" /><KitFile name="setup-guide.md" /></div><div className="gpt-kit-v2__footer"><span><ShieldCheck size={14} /> {t("KHÔNG BAO GỒM OPEN ID HOẶC PROVIDER CREDENTIAL", "NO OPEN ID OR PROVIDER CREDENTIALS INCLUDED", "不包含 OPEN ID 或 PROVIDER 凭据", "OPEN ID 또는 PROVIDER 자격 증명 미포함", "OPEN ID または PROVIDER 認証情報は含まれません")}</span><Link className="button" to="/app#gpt-integration">{t("Tải GPT Integration Kit", "Download GPT Integration Kit", "下载 GPT Integration Kit", "GPT Integration Kit 다운로드", "GPT Integration Kit をダウンロード")}</Link></div></div></section>
 
       <WorkflowTransformationSection language={language} />
 
-      <section className="landing-section container walkthrough-section" id="walkthrough">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">WALKTHROUGH &amp; LIVE DEMO</span>
-          <h2>
-            {t(
-              "Xem cách kết nối Custom GPT trong chưa đầy 3 phút.",
-              "Watch how to connect your Custom GPT in under 3 minutes.",
-            )}
-          </h2>
-          <p>
-            {t(
-              "Hướng dẫn trực quan từng bước để bind Open ID entitlement, cấu hình zero-credential Action schema và gọi live MCP tools.",
-              "Step-by-step visual demonstration of binding Open ID entitlements, configuring zero-credential Action schemas, and calling live MCP tools.",
-            )}
-          </p>
-        </div>
+      <section className="landing-section container walkthrough-section" id="walkthrough"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("HƯỚNG DẪN & LIVE DEMO", "WALKTHROUGH & LIVE DEMO", "指南与实时演示", "가이드 및 라이브 데모", "ガイドとライブデモ")}</span><h2>{t("Xem cách kết nối Custom GPT trong chưa đầy 3 phút.", "Watch how to connect your Custom GPT in under 3 minutes.", "用不到 3 分钟了解如何连接 Custom GPT。", "3분 안에 Custom GPT 연결 방법을 확인하세요.", "3分以内で Custom GPT の接続方法を確認できます。")}</h2><p>{t("Hướng dẫn trực quan từng bước để bind Open ID entitlement, cấu hình zero-credential Action schema và gọi live MCP tools.", "Step-by-step visual demonstration of binding Open ID entitlements, configuring zero-credential Action schemas, and calling live MCP tools.", "逐步演示绑定 Open ID entitlement、配置零凭据 Action schema 并调用实时 MCP 工具。", "Open ID entitlement 연결, zero-credential Action schema 구성 및 라이브 MCP 도구 호출을 단계별로 보여줍니다.", "Open ID entitlement の紐付け、zero-credential Action schema の設定、ライブ MCP ツール呼び出しを段階的に示します。")}</p></div><article className="walkthrough-video" data-reveal="zoom-in"><header className="walkthrough-video__chrome"><div className="walkthrough-video__lights" aria-hidden="true"><i /><i /><i /></div><code>VIDEO GUIDE // GPT_MCP_INTEGRATION_WALKTHROUGH</code><div className="walkthrough-video__badges"><span>4K</span><span>ENCLAVE SECURE</span><strong>{walkthrough.data?.youtubeVideoId ? t("SẴN SÀNG", "READY", "就绪", "준비됨", "準備完了") : t("ĐANG CHỜ VIDEO", "AWAITING VIDEO", "等待视频", "영상 대기 중", "動画待ち")}</strong></div></header><div className="walkthrough-video__viewport">{walkthrough.data?.youtubeVideoId ? <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" src={`https://www.youtube-nocookie.com/embed/${walkthrough.data.youtubeVideoId}?rel=0`} title={t("Video hướng dẫn MCP Gateway", "MCP Gateway walkthrough video", "MCP Gateway 指南视频", "MCP Gateway 가이드 영상", "MCP Gateway ガイド動画")} /> : <div className="walkthrough-video__empty"><span>VIDEO WALKTHROUGH</span><strong>{t("Video sẽ sớm được cập nhật", "Walkthrough video coming soon", "演示视频即将上线", "가이드 영상 준비 중", "ウォークスルー動画は近日公開")}</strong><small>{t("Admin có thể cấu hình YouTube video sau khi đăng nhập.", "An administrator can configure the YouTube video after signing in.", "管理员登录后可以配置 YouTube 视频。", "관리자는 로그인 후 YouTube 영상을 설정할 수 있습니다.", "管理者はログイン後に YouTube 動画を設定できます。")}</small></div>}</div></article></section>
 
-        <article className="walkthrough-video" data-reveal="zoom-in">
-          <header className="walkthrough-video__chrome">
-            <div className="walkthrough-video__lights" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </div>
-            <code>VIDEO GUIDE // GPT_MCP_INTEGRATION_WALKTHROUGH</code>
-            <div className="walkthrough-video__badges">
-              <span>4K</span>
-              <span>ENCLAVE SECURE</span>
-              <strong>{walkthrough.data?.youtubeVideoId ? "READY" : "AWAITING VIDEO"}</strong>
-            </div>
-          </header>
+      <section className="landing-section container"><div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up"><span className="eyebrow">{t("ĐƯỜNG ĐẾN PRODUCTION RÕ RÀNG", "CLEAR PATH TO PRODUCTION", "清晰的生产路径", "명확한 프로덕션 경로", "明確な本番導入パス")}</span><h2>{t("Onboarding & Trial rõ ràng", "Onboarding Funnel & Trial Clarity", "清晰的 Onboarding 与 Trial", "명확한 Onboarding 및 Trial", "明確な Onboarding と Trial")}</h2><p>{t("Trial chỉ bắt đầu khi user chủ động tạo Trial Token.", "The trial starts only when the user explicitly creates a Trial Token.", "只有用户主动创建 Trial Token 时试用才开始。", "사용자가 Trial Token을 직접 생성할 때만 체험이 시작됩니다.", "ユーザーが明示的に Trial Token を作成した時だけトライアルが始まります。")}</p></div><div className="journey-row journey-row--v2"><JourneyStep label={t("Đăng ký", "Register", "注册", "가입", "登録")} /><JourneyStep label={t("Kết nối Stitch", "Connect Stitch", "连接 Stitch", "Stitch 연결", "Stitch を接続")} /><JourneyStep label={t("Cấu hình GPT", "Configure GPT", "配置 GPT", "GPT 구성", "GPT を設定")} /><JourneyStep label={t("Tạo Trial", "Create Trial", "创建 Trial", "Trial 생성", "Trial を作成")} active /><JourneyStep label={t("Trial 7 ngày", "7-Day Trial", "7 天 Trial", "7일 Trial", "7日間 Trial")} /><JourneyStep label={t("Lấy Open ID", "Get Open ID", "获取 Open ID", "Open ID 받기", "Open ID を取得")} /></div><div className="journey-note journey-note--v2"><span>i</span><strong>{t("Trial không bắt đầu khi Register / Stitch / GPT Kit.", "Trial does not start on Register / Stitch / GPT Kit.", "Trial 不会在 Register / Stitch / GPT Kit 时开始。", "Trial은 Register / Stitch / GPT Kit에서 시작되지 않습니다.", "Trial は Register / Stitch / GPT Kit では開始しません。")}</strong><small>{t("Trial bắt đầu đúng lúc bạn bấm Create Trial Token.", "Trial starts exactly when you click Create Trial Token.", "点击 Create Trial Token 时 Trial 才正式开始。", "Create Trial Token을 클릭하는 순간 Trial이 시작됩니다.", "Create Trial Token をクリックした時点で Trial が始まります。")}</small></div></section>
 
-          <div className="walkthrough-video__viewport">
-            {walkthrough.data?.youtubeVideoId ? (
-              <iframe
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-                src={`https://www.youtube-nocookie.com/embed/${walkthrough.data.youtubeVideoId}?rel=0`}
-                title={t("Video hướng dẫn MCP Gateway", "MCP Gateway walkthrough video")}
-              />
-            ) : (
-              <div className="walkthrough-video__empty">
-                <span>VIDEO WALKTHROUGH</span>
-                <strong>{t("Video sẽ sớm được cập nhật", "Walkthrough video coming soon")}</strong>
-                <small>
-                  {t(
-                    "Admin có thể cấu hình YouTube video sau khi đăng nhập.",
-                    "An administrator can configure the YouTube video after signing in.",
-                  )}
-                </small>
-              </div>
-            )}
-          </div>
+      <section className="landing-section container"><article className="final-cta final-cta--supercharged-v2"><span className="eyebrow">{t("CONTROL PLANE CHO PRODUCTION", "PRODUCTION-GRADE CONTROL PLANE", "生产级 CONTROL PLANE", "프로덕션급 CONTROL PLANE", "本番向け CONTROL PLANE")}</span><h2>{t("Cho Custom GPT khả năng MCP thực sự.", "Give your Custom GPT real MCP capabilities.", "让你的 Custom GPT 真正具备 MCP 能力。", "Custom GPT에 실제 MCP 기능을 제공하세요.", "Custom GPT に本物の MCP 機能を追加します。")}</h2><p>{t("Kết nối Stitch, cấu hình GPT, thử Gateway 7 ngày rồi kích hoạt Open ID khi sẵn sàng.", "Connect Stitch, configure your GPT, try Gateway for 7 days, then activate Open ID when ready.", "连接 Stitch、配置 GPT、试用 Gateway 7 天，然后在准备好时激活 Open ID。", "Stitch를 연결하고 GPT를 구성한 뒤 Gateway를 7일간 체험하고 준비되면 Open ID를 활성화하세요.", "Stitch を接続し、GPT を設定し、Gateway を7日間試した後、準備ができたら Open ID を有効化します。")}</p><div className="row"><Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free", "免费开始", "무료로 시작", "無料で始める")}</Link><Link className="button secondary" to="/app#open-id">{t("Lấy Open ID", "Get Open ID", "获取 Open ID", "Open ID 받기", "Open ID を取得")}</Link></div><div className="final-cta__status"><span><i className="status-dot status-dot--success" /> {t("Gateway hoạt động", "Gateway Operational", "Gateway 运行正常", "Gateway 정상 작동", "Gateway 稼働中")}</span><span><i className="status-dot status-dot--cyan" /> {t("Stitch khả dụng", "Stitch Available", "Stitch 可用", "Stitch 사용 가능", "Stitch 利用可能")}</span><span><i className="status-dot status-dot--success" /> {t("Open ID enforcement đang hoạt động", "Open ID Enforcement Active", "Open ID 强制执行已启用", "Open ID enforcement 활성", "Open ID enforcement 有効")}</span></div></article></section>
 
-          <footer className="walkthrough-video__timeline">
-            <span className="eyebrow">INTERACTIVE TIMESTAMP CUES</span>
-            <div>
-              <article>
-                <code>0:00</code>
-                <strong>Architecture Overview</strong>
-                <small>Zero-leak enclave controls</small>
-              </article>
-              <article>
-                <code>1:15</code>
-                <strong>Actions &amp; Schema Setup</strong>
-                <small>Import openapi.yaml specs</small>
-              </article>
-              <article>
-                <code>2:10</code>
-                <strong>Handshake &amp; Invocation</strong>
-                <small>Live Google Stitch generation</small>
-              </article>
-            </div>
-          </footer>
-        </article>
-      </section>
-
-      <section className="landing-section container">
-        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">CLEAR PATH TO PRODUCTION</span>
-          <h2>{t("Onboarding Funnel & Trial Clarity", "Onboarding Funnel & Trial Clarity")}</h2>
-          <p>{t("Trial chỉ bắt đầu khi user chủ động tạo Trial Token.", "The trial starts only when the user explicitly creates a Trial Token.")}</p>
-        </div>
-
-        <div className="journey-row journey-row--v2">
-          <JourneyStep label="Register" />
-          <JourneyStep label="Connect Stitch" />
-          <JourneyStep label="Configure GPT" />
-          <JourneyStep label="Create Trial" active />
-          <JourneyStep label="7-Day Trial" />
-          <JourneyStep label="Get Open ID" />
-        </div>
-
-        <div className="journey-note journey-note--v2">
-          <span>i</span>
-          <strong>Trial does not start on Register / Stitch / GPT Kit.</strong>
-          <small>Trial starts exactly when you click Create Trial Token.</small>
-        </div>
-      </section>
-
-      <section className="landing-section container">
-        <article className="final-cta final-cta--supercharged-v2">
-          <span className="eyebrow">PRODUCTION-GRADE CONTROL PLANE</span>
-          <h2>{t("Cho Custom GPT khả năng MCP thực sự.", "Give your Custom GPT real MCP capabilities.")}</h2>
-          <p>{t("Kết nối Stitch, cấu hình GPT, thử Gateway 7 ngày rồi kích hoạt Open ID khi sẵn sàng.", "Connect Stitch, configure your GPT, try Gateway for 7 days, then activate Open ID when ready.")}</p>
-          <div className="row">
-            <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}</Link>
-            <Link className="button secondary" to="/app#open-id">{t("Lấy Open ID", "Get Open ID")}</Link>
-          </div>
-          <div className="final-cta__status">
-            <span><i className="status-dot status-dot--success" /> Gateway Operational</span>
-            <span><i className="status-dot status-dot--cyan" /> Stitch Available</span>
-            <span><i className="status-dot status-dot--success" /> Open ID Enforcement Active</span>
-          </div>
-        </article>
-      </section>
-
-      <footer className="site-footer site-footer--v2" data-reveal="fade-up">
-        <div className="container site-footer__row">
-          <div className="footer-brand">
-            <BrandLogo variant="lockup" />
-            <small>MCP GATEWAY CONTROL PLANE</small>
-          </div>
-          <div className="footer-links"><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>
-          <div className="footer-links">
-            <strong>Account</strong>
-            {session ? (
-              <a
-                href="/app"
-                onClick={(event) => {
-                  event.preventDefault();
-                  void signOut();
-                }}
-              >
-                Sign Out
-              </a>
-            ) : (
-              <>
-                <Link to="/app">Sign In</Link>
-                <Link to="/app">Create Account</Link>
-              </>
-            )}
-          </div>
-          <div className="footer-links"><strong>Legal</strong><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div>
-          <div className="footer-system"><code>OPEN ID ENFORCEMENT: ACTIVE</code><span>STITCH MCP: AVAILABLE</span></div>
-        </div>
-      </footer>
+      <footer className="site-footer site-footer--v2" data-reveal="fade-up"><div className="container site-footer__row"><div className="footer-brand"><BrandLogo variant="lockup" /><small>MCP GATEWAY CONTROL PLANE</small></div><div className="footer-links"><strong>{t("Sản phẩm", "Product", "产品", "제품", "製品")}</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div><div className="footer-links"><strong>{t("Tài khoản", "Account", "账户", "계정", "アカウント")}</strong>{session ? <a href="/app" onClick={(event) => { event.preventDefault(); void signOut(); }}>{t("Đăng xuất", "Sign Out", "退出登录", "로그아웃", "ログアウト")}</a> : <><Link to="/app">{t("Đăng nhập", "Sign In", "登录", "로그인", "ログイン")}</Link><Link to="/app">{t("Tạo tài khoản", "Create Account", "创建账户", "계정 만들기", "アカウント作成")}</Link></>}</div><div className="footer-links"><strong>{t("Pháp lý", "Legal", "法律", "법률", "法務")}</strong><Link to="/privacy">{t("Quyền riêng tư", "Privacy", "隐私", "개인정보", "プライバシー")}</Link><Link to="/terms">{t("Điều khoản", "Terms", "条款", "약관", "利用規約")}</Link></div><div className="footer-system"><code>OPEN ID ENFORCEMENT: ACTIVE</code><span>STITCH MCP: AVAILABLE</span></div></div></footer>
     </main>
   );
 }
