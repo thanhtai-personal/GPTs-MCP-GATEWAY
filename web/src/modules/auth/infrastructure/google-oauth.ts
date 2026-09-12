@@ -22,6 +22,9 @@ export async function startGoogleOAuth(): Promise<void> {
     provider: "google",
     options: {
       redirectTo: `${browser.location.origin}${OAUTH_CALLBACK_PATH}`,
+      queryParams: {
+        prompt: "select_account",
+      },
     },
   });
 

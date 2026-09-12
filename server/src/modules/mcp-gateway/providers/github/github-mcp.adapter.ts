@@ -76,6 +76,7 @@ export class GithubMcpAdapter implements McpProviderAdapter {
       authorizationServerOrigins: ['https://github.com'],
       clientId: config.githubMcpOAuthClientId,
       clientSecret: config.githubMcpOAuthClientSecret,
+      authorizationPrompt: 'select_account',
       scopes: [
         'repo',
         'read:org',

@@ -96,6 +96,9 @@ export class McpOAuthService {
     authorizationUrl.searchParams.set('code_challenge_method', 'S256');
     authorizationUrl.searchParams.set('state', state);
     authorizationUrl.searchParams.set('resource', metadata.resource);
+    if (oauth.authorizationPrompt) {
+      authorizationUrl.searchParams.set('prompt', oauth.authorizationPrompt);
+    }
 
     const scopes = oauth.scopes ?? metadata.scopesSupported;
     if (scopes.length) {

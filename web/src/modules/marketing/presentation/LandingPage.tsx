@@ -18,6 +18,8 @@ import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { useLandingScrollReveal } from "@/modules/marketing/presentation/hooks/useLandingScrollReveal";
 import { usePublicLandingVideo } from "@/modules/site-settings/queries/site-settings.queries";
+import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
+import { useSession } from "@/modules/auth/presentation/hooks/useSession";
 
 type Props = { language: "vi" | "en" };
 
@@ -26,6 +28,11 @@ export function LandingPage({ language }: Props) {
   const t = (viText: string, enText: string) => (vi ? viText : enText);
   const revealRootRef = useLandingScrollReveal();
   const walkthrough = usePublicLandingVideo();
+  const { session } = useSession();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <main className="landing landing--supercharged-v2" lang={language} ref={revealRootRef}>
@@ -52,7 +59,20 @@ export function LandingPage({ language }: Props) {
         <div className="site-header__actions">
           <ThemeToggle compact />
           <a className="language-link" href={vi ? "/" : "/vi"}>{vi ? "EN" : "VI"}</a>
-          <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In")}</Link>
+          {session ? (
+            <a
+              className="button secondary button--quiet"
+              href="/app"
+              onClick={(event) => {
+                event.preventDefault();
+                void signOut();
+              }}
+            >
+              {t("Đăng xuất", "Sign Out")}
+            </a>
+          ) : (
+            <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In")}</Link>
+          )}
           <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={14} /></Link>
         </div>
       </header>
@@ -371,7 +391,25 @@ export function LandingPage({ language }: Props) {
             <small>MCP GATEWAY CONTROL PLANE</small>
           </div>
           <div className="footer-links"><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>
-          <div className="footer-links"><strong>Account</strong><Link to="/app">Sign In</Link><Link to="/app">Create Account</Link></div>
+          <div className="footer-links">
+            <strong>Account</strong>
+            {session ? (
+              <a
+                href="/app"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void signOut();
+                }}
+              >
+                Sign Out
+              </a>
+            ) : (
+              <>
+                <Link to="/app">Sign In</Link>
+                <Link to="/app">Create Account</Link>
+              </>
+            )}
+          </div>
           <div className="footer-links"><strong>Legal</strong><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div>
           <div className="footer-system"><code>OPEN ID ENFORCEMENT: ACTIVE</code><span>STITCH MCP: AVAILABLE</span></div>
         </div>

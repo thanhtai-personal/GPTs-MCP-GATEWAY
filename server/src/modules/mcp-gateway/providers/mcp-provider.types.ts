@@ -70,6 +70,7 @@ export type McpOAuthProviderConfig = {
   clientId?: string;
   clientSecret?: string;
   scopes?: string[];
+  authorizationPrompt?: string;
   dynamicClientRegistration?: {
     clientName: string;
     clientUri?: string;

@@ -46,4 +46,11 @@ describe('GithubMcpAdapter', () => {
       'GitHub',
     );
   });
+
+  it('forces the GitHub account picker during OAuth authorization', () => {
+    const client = {} as RemoteMcpHttpClient;
+    const adapter = new GithubMcpAdapter(config, client);
+
+    expect(adapter.oauth.authorizationPrompt).toBe('select_account');
+  });
 });
