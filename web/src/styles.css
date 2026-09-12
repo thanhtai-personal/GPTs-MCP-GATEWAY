@@ -6423,6 +6423,7 @@ label { color: var(--text-2); }
   display: grid;
   gap: 1rem;
   align-items: start;
+  overflow-anchor: none;
 }
 
 .provider-frame--grid {
@@ -6439,14 +6440,20 @@ label { color: var(--text-2); }
 
 .provider-card {
   min-width: 0;
+  overflow-anchor: none;
 }
 
 .provider-card.is-collapsed {
   align-self: start;
 }
 
+.provider-card__header {
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s ease;
+}
+
 .provider-card.is-collapsed .provider-card__header {
-  border-bottom: 1px solid var(--line);
+  border-bottom-color: var(--line);
 }
 
 .provider-card__header-actions {
@@ -6479,42 +6486,43 @@ label { color: var(--text-2); }
 }
 
 
-/* Shared expand/collapse motion. Content stays mounted so height changes
-   interpolate instead of flashing through display:none. */
-.motion-collapse {
-  display: grid;
-  grid-template-rows: 0fr;
+/* Shared expand/collapse primitive.
+   Height is measured in React so the browser interpolates explicit pixel
+   values instead of relaying an intrinsic CSS-grid track through the page. */
+.animated-collapse {
+  height: 0;
+  overflow: hidden;
   opacity: 0;
-  translate: 0 -6px;
+  transform: translate3d(0, -5px, 0);
   visibility: hidden;
   pointer-events: none;
+  will-change: height, opacity, transform;
   transition:
-    grid-template-rows .28s cubic-bezier(.2, .8, .2, 1),
+    height .32s cubic-bezier(.22, 1, .36, 1),
     opacity .18s ease,
-    translate .28s cubic-bezier(.2, .8, .2, 1),
-    visibility 0s linear .28s;
+    transform .32s cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear .32s;
 }
 
-.motion-collapse.is-open {
-  grid-template-rows: 1fr;
+.animated-collapse.is-open {
   opacity: 1;
-  translate: 0 0;
+  transform: translate3d(0, 0, 0);
   visibility: visible;
   pointer-events: auto;
   transition:
-    grid-template-rows .28s cubic-bezier(.2, .8, .2, 1),
+    height .32s cubic-bezier(.22, 1, .36, 1),
     opacity .2s ease .04s,
-    translate .28s cubic-bezier(.2, .8, .2, 1),
+    transform .32s cubic-bezier(.22, 1, .36, 1),
     visibility 0s linear 0s;
 }
 
-.motion-collapse__inner {
+.animated-collapse__inner {
+  display: flow-root;
   min-height: 0;
-  overflow: hidden;
 }
 
 .provider-card__collapsible {
-  display: grid;
+  width: 100%;
 }
 
 .provider-card__verified-compact {
@@ -6536,8 +6544,7 @@ label { color: var(--text-2); }
 }
 
 .provider-frame--list .provider-card.is-expanded .provider-card__collapsible {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
 }
 
 :root[data-theme="light"] .provider-view-toolbar {
@@ -6918,8 +6925,8 @@ label { color: var(--text-2); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .motion-collapse,
-  .motion-collapse.is-open,
+  .animated-collapse,
+  .animated-collapse.is-open,
   .provider-card,
   .provider-expand-all svg,
   .provider-card__toggle svg {

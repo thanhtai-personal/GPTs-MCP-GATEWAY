@@ -13,6 +13,7 @@ import {
 } from "@/modules/mcp-connections/queries/mcp-connections.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { OAuthConnectionForm } from "@/modules/mcp-connections/presentation/OAuthConnectionForm";
+import { AnimatedCollapse } from "@/shared/components/AnimatedCollapse";
 import {
   ProviderViewToolbar,
   type ProviderViewMode,
@@ -224,41 +225,36 @@ function McpProviderCard({
         ) : null}
       </div>
 
-      <div
-        aria-hidden={!expanded}
-        className={`motion-collapse provider-card__collapsible ${
-          expanded ? "is-open" : ""
-        }`}
-        inert={!expanded}
+      <AnimatedCollapse
+        className="provider-card__collapsible"
+        open={expanded}
       >
-        <div className="motion-collapse__inner">
-          <div className="provider-card__form">
-            {provider.credential.kind === "api_key" ? (
-              <ApiKeyConnectionForm
-                accessToken={accessToken}
-                connection={connection}
-                credential={provider.credential}
-                providerId={provider.id}
-              />
-            ) : (
-              <OAuthConnectionForm
-                accessToken={accessToken}
-                connection={connection}
-                credential={provider.credential}
-                providerId={provider.id}
-                providerStatus={provider.status}
-              />
-            )}
-          </div>
-
-          {connection?.lastVerifiedAt ? (
-            <div className="provider-card__footer">
-              <span>{t("Xác minh gần nhất", "Last verified")}</span>
-              <code>{connection.lastVerifiedAt}</code>
-            </div>
-          ) : null}
+        <div className="provider-card__form">
+          {provider.credential.kind === "api_key" ? (
+            <ApiKeyConnectionForm
+              accessToken={accessToken}
+              connection={connection}
+              credential={provider.credential}
+              providerId={provider.id}
+            />
+          ) : (
+            <OAuthConnectionForm
+              accessToken={accessToken}
+              connection={connection}
+              credential={provider.credential}
+              providerId={provider.id}
+              providerStatus={provider.status}
+            />
+          )}
         </div>
-      </div>
+
+        {connection?.lastVerifiedAt ? (
+          <div className="provider-card__footer">
+            <span>{t("Xác minh gần nhất", "Last verified")}</span>
+            <code>{connection.lastVerifiedAt}</code>
+          </div>
+        ) : null}
+      </AnimatedCollapse>
     </section>
   );
 }
