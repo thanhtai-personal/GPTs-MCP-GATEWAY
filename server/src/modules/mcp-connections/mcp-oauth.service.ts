@@ -7,6 +7,7 @@ import {
 import { createHash, randomBytes } from 'node:crypto';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
+import { McpOAuthClientRegistrationClient } from '@server/root/modules/mcp-connections/mcp-oauth-client-registration.client';
 import type {
   OAuthTokenPayload,
 } from '@server/root/modules/mcp-connections/mcp-oauth-protocol.client';
@@ -24,10 +25,18 @@ type OAuthStatePayload = {
   userId: string;
   codeVerifier: string;
   clientId: string;
+  clientSecret?: string;
+  dynamicClient?: boolean;
   redirectUri: string;
   issuer: string;
   resource: string;
   issuedAt: number;
+};
+
+type OAuthClientRegistration = {
+  clientId: string;
+  clientSecret?: string;
+  dynamic: boolean;
 };
 
 @Injectable()
@@ -36,6 +45,7 @@ export class McpOAuthService {
     private readonly config: AppConfigService,
     private readonly cipher: SecretCipherService,
     private readonly protocol: McpOAuthProtocolClient,
+    private readonly registration: McpOAuthClientRegistrationClient,
   ) {}
 
   async createAuthorizationRequest(
@@ -43,19 +53,26 @@ export class McpOAuthService {
     provider: McpProviderAdapter,
   ) {
     const oauth = this.requireOAuth(provider);
-    const clientId = this.requireClientId(provider, oauth);
     const metadata = await this.protocol.discoverAuthorizationServer(oauth);
+    const redirectUri = this.callbackUri(provider.id);
+    const client = await this.resolveAuthorizationClient(
+      provider,
+      oauth,
+      metadata.registrationEndpoint,
+      redirectUri,
+    );
     const codeVerifier = randomBytes(32).toString('base64url');
     const codeChallenge = createHash('sha256')
       .update(codeVerifier)
       .digest('base64url');
-    const redirectUri = this.callbackUri(provider.id);
     const state = this.encodeState({
       version: 1,
       provider: provider.id,
       userId,
       codeVerifier,
-      clientId,
+      clientId: client.clientId,
+      ...(client.clientSecret ? { clientSecret: client.clientSecret } : {}),
+      ...(client.dynamic ? { dynamicClient: true } : {}),
       redirectUri,
       issuer: metadata.issuer,
       resource: metadata.resource,
@@ -64,15 +81,14 @@ export class McpOAuthService {
 
     const authorizationUrl = new URL(metadata.authorizationEndpoint);
     authorizationUrl.searchParams.set('response_type', 'code');
-    authorizationUrl.searchParams.set('client_id', clientId);
+    authorizationUrl.searchParams.set('client_id', client.clientId);
     authorizationUrl.searchParams.set('redirect_uri', redirectUri);
     authorizationUrl.searchParams.set('code_challenge', codeChallenge);
     authorizationUrl.searchParams.set('code_challenge_method', 'S256');
     authorizationUrl.searchParams.set('state', state);
     authorizationUrl.searchParams.set('resource', metadata.resource);
 
-    const scopes =
-      oauth.scopes?.length ? oauth.scopes : metadata.scopesSupported;
+    const scopes = oauth.scopes ?? metadata.scopesSupported;
     if (scopes.length) {
       authorizationUrl.searchParams.set('scope', scopes.join(' '));
     }
@@ -91,9 +107,8 @@ export class McpOAuthService {
   ): Promise<{ userId: string; credential: McpOAuthCredential }> {
     const oauth = this.requireOAuth(provider);
     const state = this.readAndValidateState(provider, stateValue);
-    const clientId = this.requireClientId(provider, oauth);
 
-    if (clientId !== state.clientId) {
+    if (oauth.clientId && oauth.clientId !== state.clientId) {
       throw new BadRequestException({
         code: 'MCP_OAUTH_STATE_INVALID',
         message: 'OAuth client configuration changed during authorization',
@@ -114,16 +129,28 @@ export class McpOAuthService {
       {
         code,
         redirectUri: state.redirectUri,
-        clientId,
+        clientId: state.clientId,
         codeVerifier: state.codeVerifier,
         resource: metadata.resource,
-        ...(oauth.clientSecret ? { clientSecret: oauth.clientSecret } : {}),
+        ...(state.clientSecret ?? oauth.clientSecret
+          ? { clientSecret: state.clientSecret ?? oauth.clientSecret }
+          : {}),
       },
     );
 
     return {
       userId: state.userId,
-      credential: this.toCredential(token),
+      credential: this.toCredential(
+        token,
+        state.dynamicClient
+          ? {
+              clientId: state.clientId,
+              ...(state.clientSecret
+                ? { clientSecret: state.clientSecret }
+                : {}),
+            }
+          : undefined,
+      ),
     };
   }
 
@@ -132,7 +159,7 @@ export class McpOAuthService {
     credential: McpOAuthCredential,
   ): Promise<McpOAuthCredential> {
     const oauth = this.requireOAuth(provider);
-    const clientId = this.requireClientId(provider, oauth);
+    const client = this.resolveRefreshClient(provider, oauth, credential);
 
     if (!credential.refreshToken) {
       throw new UnauthorizedException({
@@ -144,16 +171,26 @@ export class McpOAuthService {
     const metadata = await this.protocol.discoverAuthorizationServer(oauth);
     const token = await this.protocol.refreshToken(metadata.tokenEndpoint, {
       refreshToken: credential.refreshToken,
-      clientId,
+      clientId: client.clientId,
       resource: metadata.resource,
-      ...(oauth.clientSecret ? { clientSecret: oauth.clientSecret } : {}),
+      ...(client.clientSecret ? { clientSecret: client.clientSecret } : {}),
     });
 
-    return this.toCredential({
-      ...token,
-      refreshToken: token.refreshToken ?? credential.refreshToken,
-      scope: token.scope ?? credential.scope,
-    });
+    return this.toCredential(
+      {
+        ...token,
+        refreshToken: token.refreshToken ?? credential.refreshToken,
+        scope: token.scope ?? credential.scope,
+      },
+      client.dynamic
+        ? {
+            clientId: client.clientId,
+            ...(client.clientSecret
+              ? { clientSecret: client.clientSecret }
+              : {}),
+          }
+        : undefined,
+    );
   }
 
   callbackUri(providerId: string): string {
@@ -183,6 +220,12 @@ export class McpOAuthService {
       typeof parsed.userId !== 'string' ||
       typeof parsed.codeVerifier !== 'string' ||
       typeof parsed.clientId !== 'string' ||
+      ('clientSecret' in parsed &&
+        parsed.clientSecret !== undefined &&
+        typeof parsed.clientSecret !== 'string') ||
+      ('dynamicClient' in parsed &&
+        parsed.dynamicClient !== undefined &&
+        typeof parsed.dynamicClient !== 'boolean') ||
       typeof parsed.redirectUri !== 'string' ||
       typeof parsed.issuer !== 'string' ||
       typeof parsed.resource !== 'string' ||
@@ -223,20 +266,83 @@ export class McpOAuthService {
     return provider.oauth;
   }
 
-  private requireClientId(
+  private async resolveAuthorizationClient(
     provider: McpProviderAdapter,
     oauth: McpOAuthProviderConfig,
-  ): string {
-    if (!oauth.clientId) {
+    registrationEndpoint: string | undefined,
+    redirectUri: string,
+  ): Promise<OAuthClientRegistration> {
+    if (oauth.clientId) {
+      return {
+        clientId: oauth.clientId,
+        ...(oauth.clientSecret ? { clientSecret: oauth.clientSecret } : {}),
+        dynamic: false,
+      };
+    }
+
+    if (!oauth.dynamicClientRegistration) {
       throw new ServiceUnavailableException({
         code: 'MCP_OAUTH_CLIENT_NOT_CONFIGURED',
         message: `${provider.displayName} OAuth client is not configured for this Gateway`,
       });
     }
-    return oauth.clientId;
+    if (!registrationEndpoint) {
+      throw new ServiceUnavailableException({
+        code: 'MCP_OAUTH_DYNAMIC_REGISTRATION_UNAVAILABLE',
+        message: `${provider.displayName} does not advertise dynamic client registration`,
+      });
+    }
+
+    const registration = await this.registration.register(
+      registrationEndpoint,
+      {
+        clientName: oauth.dynamicClientRegistration.clientName,
+        redirectUri,
+        ...(oauth.dynamicClientRegistration.clientUri
+          ? { clientUri: oauth.dynamicClientRegistration.clientUri }
+          : {}),
+      },
+    );
+
+    return {
+      ...registration,
+      dynamic: true,
+    };
   }
 
-  private toCredential(token: OAuthTokenPayload): McpOAuthCredential {
+  private resolveRefreshClient(
+    provider: McpProviderAdapter,
+    oauth: McpOAuthProviderConfig,
+    credential: McpOAuthCredential,
+  ): OAuthClientRegistration {
+    if (oauth.clientId) {
+      return {
+        clientId: oauth.clientId,
+        ...(oauth.clientSecret ? { clientSecret: oauth.clientSecret } : {}),
+        dynamic: false,
+      };
+    }
+
+    if (oauth.dynamicClientRegistration && credential.clientId) {
+      return {
+        clientId: credential.clientId,
+        ...(credential.clientSecret
+          ? { clientSecret: credential.clientSecret }
+          : {}),
+        dynamic: true,
+      };
+    }
+
+    throw new UnauthorizedException({
+      code: 'MCP_OAUTH_RECONNECT_REQUIRED',
+      message: `${provider.displayName} authorization must be reconnected`,
+    });
+  }
+
+  private toCredential(
+    token: OAuthTokenPayload,
+    dynamicClient?: { clientId: string; clientSecret?: string },
+  ): McpOAuthCredential {
     return {
       kind: 'oauth',
       accessToken: token.accessToken,
@@ -244,6 +350,14 @@ export class McpOAuthService {
       ...(token.refreshToken ? { refreshToken: token.refreshToken } : {}),
       ...(token.expiresAt ? { expiresAt: token.expiresAt } : {}),
       ...(token.scope ? { scope: token.scope } : {}),
+      ...(dynamicClient
+        ? {
+            clientId: dynamicClient.clientId,
+            ...(dynamicClient.clientSecret
+              ? { clientSecret: dynamicClient.clientSecret }
+              : {}),
+          }
+        : {}),
     };
   }
 

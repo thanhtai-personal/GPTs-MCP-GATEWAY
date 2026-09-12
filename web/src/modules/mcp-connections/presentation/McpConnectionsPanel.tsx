@@ -1,4 +1,4 @@
-import { ChevronDown, KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
+import { BookOpenText, ChevronDown, Github, KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type {
   McpConnection,
@@ -86,8 +86,10 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
           <span>{t("Credential connections", "Credential connections")}</span>
         </div>
         <div>
-          <span className="provider-summary__value">Stitch</span>
-          <span>{t("Provider khả dụng", "Provider khả dụng")}</span>
+          <span className="provider-summary__value">
+            {providerList.filter((provider) => provider.status === "available").length}
+          </span>
+          <span>{t("Provider khả dụng", "Available providers")}</span>
         </div>
       </div>
 
@@ -154,7 +156,15 @@ function McpProviderCard({
       <div className="provider-card__header">
         <div className="provider-card__identity">
           <span className="provider-logo">
-            {provider.id.toLowerCase().includes("stitch") ? "S" : <PlugZap size={20} />}
+            {
+              provider.id === "stitch"
+                ? "S"
+                : provider.id === "github"
+                  ? <Github size={20} />
+                  : provider.id === "notion"
+                    ? <BookOpenText size={20} />
+                    : <PlugZap size={20} />
+            }
           </span>
           <div>
             <span className="eyebrow">MCP PROVIDER</span>

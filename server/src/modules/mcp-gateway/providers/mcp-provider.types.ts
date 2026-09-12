@@ -30,6 +30,8 @@ export type McpOAuthCredential = {
   tokenType: 'Bearer';
   expiresAt?: string;
   scope?: string;
+  clientId?: string;
+  clientSecret?: string;
 };
 
 export type McpProviderCredential =
@@ -57,6 +59,10 @@ export type McpOAuthProviderConfig = {
   clientId?: string;
   clientSecret?: string;
   scopes?: string[];
+  dynamicClientRegistration?: {
+    clientName: string;
+    clientUri?: string;
+  };
 };
 
 export type McpToolDefinition = {

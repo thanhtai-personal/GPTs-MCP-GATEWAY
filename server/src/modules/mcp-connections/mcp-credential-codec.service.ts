@@ -82,6 +82,10 @@ export class McpCredentialCodec {
         ? { expiresAt: value.expiresAt }
         : {}),
       ...(typeof value.scope === 'string' ? { scope: value.scope } : {}),
+      ...(typeof value.clientId === 'string' ? { clientId: value.clientId } : {}),
+      ...(typeof value.clientSecret === 'string'
+        ? { clientSecret: value.clientSecret }
+        : {}),
     };
   }
 

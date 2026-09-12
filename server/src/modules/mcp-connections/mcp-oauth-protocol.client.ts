@@ -21,10 +21,12 @@ export type OAuthTokenPayload = {
 export type AuthorizationServerMetadata = {
   authorizationEndpoint: string;
   tokenEndpoint: string;
+  registrationEndpoint?: string;
   issuer: string;
   resource: string;
   scopesSupported: string[];
 };
+
 
 @Injectable()
 export class McpOAuthProtocolClient {
@@ -98,9 +100,27 @@ export class McpOAuthProtocolClient {
       );
       this.requireHttpsUrl(metadata.token_endpoint, 'MCP OAuth token endpoint');
 
+      const registrationEndpoint =
+        typeof metadata.registration_endpoint === 'string'
+          ? metadata.registration_endpoint
+          : undefined;
+
+      if (registrationEndpoint) {
+        this.requireHttpsUrl(
+          registrationEndpoint,
+          'MCP OAuth registration endpoint',
+        );
+        this.requireSameOrigin(
+          registrationEndpoint,
+          discoveredIssuer,
+          'MCP OAuth registration endpoint',
+        );
+      }
+
       return {
         authorizationEndpoint: metadata.authorization_endpoint,
         tokenEndpoint: metadata.token_endpoint,
+        ...(registrationEndpoint ? { registrationEndpoint } : {}),
         issuer: discoveredIssuer,
         resource,
         scopesSupported,
@@ -325,6 +345,25 @@ export class McpOAuthProtocolClient {
         message: 'MCP provider advertised an untrusted OAuth authorization server',
       });
     }
+  }
+
+  private requireSameOrigin(
+    value: string,
+    issuerValue: string,
+    label: string,
+  ): void {
+    try {
+      if (new URL(value).origin === new URL(issuerValue).origin) {
+        return;
+      }
+    } catch {
+      // Fall through to the trusted-origin error below.
+    }
+
+    throw new BadGatewayException({
+      code: 'MCP_OAUTH_AUTHORIZATION_SERVER_NOT_ALLOWED',
+      message: `${label} must use the authorization server origin`,
+    });
   }
 
   private requireHttpsUrl(value: string, label: string): void {

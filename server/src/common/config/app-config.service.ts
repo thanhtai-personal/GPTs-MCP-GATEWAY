@@ -36,6 +36,10 @@ export class AppConfigService {
   readonly figmaMcpOAuthClientId = process.env.FIGMA_MCP_OAUTH_CLIENT_ID?.trim() || undefined;
   readonly figmaMcpOAuthClientSecret =
     process.env.FIGMA_MCP_OAUTH_CLIENT_SECRET?.trim() || undefined;
+  readonly githubMcpOAuthClientId =
+    process.env.GITHUB_MCP_OAUTH_CLIENT_ID?.trim() || undefined;
+  readonly githubMcpOAuthClientSecret =
+    process.env.GITHUB_MCP_OAUTH_CLIENT_SECRET?.trim() || undefined;
   readonly gptActionResponseMaxChars = integer(
     'GPT_ACTION_RESPONSE_MAX_CHARS',
     80_000,
