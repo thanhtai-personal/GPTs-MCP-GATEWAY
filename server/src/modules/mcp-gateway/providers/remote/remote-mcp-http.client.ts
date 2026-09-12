@@ -4,13 +4,17 @@ import {
   parseMcpToolCallResult,
   parseMcpToolListPage,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider-boundary';
+import { buildMcpParamHeaders } from '@server/root/modules/mcp-gateway/providers/remote/mcp-param-headers';
 import type {
   McpOAuthCredential,
   McpToolArguments,
   McpToolCallResult,
   McpToolDefinition,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
-import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
+import {
+  RemoteMcpConnection,
+  RemoteMcpHttpTransport,
+} from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
 
 @Injectable()
 export class RemoteMcpHttpClient {
@@ -28,38 +32,7 @@ export class RemoteMcpHttpClient {
     );
 
     try {
-      const tools: McpToolDefinition[] = [];
-      const seenCursors = new Set<string>();
-      let cursor: string | undefined;
-
-      for (let pageIndex = 0; pageIndex < 64; pageIndex += 1) {
-        const result = await connection.request<unknown>(
-          'tools/list',
-          cursor === undefined ? {} : { cursor },
-        );
-
-        const page = this.parseToolPage(result);
-        tools.push(...page.tools);
-
-        if (page.nextCursor === undefined) {
-          return tools;
-        }
-
-        if (seenCursors.has(page.nextCursor)) {
-          throw new BadGatewayException({
-            code: 'MCP_INVALID_RESPONSE',
-            message: 'MCP tools/list returned a repeated pagination cursor',
-          });
-        }
-
-        seenCursors.add(page.nextCursor);
-        cursor = page.nextCursor;
-      }
-
-      throw new BadGatewayException({
-        code: 'MCP_INVALID_RESPONSE',
-        message: `${providerName} MCP tools/list exceeded the 64-page safety limit`,
-      });
+      return await this.listToolsFromConnection(connection, providerName);
     } finally {
       await connection.close();
     }
@@ -79,6 +52,14 @@ export class RemoteMcpHttpClient {
     );
 
     try {
+      const tools = await this.listToolsFromConnection(
+        connection,
+        providerName,
+      );
+      const tool = tools.find((candidate) => candidate.name === toolName);
+      const requestHeaders = tool
+        ? this.buildToolHeaders(tool, argumentsValue)
+        : {};
       const result = await connection.request<unknown>(
         'tools/call',
         {
@@ -86,6 +67,7 @@ export class RemoteMcpHttpClient {
           arguments: argumentsValue,
         },
         toolName,
+        requestHeaders,
       );
 
       try {
@@ -95,6 +77,52 @@ export class RemoteMcpHttpClient {
       }
     } finally {
       await connection.close();
+    }
+  }
+
+  private async listToolsFromConnection(
+    connection: RemoteMcpConnection,
+    providerName: string,
+  ): Promise<McpToolDefinition[]> {
+    const tools: McpToolDefinition[] = [];
+    const seenCursors = new Set<string>();
+    let cursor: string | undefined;
+
+    for (let pageIndex = 0; pageIndex < 64; pageIndex += 1) {
+      const result = await connection.request<unknown>(
+        'tools/list',
+        cursor === undefined ? {} : { cursor },
+      );
+
+      const page = this.parseToolPage(result);
+      tools.push(...page.tools);
+
+      if (page.nextCursor === undefined) return tools;
+      if (seenCursors.has(page.nextCursor)) {
+        throw new BadGatewayException({
+          code: 'MCP_INVALID_RESPONSE',
+          message: 'MCP tools/list returned a repeated pagination cursor',
+        });
+      }
+
+      seenCursors.add(page.nextCursor);
+      cursor = page.nextCursor;
+    }
+
+    throw new BadGatewayException({
+      code: 'MCP_INVALID_RESPONSE',
+      message: `${providerName} MCP tools/list exceeded the 64-page safety limit`,
+    });
+  }
+
+  private buildToolHeaders(
+    tool: McpToolDefinition,
+    argumentsValue: McpToolArguments,
+  ): Record<string, string> {
+    try {
+      return buildMcpParamHeaders(tool.inputSchema, argumentsValue);
+    } catch (error) {
+      this.throwInvalidResponse(error);
     }
   }
 

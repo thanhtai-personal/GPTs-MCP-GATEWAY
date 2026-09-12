@@ -37,6 +37,7 @@ export class RemoteMcpConnection {
     method: string,
     params: Record<string, unknown>,
     toolName?: string,
+    requestHeaders?: Record<string, string>,
   ): Promise<T> {
     return this.transport.request<T>(
       this.endpoint,
@@ -46,6 +47,7 @@ export class RemoteMcpConnection {
       method,
       params,
       toolName,
+      requestHeaders,
     );
   }
 
@@ -92,6 +94,7 @@ export class RemoteMcpHttpTransport {
     method: string,
     params: Record<string, unknown>,
     toolName?: string,
+    requestHeaders?: Record<string, string>,
   ): Promise<T> {
     const response = await this.post(
       endpoint,
@@ -109,7 +112,10 @@ export class RemoteMcpHttpTransport {
               }
             : params,
       },
-      this.protocolHeaders(state, method, toolName),
+      {
+        ...this.protocolHeaders(state, method, toolName),
+        ...requestHeaders,
+      },
     );
 
     const payload = await parseRemoteMcpResponse<T>(response);
