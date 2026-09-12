@@ -21,6 +21,7 @@ import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/
 import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
 import type {
+  McpOAuthCredential,
   McpProviderAccessMode,
   McpProviderAdapter,
   McpProviderCredential,
