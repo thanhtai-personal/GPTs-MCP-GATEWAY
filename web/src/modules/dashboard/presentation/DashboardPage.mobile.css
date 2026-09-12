@@ -1,0 +1,85 @@
+/* Mobile console navigation: keep primary navigation thumb-reachable at the viewport bottom. */
+@media (max-width: 1024px) {
+  .app-shell {
+    display: block;
+  }
+
+  .app-sidebar {
+    height: 62px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: .72rem 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    flex-direction: row;
+    align-items: center;
+    background: color-mix(in srgb, var(--canvas) 92%, transparent);
+    backdrop-filter: blur(18px) saturate(125%);
+  }
+
+  .app-sidebar .app-nav {
+    position: fixed !important;
+    inset: auto .75rem max(.75rem, env(safe-area-inset-bottom)) .75rem !important;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .2rem;
+    margin: 0;
+    padding: .4rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-glass) 94%, transparent);
+    box-shadow: 0 -14px 42px color-mix(in srgb, black 30%, transparent);
+    backdrop-filter: blur(20px) saturate(125%);
+  }
+
+  .app-sidebar .app-nav > .app-nav__group-label,
+  .app-sidebar .app-nav__secondary {
+    display: none;
+  }
+
+  .app-sidebar .app-nav__item {
+    min-width: 0;
+    min-height: 52px;
+    padding: .35rem .2rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: .26rem;
+    border-radius: 9px;
+    text-align: center;
+    font-size: .64rem;
+    line-height: 1.08;
+  }
+
+  .app-sidebar .app-nav__item.active {
+    background: color-mix(in srgb, var(--brand) 13%, var(--surface-2));
+    color: var(--text-1);
+    box-shadow: inset 0 2px var(--brand-bright), 0 0 22px color-mix(in srgb, var(--brand) 7%, transparent);
+  }
+
+  .app-sidebar .app-nav__item svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .app-content,
+  .app-content--screen {
+    padding-bottom: calc(7.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  .app-sidebar .app-nav {
+    left: .5rem !important;
+    right: .5rem !important;
+    bottom: max(.5rem, env(safe-area-inset-bottom)) !important;
+    padding: .32rem;
+  }
+
+  .app-sidebar .app-nav__item {
+    min-height: 50px;
+    font-size: .59rem;
+  }
+}
