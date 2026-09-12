@@ -2,6 +2,7 @@ import { Boxes, KeyRound, PlugZap, ShieldCheck, Sparkles } from "lucide-react";
 import { AuthPanel } from "@/modules/auth/presentation/components/AuthPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 
 export function SignInExperience() {
   const { t } = useUiLanguage();
@@ -53,7 +54,10 @@ export function SignInExperience() {
       <section className="auth-form-pane">
         <div className="auth-form-pane__top">
           <a href="/" className="auth-back-link">← {t("Về trang chủ", "Back to homepage")}</a>
-          <LanguageSwitcher />
+          <div className="auth-form-pane__utilities">
+            <ThemeToggle compact />
+            <LanguageSwitcher />
+          </div>
         </div>
         <div className="auth-form-pane__content">
           <AuthPanel />

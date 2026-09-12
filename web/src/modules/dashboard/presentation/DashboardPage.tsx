@@ -24,6 +24,7 @@ import { McpConnectionsPanel } from "@/modules/mcp-connections/presentation/McpC
 import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 
 type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
 const SCREEN_IDS = new Set<AppScreen>([
@@ -152,6 +153,7 @@ export function DashboardPage() {
               <KeyRound size={14} /> {t("Tạo Token", "Generate Token")}
             </button>
             <button aria-label={t("Thông báo", "Notifications")} className="icon-button" type="button"><Bell size={16} /></button>
+            <ThemeToggle compact />
             <LanguageSwitcher />
           </div>
         </header>

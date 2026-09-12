@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { ConsoleRow, GatewayInspector, JourneyStep, KitFile, MarketingStep, SystemStatus } from "@/modules/marketing/presentation/LandingVisuals";
+import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 
 type Props = { language: "vi" | "en" };
 
@@ -36,6 +37,7 @@ export function LandingPage({ language }: Props) {
         </nav>
 
         <div className="site-header__actions">
+          <ThemeToggle compact />
           <a className="language-link" href={vi ? "/" : "/vi"}>{vi ? "EN" : "VI"}</a>
           <Link className="button secondary button--quiet" to="/app">{t("Đăng nhập", "Sign In")}</Link>
           <Link className="button" to="/app">{t("Bắt đầu miễn phí", "Start Free")}<ArrowRight size={15} /></Link>

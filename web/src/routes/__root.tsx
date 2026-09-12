@@ -8,13 +8,14 @@ import {
 import type { ReactNode } from "react";
 import appCss from "@/styles.css?url";
 import { UiLanguageProvider } from "@/shared/i18n/ui-language";
+import { UiThemeProvider } from "@/shared/theme/ui-theme";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#0a0d14" },
+      { name: "theme-color", content: "#090a0f" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -40,9 +41,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <UiLanguageProvider>
-        <Outlet />
-      </UiLanguageProvider>
+      <UiThemeProvider>
+        <UiLanguageProvider>
+          <Outlet />
+        </UiLanguageProvider>
+      </UiThemeProvider>
     </QueryClientProvider>
   );
 }
