@@ -1,22 +1,10 @@
 import { CheckCircle2, Clock3, Copy, KeyRound, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type { AccountProfile } from "@/modules/auth/domain/auth.types";
-import {
-  useClaimTrial,
-  useCreateGatewayToken,
-  useCreateOpenId,
-  useOpenIds,
-  useTrialStatus,
-} from "@/modules/open-id/queries/open-id.queries";
+import { useClaimTrial, useCreateGatewayToken, useCreateOpenId, useOpenIds, useTrialStatus } from "@/modules/open-id/queries/open-id.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
-export function OpenIdPanel({
-  accessToken,
-  account,
-}: {
-  accessToken: string;
-  account: AccountProfile;
-}) {
+export function OpenIdPanel({ accessToken, account }: { accessToken: string; account: AccountProfile }) {
   const { t } = useUiLanguage();
   const trial = useTrialStatus(accessToken);
   const openIds = useOpenIds(accessToken);
@@ -24,254 +12,41 @@ export function OpenIdPanel({
   const createOpenId = useCreateOpenId(accessToken);
   const createToken = useCreateGatewayToken(accessToken);
   const [oneTimeToken, setOneTimeToken] = useState<string | null>(null);
-
   const isMember = account.membershipTier === "member";
   const trialStatus = trial.data?.status ?? "available";
 
   return (
     <div className="open-id-layout cinematic-entitlements">
       <div className="entitlement-diagnostics">
-        <div><span>ACCOUNT</span><strong>{isMember ? "MEMBER" : "GUEST"}</strong><small>Commercial access tier</small></div>
-        <div><span>TRIAL</span><strong>{trialStatus.toUpperCase()}</strong><small>One trial per account lifetime</small></div>
-        <div><span>OPEN ID</span><strong>{isMember ? "ACTIVE" : "REQUIRED"}</strong><small>Execution entitlement</small></div>
-        <div><span>BOUNDARY</span><strong>ENFORCED</strong><small>Every real MCP call</small></div>
+        <div><span>{t("TÀI KHOẢN", "ACCOUNT", "账户", "계정", "アカウント")}</span><strong>{isMember ? t("THÀNH VIÊN", "MEMBER", "会员", "멤버", "メンバー") : t("KHÁCH", "GUEST", "访客", "게스트", "ゲスト")}</strong><small>{t("Cấp truy cập thương mại", "Commercial access tier", "商业访问级别", "상용 액세스 등급", "商用アクセス階層")}</small></div>
+        <div><span>TRIAL</span><strong>{trialStatus.toUpperCase()}</strong><small>{t("Một trial cho toàn bộ vòng đời tài khoản", "One trial per account lifetime", "每个账户生命周期仅一次试用", "계정당 평생 1회 체험", "アカウント生涯で1回のみ")}</small></div>
+        <div><span>OPEN ID</span><strong>{isMember ? t("ĐANG HOẠT ĐỘNG", "ACTIVE", "有效", "활성", "有効") : t("BẮT BUỘC", "REQUIRED", "必需", "필수", "必須")}</strong><small>{t("Quyền thực thi", "Execution entitlement", "执行 entitlement", "실행 entitlement", "実行 entitlement")}</small></div>
+        <div><span>{t("RANH GIỚI", "BOUNDARY", "边界", "경계", "境界")}</span><strong>{t("ĐANG BẮT BUỘC", "ENFORCED", "已强制", "적용됨", "適用中")}</strong><small>{t("Mọi MCP call thực tế", "Every real MCP call", "每次真实 MCP 调用", "모든 실제 MCP 호출", "すべての実 MCP 呼び出し")}</small></div>
       </div>
 
       <section className="card open-id-product-card open-id-product-card--cinematic">
-        <div className="panel-heading">
-          <div>
-            <span className="eyebrow">CORE PRODUCT</span>
-            <h2>Open ID</h2>
-          </div>
-          <span className={`status ${isMember ? "good" : ""}`}>
-            {isMember ? "MEMBER" : "GUEST"}
-          </span>
-        </div>
-
-        <p className="lead small">
-          {t(
-            "Entitlement thương mại để Custom GPT được phép execute MCP qua Gateway. Token chỉ là credential kỹ thuật gắn với entitlement này.",
-            "The commercial entitlement that authorizes Custom GPT to execute MCP through Gateway. Tokens are technical credentials bound to this entitlement.",
-          )}
-        </p>
-
-        <div className="open-id-invariant">
-          <ShieldCheck size={19} />
-          <div>
-            <strong>{t("Gateway invariant", "Gateway invariant")}</strong>
-            <p>
-              {t(
-                "Mọi MCP execution phải resolve được active Open ID entitlement.",
-                "Every MCP execution must resolve an active Open ID entitlement.",
-              )}
-            </p>
-          </div>
-        </div>
+        <div className="panel-heading"><div><span className="eyebrow">{t("SẢN PHẨM CỐT LÕI", "CORE PRODUCT", "核心产品", "핵심 제품", "コア製品")}</span><h2>Open ID</h2></div><span className={`status ${isMember ? "good" : ""}`}>{isMember ? t("THÀNH VIÊN", "MEMBER", "会员", "멤버", "メンバー") : t("KHÁCH", "GUEST", "访客", "게스트", "ゲスト")}</span></div>
+        <p className="lead small">{t("Entitlement thương mại để Custom GPT được phép execute MCP qua Gateway. Token chỉ là credential kỹ thuật gắn với entitlement này.", "The commercial entitlement that authorizes Custom GPT to execute MCP through Gateway. Tokens are technical credentials bound to this entitlement.", "用于授权 Custom GPT 通过 Gateway 执行 MCP 的商业 entitlement。Token 只是绑定到该 entitlement 的技术凭据。", "Custom GPT가 Gateway를 통해 MCP를 실행하도록 승인하는 상용 entitlement입니다. Token은 이 entitlement에 연결된 기술 자격 증명일 뿐입니다.", "Custom GPT が Gateway 経由で MCP を実行することを認可する商用 entitlement です。Token はこの entitlement に紐づく技術的な認証情報です。")}</p>
+        <div className="open-id-invariant"><ShieldCheck size={19} /><div><strong>{t("Bất biến của Gateway", "Gateway invariant", "Gateway 不变量", "Gateway 불변 조건", "Gateway の不変条件")}</strong><p>{t("Mọi MCP execution phải resolve được active Open ID entitlement.", "Every MCP execution must resolve an active Open ID entitlement.", "每次 MCP 执行都必须解析到有效的 Open ID entitlement。", "모든 MCP 실행은 활성 Open ID entitlement를 확인해야 합니다.", "すべての MCP 実行は有効な Open ID entitlement を解決する必要があります。")}</p></div></div>
       </section>
 
-      {!isMember ? (
-        <GuestAccessCard
-          claimPending={claim.isPending}
-          expiresAt={trial.data?.expiresAt ?? null}
-          onClaim={() =>
-            claim.mutate(undefined, {
-              onSuccess: (data) => setOneTimeToken(data.accessToken),
-            })
-          }
-          status={trialStatus}
-        />
-      ) : (
-        <MemberOpenIdCard
-          createOpenIdPending={createOpenId.isPending}
-          createTokenPending={createToken.isPending}
-          onCreateOpenId={() => createOpenId.mutate()}
-          onCreateToken={(openIdId) =>
-            createToken.mutate(openIdId, {
-              onSuccess: (data) => setOneTimeToken(data.accessToken),
-            })
-          }
-          openIds={openIds.data ?? []}
-        />
-      )}
+      {!isMember ? <GuestAccessCard claimPending={claim.isPending} expiresAt={trial.data?.expiresAt ?? null} onClaim={() => claim.mutate(undefined, { onSuccess: (data) => setOneTimeToken(data.accessToken) })} status={trialStatus} /> : <MemberOpenIdCard createOpenIdPending={createOpenId.isPending} createTokenPending={createToken.isPending} onCreateOpenId={() => createOpenId.mutate()} onCreateToken={(openIdId) => createToken.mutate(openIdId, { onSuccess: (data) => setOneTimeToken(data.accessToken) })} openIds={openIds.data ?? []} />}
 
-      {oneTimeToken ? (
-        <section className="card secret-card">
-          <div className="panel-heading">
-            <div>
-              <span className="eyebrow">GATEWAY TOKEN</span>
-              <h3>{t("Chỉ hiển thị một lần", "Shown once")}</h3>
-            </div>
-            <span className="status good"><CheckCircle2 size={14} /> READY</span>
-          </div>
-          <p className="muted">
-            {t(
-              "Dùng token này làm Bearer authentication cho GPT Action. Token không thay thế Open ID.",
-              "Use this token as Bearer authentication for the GPT Action. The token does not replace Open ID.",
-            )}
-          </p>
-          <div className="secret-token">
-            <code>{oneTimeToken}</code>
-            <button
-              className="secondary"
-              onClick={() => void navigator.clipboard.writeText(oneTimeToken)}
-              type="button"
-            >
-              <Copy size={15} /> {t("Sao chép", "Copy")}
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      {claim.error ? <p className="notice error">{claim.error.message}</p> : null}
-      {createOpenId.error ? <p className="notice error">{createOpenId.error.message}</p> : null}
-      {createToken.error ? <p className="notice error">{createToken.error.message}</p> : null}
-      {trial.error ? <p className="notice error">{trial.error.message}</p> : null}
-      {openIds.error ? <p className="notice error">{openIds.error.message}</p> : null}
+      {oneTimeToken ? <section className="card secret-card"><div className="panel-heading"><div><span className="eyebrow">GATEWAY TOKEN</span><h3>{t("Chỉ hiển thị một lần", "Shown once")}</h3></div><span className="status good"><CheckCircle2 size={14} /> {t("SẴN SÀNG", "READY", "就绪", "준비됨", "準備完了")}</span></div><p className="muted">{t("Dùng token này làm Bearer authentication cho GPT Action. Token không thay thế Open ID.", "Use this token as Bearer authentication for the GPT Action. The token does not replace Open ID.", "使用此 token 作为 GPT Action 的 Bearer authentication。Token 不能替代 Open ID。", "이 token을 GPT Action의 Bearer authentication으로 사용하세요. Token은 Open ID를 대체하지 않습니다.", "この token を GPT Action の Bearer authentication として使用します。Token は Open ID の代わりではありません。")}</p><div className="secret-token"><code>{oneTimeToken}</code><button className="secondary" onClick={() => void navigator.clipboard.writeText(oneTimeToken)} type="button"><Copy size={15} /> {t("Sao chép", "Copy")}</button></div></section> : null}
+      {claim.error ? <p className="notice error">{claim.error.message}</p> : null}{createOpenId.error ? <p className="notice error">{createOpenId.error.message}</p> : null}{createToken.error ? <p className="notice error">{createToken.error.message}</p> : null}{trial.error ? <p className="notice error">{trial.error.message}</p> : null}{openIds.error ? <p className="notice error">{openIds.error.message}</p> : null}
     </div>
   );
 }
 
-function GuestAccessCard({
-  claimPending,
-  expiresAt,
-  onClaim,
-  status,
-}: {
-  claimPending: boolean;
-  expiresAt: string | null;
-  onClaim: () => void;
-  status: "available" | "active" | "consumed" | "not_applicable";
-}) {
-  const { t } = useUiLanguage();
-  const active = status === "active";
-  const available = status === "available";
-
-  return (
-    <section className="card access-state-card">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">GUEST ACCESS</span>
-          <h2>
-            {available
-              ? t("Dùng thử Gateway 7 ngày", "Try Gateway free for 7 days")
-              : active
-                ? t("Trial đang hoạt động", "Trial Active")
-                : t("Trial đã sử dụng", "Trial Expired")}
-          </h2>
-        </div>
-        <span className={`status ${active ? "good" : ""}`}>
-          {active ? "ACTIVE" : available ? "AVAILABLE" : "INACTIVE"}
-        </span>
-      </div>
-
-      <div className="access-timeline">
-        <div className={available || active ? "done" : ""}><span>01</span><strong>{t("Cấu hình Stitch", "Configure Stitch")}</strong></div>
-        <div className={active ? "done" : ""}><span>02</span><strong>{t("Tạo Trial Token", "Create Trial Token")}</strong></div>
-        <div className={active ? "done" : ""}><span>03</span><strong>{t("7 ngày Gateway access", "7-day Gateway access")}</strong></div>
-      </div>
-
-      {available ? (
-        <>
-          <p className="muted">
-            {t(
-              "Trial không bắt đầu khi đăng ký, đăng nhập, thêm Stitch credential hoặc tải GPT kit. Nó bắt đầu chính xác khi bạn bấm nút bên dưới.",
-              "Trial does not start on registration, login, Stitch setup, or GPT kit download. It starts exactly when you press the button below.",
-            )}
-          </p>
-          <button disabled={claimPending} onClick={onClaim} type="button">
-            <Clock3 size={16} /> {t("Tạo Trial Token", "Create Trial Token")}
-          </button>
-        </>
-      ) : active ? (
-        <div className="trial-active-box">
-          <CheckCircle2 size={20} />
-          <div>
-            <strong>{t("Trial Open ID đang hoạt động", "Trial Open ID is active")}</strong>
-            <p>{expiresAt ? t(`Hết hạn: ${expiresAt}`, `Expires: ${expiresAt}`) : t("Đang hoạt động", "Active now")}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="trial-expired-box">
-          <KeyRound size={20} />
-          <div>
-            <strong>{t("Cần Open ID để tiếp tục", "Open ID required to continue")}</strong>
-            <p>
-              {t(
-                "Trial là một lần duy nhất cho mỗi account và không reset khi token bị revoke hoặc xóa.",
-                "Trial is lifetime-once per account and is not reset when its token is revoked or deleted.",
-              )}
-            </p>
-          </div>
-        </div>
-      )}
-    </section>
-  );
+function GuestAccessCard({ claimPending, expiresAt, onClaim, status }: { claimPending: boolean; expiresAt: string | null; onClaim: () => void; status: "available" | "active" | "consumed" | "not_applicable" }) {
+  const { t } = useUiLanguage(); const active = status === "active"; const available = status === "available";
+  return <section className="card access-state-card"><div className="panel-heading"><div><span className="eyebrow">{t("TRUY CẬP KHÁCH", "GUEST ACCESS", "访客访问", "게스트 액세스", "ゲストアクセス")}</span><h2>{available ? t("Dùng thử Gateway 7 ngày", "Try Gateway free for 7 days") : active ? t("Trial đang hoạt động", "Trial Active") : t("Trial đã sử dụng", "Trial Expired")}</h2></div><span className={`status ${active ? "good" : ""}`}>{active ? t("ĐANG HOẠT ĐỘNG", "ACTIVE", "有效", "활성", "有効") : available ? t("KHẢ DỤNG", "AVAILABLE", "可用", "사용 가능", "利用可能") : t("KHÔNG HOẠT ĐỘNG", "INACTIVE", "未激活", "비활성", "無効")}</span></div>
+    <div className="access-timeline"><div className={available || active ? "done" : ""}><span>01</span><strong>{t("Cấu hình Stitch", "Configure Stitch", "配置 Stitch", "Stitch 구성", "Stitch を設定")}</strong></div><div className={active ? "done" : ""}><span>02</span><strong>{t("Tạo Trial Token", "Create Trial Token")}</strong></div><div className={active ? "done" : ""}><span>03</span><strong>{t("7 ngày Gateway access", "7-day Gateway access", "7 天 Gateway 访问", "7일 Gateway 액세스", "7日間の Gateway アクセス")}</strong></div></div>
+    {available ? <><p className="muted">{t("Trial không bắt đầu khi đăng ký, đăng nhập, thêm Stitch credential hoặc tải GPT kit. Nó bắt đầu chính xác khi bạn bấm nút bên dưới.", "Trial does not start on registration, login, Stitch setup, or GPT kit download. It starts exactly when you press the button below.", "Trial 不会在注册、登录、配置 Stitch 或下载 GPT kit 时开始，而是在你点击下面按钮时正式开始。", "Trial은 가입, 로그인, Stitch 설정 또는 GPT kit 다운로드 시 시작되지 않고 아래 버튼을 누를 때 정확히 시작됩니다.", "Trial は登録、ログイン、Stitch 設定、GPT kit ダウンロードでは開始せず、下のボタンを押した時点で始まります。")}</p><button disabled={claimPending} onClick={onClaim} type="button"><Clock3 size={16} /> {t("Tạo Trial Token", "Create Trial Token")}</button></> : active ? <div className="trial-active-box"><CheckCircle2 size={20} /><div><strong>{t("Trial Open ID đang hoạt động", "Trial Open ID is active")}</strong><p>{expiresAt ? t(`Hết hạn: ${expiresAt}`, `Expires: ${expiresAt}`, `到期：${expiresAt}`, `만료: ${expiresAt}`, `期限: ${expiresAt}`) : t("Đang hoạt động", "Active now", "当前有效", "현재 활성", "現在有効")}</p></div></div> : <div className="trial-expired-box"><KeyRound size={20} /><div><strong>{t("Cần Open ID để tiếp tục", "Open ID required to continue")}</strong><p>{t("Trial là một lần duy nhất cho mỗi account và không reset khi token bị revoke hoặc xóa.", "Trial is lifetime-once per account and is not reset when its token is revoked or deleted.", "每个账户只能试用一次，token 被撤销或删除后不会重置。", "Trial은 계정당 평생 한 번이며 token을 revoke하거나 삭제해도 초기화되지 않습니다.", "Trial はアカウント生涯で1回のみで、token を revoke または削除してもリセットされません。")}</p></div></div>}
+  </section>;
 }
 
-function MemberOpenIdCard({
-  createOpenIdPending,
-  createTokenPending,
-  onCreateOpenId,
-  onCreateToken,
-  openIds,
-}: {
-  createOpenIdPending: boolean;
-  createTokenPending: boolean;
-  onCreateOpenId: () => void;
-  onCreateToken: (openIdId: string) => void;
-  openIds: Array<{
-    id: string;
-    open_id: string;
-    status: "active" | "revoked";
-  }>;
-}) {
+function MemberOpenIdCard({ createOpenIdPending, createTokenPending, onCreateOpenId, onCreateToken, openIds }: { createOpenIdPending: boolean; createTokenPending: boolean; onCreateOpenId: () => void; onCreateToken: (openIdId: string) => void; openIds: Array<{ id: string; open_id: string; status: "active" | "revoked" }> }) {
   const { t } = useUiLanguage();
-
-  return (
-    <section className="card member-open-id-card">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">MEMBER ENTITLEMENT</span>
-          <h2>{t("Open ID của bạn", "Your Open ID")}</h2>
-        </div>
-        <span className="status good">MEMBER</span>
-      </div>
-
-      {openIds.length ? (
-        <div className="open-id-list">
-          {openIds.map((item) => (
-            <div className="open-id-row" key={item.id}>
-              <div className="open-id-row__icon"><KeyRound size={18} /></div>
-              <div className="open-id-row__meta">
-                <code>{item.open_id}</code>
-                <span className={`status ${item.status === "active" ? "good" : ""}`}>{item.status.toUpperCase()}</span>
-              </div>
-              <button
-                className="secondary"
-                disabled={createTokenPending || item.status !== "active"}
-                onClick={() => onCreateToken(item.id)}
-                type="button"
-              >
-                {t("Tạo Gateway Token", "Generate Gateway Token")}
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="empty-state">
-          <KeyRound size={24} />
-          <strong>{t("Chưa có Open ID", "No Open ID yet")}</strong>
-          <p className="muted">
-            {t(
-              "Account Member có thể kích hoạt Open ID thương mại và dùng nó để tạo Gateway token.",
-              "Member accounts can activate a commercial Open ID and use it to generate Gateway tokens.",
-            )}
-          </p>
-          <button disabled={createOpenIdPending} onClick={onCreateOpenId} type="button">
-            {t("Kích hoạt Open ID", "Activate Open ID")}
-          </button>
-        </div>
-      )}
-    </section>
-  );
+  return <section className="card member-open-id-card"><div className="panel-heading"><div><span className="eyebrow">{t("ENTITLEMENT THÀNH VIÊN", "MEMBER ENTITLEMENT", "会员 ENTITLEMENT", "멤버 ENTITLEMENT", "メンバー ENTITLEMENT")}</span><h2>{t("Open ID của bạn", "Your Open ID")}</h2></div><span className="status good">{t("THÀNH VIÊN", "MEMBER", "会员", "멤버", "メンバー")}</span></div>{openIds.length ? <div className="open-id-list">{openIds.map((item) => <div className="open-id-row" key={item.id}><div className="open-id-row__icon"><KeyRound size={18} /></div><div className="open-id-row__meta"><code>{item.open_id}</code><span className={`status ${item.status === "active" ? "good" : ""}`}>{item.status === "active" ? t("ĐANG HOẠT ĐỘNG", "ACTIVE", "有效", "활성", "有効") : t("ĐÃ THU HỒI", "REVOKED", "已撤销", "취소됨", "失効")}</span></div><button className="secondary" disabled={createTokenPending || item.status !== "active"} onClick={() => onCreateToken(item.id)} type="button">{t("Tạo Gateway Token", "Generate Gateway Token")}</button></div>)}</div> : <div className="empty-state"><KeyRound size={24} /><strong>{t("Chưa có Open ID", "No Open ID yet")}</strong><p className="muted">{t("Account Member có thể kích hoạt Open ID thương mại và dùng nó để tạo Gateway token.", "Member accounts can activate a commercial Open ID and use it to generate Gateway tokens.", "会员账户可以激活商业 Open ID，并用它生成 Gateway token。", "멤버 계정은 상용 Open ID를 활성화하고 이를 사용해 Gateway token을 생성할 수 있습니다.", "メンバーアカウントは商用 Open ID を有効化し、それを使って Gateway token を生成できます。")}</p><button disabled={createOpenIdPending} onClick={onCreateOpenId} type="button">{t("Kích hoạt Open ID", "Activate Open ID")}</button></div>}</section>;
 }
