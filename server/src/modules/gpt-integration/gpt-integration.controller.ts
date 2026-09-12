@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Param,
   Query,
   Req,
   Res,
@@ -23,6 +24,24 @@ export class GptIntegrationController {
   async schema(@Req() request: Request, @Res() response: Response) {
     await this.auth.requireUser(request);
     response.type('application/yaml').send(this.integration.schema());
+  }
+
+
+  @Get('file/:filename')
+  async downloadFile(
+    @Req() request: Request,
+    @Param('filename') filename: string,
+    @Query('language') languageRaw: string | undefined,
+    @Res() response: Response,
+  ) {
+    await this.auth.requireUser(request);
+    const language: IntegrationLanguage = languageRaw === 'vi' ? 'vi' : 'en';
+    const file = this.integration.getBundleFile(language, filename);
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${file.name}"`,
+    );
+    response.type(file.contentType).send(file.content);
   }
 
   @Get('package')

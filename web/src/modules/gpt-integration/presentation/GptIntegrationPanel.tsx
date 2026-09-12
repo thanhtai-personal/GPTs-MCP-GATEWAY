@@ -14,22 +14,35 @@ export function GptIntegrationPanel({ accessToken }: { accessToken: string }) {
   const { language, t } = useUiLanguage();
   const [error, setError] = useState<string | null>(null);
 
-  async function downloadKit() {
+  async function downloadFile(path: string, filename: string) {
     setError(null);
     try {
-      const blob = await downloadGatewayFile(
-        `/gpt-integration/package?language=${language}`,
-        accessToken,
-      );
+      const blob = await downloadGatewayFile(path, accessToken);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `mcp-gateway-gpt-kit-${language}.zip`;
+      link.download = filename;
+      document.body.appendChild(link);
       link.click();
+      link.remove();
       URL.revokeObjectURL(url);
     } catch (downloadError) {
       setError(downloadError instanceof Error ? downloadError.message : "Download failed");
     }
+  }
+
+  function downloadKit() {
+    return downloadFile(
+      `/gpt-integration/package?language=${language}`,
+      `mcp-gateway-gpt-kit-${language}.zip`,
+    );
+  }
+
+  function downloadKitFile(filename: string) {
+    return downloadFile(
+      `/gpt-integration/file/${encodeURIComponent(filename)}?language=${language}`,
+      filename,
+    );
   }
 
   return (
@@ -49,7 +62,19 @@ export function GptIntegrationPanel({ accessToken }: { accessToken: string }) {
       </p>
       <div className="file-list">
         {KIT_FILES.map(({ name, icon: Icon }) => (
-          <div className="file-item" key={name}><Icon size={17} /><code>{name}</code></div>
+          <div className="file-item" key={name}>
+            <Icon size={17} />
+            <code>{name}</code>
+            <button
+              aria-label={t(`Tải ${name}`, `Download ${name}`)}
+              className="file-download-button"
+              onClick={() => void downloadKitFile(name)}
+              title={t("Tải file", "Download file")}
+              type="button"
+            >
+              <Download size={15} />
+            </button>
+          </div>
         ))}
       </div>
       <button onClick={() => void downloadKit()} type="button">

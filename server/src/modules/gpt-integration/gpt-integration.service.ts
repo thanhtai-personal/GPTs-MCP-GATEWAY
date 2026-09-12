@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { buildStoredZip } from '@server/root/modules/gpt-integration/zip.util';
 
@@ -25,6 +25,22 @@ export class GptIntegrationService {
   schema(): string {
     return this.openApiSchema();
   }
+
+  getBundleFile(language: IntegrationLanguage, filename: string) {
+    const file = this.buildBundle(language).files.find(
+      (candidate) => candidate.name === filename,
+    );
+    if (!file) {
+      throw new NotFoundException('Integration kit file not found');
+    }
+
+    return {
+      ...file,
+      contentType:
+        file.name.endsWith('.yaml') ? 'application/yaml' : 'text/markdown',
+    };
+  }
+
 
   private instructions(language: IntegrationLanguage): string {
     if (language === 'vi') {
