@@ -63,6 +63,8 @@ The GPT Integration Kit can include one independent provider Knowledge skill per
 - `GPTS-MCP-GATEWAY-Skill-Stitch.md`
 - `GPTS-MCP-GATEWAY-Skill-Figma.md`
 - `GPTS-MCP-GATEWAY-Skill-Lovable.md`
+- `GPTS-MCP-GATEWAY-Skill-Google-Docs.md`
+- `GPTS-MCP-GATEWAY-Skill-Google-Sheets.md`
 
 `instructions.md` intentionally contains no provider-specific workflow. It only points the GPT to the base Knowledge file and enabled skill files.
 

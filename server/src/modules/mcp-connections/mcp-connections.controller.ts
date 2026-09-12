@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
+import { ConnectGoogleWorkspaceDto } from '@server/root/modules/mcp-connections/dto/connect-google-workspace.dto';
 import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
@@ -42,6 +43,14 @@ export class McpConnectionsController {
   @Put()
   save(@Req() request: Request, @Body() dto: SaveMcpConnectionDto) {
     return this.connections.saveOwn(request, dto);
+  }
+
+  @Post('google-workspace')
+  connectGoogleWorkspace(
+    @Req() request: Request,
+    @Body() dto: ConnectGoogleWorkspaceDto,
+  ) {
+    return this.connections.connectGoogleWorkspace(request, dto);
   }
 
   @Post(':provider/oauth/start')

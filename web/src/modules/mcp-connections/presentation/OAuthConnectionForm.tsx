@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/infrastructure/google-workspace-oauth";
 import type {
   McpConnection,
   McpProvider,
@@ -41,6 +42,10 @@ export function OAuthConnectionForm({
   const { t } = useUiLanguage();
   const connect = useStartMcpOAuth(accessToken);
   const remove = useRemoveMcpConnection(accessToken);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [googlePending, setGooglePending] = useState(false);
+  const isGoogleWorkspaceProvider =
+    providerId === "google-docs" || providerId === "google-sheets";
   const [accessMode, setAccessMode] = useState<McpProviderAccessMode>(
     connection?.accessMode ??
       credential.accessModes?.default ??
@@ -115,14 +120,34 @@ export function OAuthConnectionForm({
 
       <div className="row provider-actions">
         <button
-          disabled={!credential.configured || connect.isPending}
-          onClick={() =>
+          disabled={
+            !credential.configured ||
+            connect.isPending ||
+            googlePending
+          }
+          onClick={() => {
+            if (isGoogleWorkspaceProvider) {
+              setGooglePending(true);
+              setGoogleError(null);
+              void startGoogleWorkspaceOAuth(currentReturnTarget()).catch(
+                (error: unknown) => {
+                  setGooglePending(false);
+                  setGoogleError(
+                    error instanceof Error
+                      ? error.message
+                      : "GOOGLE_WORKSPACE_OAUTH_FAILED",
+                  );
+                },
+              );
+              return;
+            }
+
             connect.mutate({
               provider: providerId,
               ...(credential.accessModes ? { accessMode } : {}),
               returnTo: currentReturnTarget(),
-            })
-          }
+            });
+          }}
           type="button"
         >
           {connection
@@ -168,6 +193,9 @@ export function OAuthConnectionForm({
                   "The OAuth client for this provider is not configured on Gateway.",
                 )}
         </p>
+      ) : null}
+      {googleError ? (
+        <p className="notice error">{googleError}</p>
       ) : null}
       {connect.error ? (
         <p className="notice error">{connect.error.message}</p>

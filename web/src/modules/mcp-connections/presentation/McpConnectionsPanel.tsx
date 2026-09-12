@@ -1,4 +1,4 @@
-import { BookOpenText, ChevronDown, Github, KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
+import { BookOpenText, ChevronDown, FileText, Github, KeyRound, Link2, PlugZap, ShieldCheck, Table2 } from "lucide-react";
 import { useState } from "react";
 import type {
   McpConnection,
@@ -163,7 +163,11 @@ function McpProviderCard({
                   ? <Github size={20} />
                   : provider.id === "notion"
                     ? <BookOpenText size={20} />
-                    : <PlugZap size={20} />
+                    : provider.id === "google-docs"
+                      ? <FileText size={20} />
+                      : provider.id === "google-sheets"
+                        ? <Table2 size={20} />
+                        : <PlugZap size={20} />
             }
           </span>
           <div>

@@ -3,6 +3,8 @@ export const PROVIDER_SKILL_IDS = [
   "stitch",
   "figma",
   "lovable",
+  "google-docs",
+  "google-sheets",
 ] as const;
 
 export type ProviderSkillId = (typeof PROVIDER_SKILL_IDS)[number];
@@ -47,6 +49,24 @@ export const PROVIDER_SKILL_OPTIONS: Array<{
     description: {
       vi: "Create/iterate app, code inspection, database, skills và deploy.",
       en: "Create/iterate apps, inspect code, database, skills, and deployment.",
+    },
+  },
+  {
+    id: "google-docs",
+    filename: "GPTS-MCP-GATEWAY-Skill-Google-Docs.md",
+    label: "Google Docs",
+    description: {
+      vi: "Đọc/cập nhật Google Docs với workflow chống prompt injection.",
+      en: "Read/update Google Docs with prompt-injection-aware workflow.",
+    },
+  },
+  {
+    id: "google-sheets",
+    filename: "GPTS-MCP-GATEWAY-Skill-Google-Sheets.md",
+    label: "Google Sheets",
+    description: {
+      vi: "Ranges, formulas, spreadsheet structure và safe write workflow.",
+      en: "Ranges, formulas, spreadsheet structure, and safe write workflow.",
     },
   },
 ];

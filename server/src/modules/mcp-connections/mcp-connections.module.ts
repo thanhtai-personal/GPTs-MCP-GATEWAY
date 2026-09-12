@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '@server/root/modules/auth/auth.module';
 import { FigmaMcpAdapter } from '@server/root/modules/mcp-gateway/providers/figma/figma-mcp.adapter';
 import { GithubMcpAdapter } from '@server/root/modules/mcp-gateway/providers/github/github-mcp.adapter';
+import { GoogleDocsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-docs-mcp.adapter';
+import { GoogleSheetsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-sheets-mcp.adapter';
+import { GoogleWorkspaceTokenService } from '@server/root/modules/mcp-gateway/providers/google/google-workspace-token.service';
 import { LovableMcpAdapter } from '@server/root/modules/mcp-gateway/providers/lovable/lovable-mcp.adapter';
 import { NotionMcpAdapter } from '@server/root/modules/mcp-gateway/providers/notion/notion-mcp.adapter';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
@@ -31,6 +34,9 @@ import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.
     LovableMcpAdapter,
     FigmaMcpAdapter,
     GithubMcpAdapter,
+    GoogleWorkspaceTokenService,
+    GoogleDocsMcpAdapter,
+    GoogleSheetsMcpAdapter,
     NotionMcpAdapter,
     {
       provide: MCP_PROVIDER_ADAPTERS,
@@ -39,6 +45,8 @@ import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.
         LovableMcpAdapter,
         FigmaMcpAdapter,
         GithubMcpAdapter,
+        GoogleDocsMcpAdapter,
+        GoogleSheetsMcpAdapter,
         NotionMcpAdapter,
       ],
       useFactory: (
@@ -46,8 +54,18 @@ import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.
         lovable: LovableMcpAdapter,
         figma: FigmaMcpAdapter,
         github: GithubMcpAdapter,
+        googleDocs: GoogleDocsMcpAdapter,
+        googleSheets: GoogleSheetsMcpAdapter,
         notion: NotionMcpAdapter,
-      ): McpProviderAdapter[] => [stitch, lovable, figma, github, notion],
+      ): McpProviderAdapter[] => [
+        stitch,
+        lovable,
+        figma,
+        github,
+        googleDocs,
+        googleSheets,
+        notion,
+      ],
     },
     McpProviderRegistry,
     McpCredentialCodec,

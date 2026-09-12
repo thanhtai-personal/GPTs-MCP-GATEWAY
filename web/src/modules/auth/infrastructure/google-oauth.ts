@@ -28,7 +28,7 @@ export async function startGoogleOAuth(): Promise<void> {
   if (error) throw error;
 }
 
-export async function completeGoogleOAuth(): Promise<void> {
+export async function completeGoogleOAuth() {
   if (!isSupabaseBrowserConfigured) {
     throw new Error("SUPABASE_AUTH_NOT_CONFIGURED");
   }
@@ -44,4 +44,6 @@ export async function completeGoogleOAuth(): Promise<void> {
   if (!data.session || !data.user) {
     throw new Error("OAUTH_SESSION_MISSING");
   }
+
+  return data.session;
 }

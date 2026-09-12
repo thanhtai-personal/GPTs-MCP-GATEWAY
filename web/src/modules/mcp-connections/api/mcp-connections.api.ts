@@ -66,3 +66,21 @@ export function removeMcpConnection(accessToken: string, provider: string) {
     },
   );
 }
+
+
+export function connectGoogleWorkspace(
+  accessToken: string,
+  providerToken: string,
+  providerRefreshToken: string,
+) {
+  return gatewayRequest<{
+    providers: McpConnection[];
+    status: "connected";
+  }>("/mcp-connections/google-workspace", accessToken, {
+    method: "POST",
+    body: JSON.stringify({
+      providerToken,
+      providerRefreshToken,
+    }),
+  });
+}

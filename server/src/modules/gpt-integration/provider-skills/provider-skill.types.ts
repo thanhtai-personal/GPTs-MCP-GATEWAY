@@ -3,6 +3,8 @@ export const PROVIDER_SKILL_IDS = [
   'stitch',
   'figma',
   'lovable',
+  'google-docs',
+  'google-sheets',
 ] as const;
 
 export type ProviderSkillId = (typeof PROVIDER_SKILL_IDS)[number];

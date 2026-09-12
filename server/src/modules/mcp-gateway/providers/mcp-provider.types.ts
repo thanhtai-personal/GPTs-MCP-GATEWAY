@@ -104,4 +104,7 @@ export interface McpProviderAdapter {
     toolName: string,
     argumentsValue: McpToolArguments,
   ): Promise<McpToolCallResult>;
+  refreshCredential?(
+    credential: McpOAuthCredential,
+  ): Promise<McpOAuthCredential>;
 }

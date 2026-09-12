@@ -2,8 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import type {
   McpOAuthCredential,
+  McpOAuthProviderConfig,
   McpProviderAdapter,
   McpProviderCredential,
+  McpProviderCredentialDefinition,
   McpToolArguments,
   McpToolCallResult,
   McpToolDefinition,
@@ -20,8 +22,8 @@ const GITHUB_RESOURCE_METADATA =
 export class GithubMcpAdapter implements McpProviderAdapter {
   readonly id = 'github' as const;
   readonly displayName = 'GitHub';
-  readonly credential;
-  readonly oauth;
+  readonly credential: McpProviderCredentialDefinition;
+  readonly oauth: McpOAuthProviderConfig;
 
   constructor(
     config: AppConfigService,

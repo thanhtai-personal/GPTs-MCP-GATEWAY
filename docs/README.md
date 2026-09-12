@@ -16,6 +16,7 @@ This directory documents the behavior that exists in the current MCP Gateway sou
 1. [Self-hosting](./SELF_HOSTING.md)
 2. [API Reference](./API_REFERENCE.md)
 3. [GitHub MCP setup](./GITHUB_MCP_SETUP.md)
+4. [Google Docs + Sheets MCP setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
 4. [Notion MCP setup](./NOTION_MCP_SETUP.md)
 5. [Troubleshooting](./TROUBLESHOOTING.md)
 

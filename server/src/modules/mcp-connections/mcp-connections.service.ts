@@ -8,8 +8,14 @@ import type { Request } from 'express';
 import { SupabaseService } from '@server/root/common/supabase/supabase.service';
 import { AuthService } from '@server/root/modules/auth/auth.service';
 import { AuditService } from '@server/root/modules/audit/audit.service';
+import { resolveProviderAccessMode } from '@server/root/modules/mcp-connections/mcp-access-mode';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.service';
+import type { ConnectGoogleWorkspaceDto } from '@server/root/modules/mcp-connections/dto/connect-google-workspace.dto';
+import {
+  GOOGLE_WORKSPACE_PROVIDER_IDS,
+  googleWorkspaceCredential,
+} from '@server/root/modules/mcp-connections/google-workspace-connection';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
@@ -59,7 +65,6 @@ export class McpConnectionsService {
       .eq('user_id', user.id)
       .order('provider')
       .returns<ConnectionRow[]>();
-
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
@@ -74,7 +79,6 @@ export class McpConnectionsService {
       ) {
         return this.toView(row);
       }
-
       const credential = this.codec.decode(
         row.credential_ciphertext,
         row.credential_version,
@@ -94,7 +98,6 @@ export class McpConnectionsService {
     const provider = this.providers.get(dto.provider);
     this.requireApiKeyProvider(provider);
     const startedAt = Date.now();
-
     try {
       await provider.testConnection(this.apiKeyCredential(dto.apiKey));
       await this.audit.write({
@@ -121,10 +124,8 @@ export class McpConnectionsService {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(dto.provider);
     this.requireApiKeyProvider(provider);
-
     const credential = this.apiKeyCredential(dto.apiKey);
     await provider.testConnection(credential);
-
     return this.saveCredential(user.id, provider, credential);
   }
 
@@ -135,15 +136,13 @@ export class McpConnectionsService {
   ) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(providerId);
-
     if (provider.credential.kind !== 'oauth') {
       throw new BadRequestException({
         code: 'MCP_OAUTH_NOT_SUPPORTED',
         message: `${provider.displayName} does not use OAuth`,
       });
     }
-
-    const accessMode = this.resolveAccessMode(provider, dto.accessMode);
+    const accessMode = resolveProviderAccessMode(provider, dto.accessMode);
     return this.oauth.createAuthorizationRequest(user.id, provider, {
       ...(accessMode ? { accessMode } : {}),
       ...(dto.returnTo ? { returnTo: dto.returnTo } : {}),
@@ -167,10 +166,8 @@ export class McpConnectionsService {
       state,
       issuer,
     );
-
     await this.auth.getUserById(result.userId);
     const startedAt = Date.now();
-
     try {
       await provider.testConnection(result.credential);
       const connection = await this.saveCredential(
@@ -178,7 +175,6 @@ export class McpConnectionsService {
         provider,
         result.credential,
       );
-
       await this.audit.write({
         userId: result.userId,
         eventType: 'mcp_connection.oauth_connected',
@@ -186,7 +182,6 @@ export class McpConnectionsService {
         success: true,
         durationMs: Date.now() - startedAt,
       });
-
       return connection;
     } catch (error) {
       await this.audit.write({
@@ -200,10 +195,29 @@ export class McpConnectionsService {
     }
   }
 
+  async connectGoogleWorkspace(
+    request: Request,
+    dto: ConnectGoogleWorkspaceDto,
+  ) {
+    const user = await this.auth.requireUser(request);
+    const providers = GOOGLE_WORKSPACE_PROVIDER_IDS.map((id) =>
+      this.providers.get(id),
+    );
+    const credential = googleWorkspaceCredential(dto);
+    await Promise.all(
+      providers.map((provider) => provider.testConnection(credential)),
+    );
+    const connections = await Promise.all(
+      providers.map((provider) =>
+        this.saveCredential(user.id, provider, credential),
+      ),
+    );
+    return { providers: connections, status: 'connected' as const };
+  }
+
   async removeOwn(request: Request, providerId: string) {
     const user = await this.auth.requireUser(request);
     this.providers.get(providerId);
-
     const client = this.supabase.createServiceRoleClient();
     const { data, error } = await client
       .from('mcp_connections')
@@ -212,7 +226,6 @@ export class McpConnectionsService {
       .eq('provider', providerId)
       .select('id')
       .maybeSingle<{ id: string }>();
-
     if (error) {
       throw new ServiceUnavailableException({
         code: 'MCP_CONNECTION_STORAGE_UNAVAILABLE',
@@ -280,7 +293,9 @@ export class McpConnectionsService {
       return credential;
     }
 
-    const refreshed = await this.oauth.refreshCredential(provider, credential);
+    const refreshed = provider.refreshCredential
+      ? await provider.refreshCredential(credential)
+      : await this.oauth.refreshCredential(provider, credential);
     const encoded = this.codec.encode(refreshed);
     const now = new Date().toISOString();
     const { error: updateError } = await client

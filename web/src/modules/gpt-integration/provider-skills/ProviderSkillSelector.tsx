@@ -1,4 +1,4 @@
-import { BookOpenCheck, Github, PanelsTopLeft, Sparkles } from "lucide-react";
+import { BookOpenCheck, FileText, Github, PanelsTopLeft, Sparkles, Table2 } from "lucide-react";
 import {
   PROVIDER_SKILL_OPTIONS,
   type ProviderSkillId,
@@ -9,6 +9,8 @@ function SkillIcon({ id }: { id: ProviderSkillId }) {
   if (id === "github") return <Github size={18} />;
   if (id === "stitch") return <Sparkles size={18} />;
   if (id === "figma") return <PanelsTopLeft size={18} />;
+  if (id === "google-docs") return <FileText size={18} />;
+  if (id === "google-sheets") return <Table2 size={18} />;
   return <BookOpenCheck size={18} />;
 }
 
