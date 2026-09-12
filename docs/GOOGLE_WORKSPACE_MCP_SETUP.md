@@ -1,5 +1,31 @@
 # Google Docs + Sheets MCP setup
 
+
+
+## Developer Preview access is required
+
+Google Docs MCP and Google Sheets MCP are currently part of the Google Workspace
+Developer Preview Program. Enabling the APIs and obtaining OAuth scopes is not
+sufficient by itself.
+
+Before testing MCP Gateway:
+
+1. Join the Google Workspace Developer Preview Program with the Google Workspace account used for testing.
+2. Register the Google Cloud project that owns the OAuth client with the program.
+3. Wait for Google's final confirmation that the account and Cloud project were added.
+4. Enable `docs.googleapis.com`, `docsmcp.googleapis.com`, `sheets.googleapis.com`, and `sheetsmcp.googleapis.com`.
+5. Add the documented Docs + Sheets OAuth scopes to Google Auth Platform > Data Access.
+6. Keep the test account in the OAuth app's allowed test users while the OAuth app is in Testing mode.
+
+A `403` from the remote MCP server is reported by Gateway as
+`MCP_PROVIDER_PERMISSION_DENIED`. It means Google authenticated the request but
+did not authorize that MCP operation/project; reconnecting the token alone does
+not fix this condition.
+
+Google's Developer Preview terms restrict public end-user use of Pre-GA APIs
+unless Google explicitly grants permission. Do not enable this integration for
+general public customers until the provider terms allow it.
+
 Google Docs and Google Sheets remote MCP servers are currently Developer Preview.
 
 ## Google Cloud APIs

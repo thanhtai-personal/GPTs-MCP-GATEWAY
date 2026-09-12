@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  ForbiddenException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -365,10 +366,19 @@ export class RemoteMcpHttpTransport {
     response: Response,
     providerName: string,
   ): void {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       throw new UnauthorizedException({
         code: 'MCP_OAUTH_RECONNECT_REQUIRED',
         message: `${providerName} authorization is invalid or expired`,
+      });
+    }
+    if (response.status === 403) {
+      throw new ForbiddenException({
+        code: 'MCP_PROVIDER_PERMISSION_DENIED',
+        message:
+          `${providerName} denied access. Verify OAuth scopes, enabled APIs, ` +
+          'provider account permissions, and any preview-program eligibility.',
+        details: { status: 403 },
       });
     }
     if (response.status === 429) {

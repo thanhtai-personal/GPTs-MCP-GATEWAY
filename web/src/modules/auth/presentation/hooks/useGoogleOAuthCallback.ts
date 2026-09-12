@@ -6,10 +6,16 @@ import {
   clearPendingGoogleWorkspaceOAuth,
   readPendingGoogleWorkspaceOAuth,
 } from "@/modules/mcp-connections/infrastructure/google-workspace-oauth";
+import { GatewayApiError } from "@/shared/api/gateway-api";
+
+type OAuthCallbackError = {
+  code: string;
+  message: string;
+};
 
 export function useGoogleOAuthCallback() {
   const navigate = useNavigate();
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<OAuthCallbackError | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -37,8 +43,27 @@ export function useGoogleOAuthCallback() {
         clearPendingGoogleWorkspaceOAuth();
         window.location.replace(`/app${pending.returnTo}`);
       })
-      .catch(() => {
-        if (active) setHasError(true);
+      .catch((caught: unknown) => {
+        if (!active) return;
+
+        if (caught instanceof GatewayApiError) {
+          setError({
+            code: caught.code,
+            message: caught.message,
+          });
+          return;
+        }
+
+        setError({
+          code:
+            caught instanceof Error
+              ? caught.message
+              : "GOOGLE_OAUTH_CALLBACK_FAILED",
+          message:
+            caught instanceof Error
+              ? caught.message
+              : "Could not complete Google OAuth",
+        });
       });
 
     return () => {
@@ -46,5 +71,8 @@ export function useGoogleOAuthCallback() {
     };
   }, [navigate]);
 
-  return { hasError };
+  return {
+    error,
+    hasError: Boolean(error),
+  };
 }

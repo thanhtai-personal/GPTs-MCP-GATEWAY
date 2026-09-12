@@ -372,6 +372,7 @@ export function LandingPage({ language }: Props) {
           </div>
           <div className="footer-links"><strong>Product</strong><a href="#open-id">Open ID</a><a href="#mcp-services">MCP Services</a><a href="#gpt-integration">GPT Integration</a></div>
           <div className="footer-links"><strong>Account</strong><Link to="/app">Sign In</Link><Link to="/app">Create Account</Link></div>
+          <div className="footer-links"><strong>Legal</strong><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div>
           <div className="footer-system"><code>OPEN ID ENFORCEMENT: ACTIVE</code><span>STITCH MCP: AVAILABLE</span></div>
         </div>
       </footer>

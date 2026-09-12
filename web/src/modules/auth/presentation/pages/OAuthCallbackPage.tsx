@@ -25,7 +25,7 @@ const errorSteps = [
 ] as const;
 
 export function OAuthCallbackPage() {
-  const { hasError } = useGoogleOAuthCallback();
+  const { error, hasError } = useGoogleOAuthCallback();
   const { t } = useUiLanguage();
   const steps = hasError ? errorSteps : loadingSteps;
 
@@ -60,10 +60,16 @@ export function OAuthCallbackPage() {
             </h1>
             <p>
               {hasError
-                ? t(
-                    "Phiên xác thực không hợp lệ hoặc đã hết hạn. Hãy quay lại và thử đăng nhập lại.",
-                    "The authentication session is invalid or expired. Return and try signing in again.",
-                  )
+                ? error?.code === "MCP_PROVIDER_PERMISSION_DENIED"
+                  ? t(
+                      "Google đã xác thực tài khoản nhưng từ chối MCP access. Kiểm tra Developer Preview access, OAuth scopes và Docs/Sheets MCP APIs trong Google Cloud project.",
+                      "Google authenticated the account but denied MCP access. Verify Developer Preview access, OAuth scopes, and the Docs/Sheets MCP APIs in the Google Cloud project.",
+                    )
+                  : error?.message ??
+                    t(
+                      "Không thể hoàn tất phiên xác thực. Hãy quay lại và thử lại.",
+                      "Could not complete the authentication flow. Return and try again.",
+                    )
                 : t(
                     "Đang thiết lập phiên bảo mật và chuẩn bị MCP Gateway của bạn.",
                     "Establishing your secure session and preparing MCP Gateway.",
@@ -128,7 +134,7 @@ export function OAuthCallbackPage() {
             {hasError ? (
               <>
                 <code><span>&gt;</span> oauth.callback received <b>✓</b></code>
-                <code className="is-error"><span>&gt;</span> session exchange failed <b>!</b></code>
+                <code className="is-error"><span>&gt;</span> {error?.code ?? "oauth.callback.failed"} <b>!</b></code>
                 <code className="is-muted"><span>&gt;</span> redirect cancelled <b>—</b></code>
               </>
             ) : (
@@ -143,7 +149,11 @@ export function OAuthCallbackPage() {
 
           {hasError ? (
             <div className="oauth-handshake__actions">
-              <a className="button" href="/app">{t("Thử đăng nhập lại", "Try again")}</a>
+              <a className="button" href="/app#mcp-services">
+                {error?.code === "MCP_PROVIDER_PERMISSION_DENIED"
+                  ? t("Kiểm tra Google Workspace", "Review Google Workspace")
+                  : t("Thử đăng nhập lại", "Try again")}
+              </a>
               <a className="button secondary" href="/">{t("Về trang chủ", "Back to home")}</a>
             </div>
           ) : (

@@ -19,6 +19,8 @@ fs.writeFileSync(
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>${baseUrl}/vi</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>${baseUrl}/privacy</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>${baseUrl}/terms</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
 </urlset>
 `,
 );
