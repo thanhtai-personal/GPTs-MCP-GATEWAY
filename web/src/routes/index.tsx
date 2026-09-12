@@ -19,6 +19,12 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Give Custom GPT agent-like MCP access through one secure Gateway.",
       },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "MCP Gateway for Custom GPTs" },
+      {
+        name: "twitter:description",
+        content: "Give Custom GPT agent-like MCP access through one secure Gateway.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${siteUrl}/` },
     ],

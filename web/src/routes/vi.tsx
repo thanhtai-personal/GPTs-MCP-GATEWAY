@@ -19,6 +19,12 @@ export const Route = createFileRoute("/vi")({
         property: "og:description",
         content: "Cho Custom GPT sử dụng MCP qua một Gateway có kiểm soát.",
       },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "MCP Gateway cho Custom GPT" },
+      {
+        name: "twitter:description",
+        content: "Cho Custom GPT sử dụng MCP qua một Gateway có kiểm soát.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${siteUrl}/vi` },
     ],

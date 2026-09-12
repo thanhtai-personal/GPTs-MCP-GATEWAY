@@ -1,3 +1,4 @@
+import { KeyRound, Link2, PlugZap, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type {
   McpConnection,
@@ -20,8 +21,12 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
 
   if (providers.isLoading || connections.isLoading) {
     return (
-      <section className="card">
-        <p className="muted">{t("Đang tải MCP services...", "Loading MCP services...")}</p>
+      <section className="card provider-loading-card">
+        <span className="provider-logo"><PlugZap size={20} /></span>
+        <div>
+          <strong>{t("Đang tải MCP services", "Loading MCP services")}</strong>
+          <p className="muted">{t("Đang đồng bộ provider catalog từ Gateway…", "Syncing the provider catalog from Gateway…")}</p>
+        </div>
       </section>
     );
   }
@@ -35,19 +40,47 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
     );
   }
 
+  const providerList = providers.data ?? [];
+  const connectionList = connections.data ?? [];
+
   return (
-    <>
-      {(providers.data ?? []).map((provider) => (
-        <McpProviderCard
-          accessToken={accessToken}
-          connection={(connections.data ?? []).find(
-            (connection) => connection.provider === provider.id,
-          )}
-          key={provider.id}
-          provider={provider}
-        />
-      ))}
-    </>
+    <div className="provider-list">
+      <div className="provider-summary">
+        <div>
+          <span className="provider-summary__value">{providerList.length}</span>
+          <span>{t("Provider trong catalog", "Providers in catalog")}</span>
+        </div>
+        <div>
+          <span className="provider-summary__value">{connectionList.length}</span>
+          <span>{t("Connection đã lưu", "Saved connections")}</span>
+        </div>
+        <div>
+          <span className="provider-summary__value">Stitch</span>
+          <span>{t("Phase 1", "Phase 1")}</span>
+        </div>
+      </div>
+
+      <div className="dashboard-grid dashboard-grid--providers">
+        {providerList.map((provider) => (
+          <McpProviderCard
+            accessToken={accessToken}
+            connection={connectionList.find(
+              (connection) => connection.provider === provider.id,
+            )}
+            key={provider.id}
+            provider={provider}
+          />
+        ))}
+      </div>
+
+      {!providerList.length ? (
+        <section className="card empty-state">
+          <PlugZap size={24} />
+          <strong>{t("Chưa có MCP provider", "No MCP providers available")}</strong>
+          <p className="muted">{t("Gateway chưa trả về provider nào.", "Gateway returned no provider catalog entries.")}</p>
+        </section>
+      ) : null}
+    </div>
   );
 }
 
@@ -61,16 +94,22 @@ function McpProviderCard({
   provider: McpProvider;
 }) {
   const { t } = useUiLanguage();
+  const isConnected = connection?.status === "connected";
 
   return (
-    <section className="card">
-      <div className="panel-heading">
-        <div>
-          <span className="eyebrow">MCP CONNECTION</span>
-          <h2>{provider.name}</h2>
+    <section className="card provider-card">
+      <div className="provider-card__header">
+        <div className="provider-card__identity">
+          <span className="provider-logo">
+            {provider.id.toLowerCase().includes("stitch") ? "S" : <PlugZap size={20} />}
+          </span>
+          <div>
+            <span className="eyebrow">MCP PROVIDER</span>
+            <h2>{provider.name}</h2>
+          </div>
         </div>
-        <span className={`status ${connection ? "good" : ""}`}>
-          {connection
+        <span className={`status ${isConnected ? "good" : ""}`}>
+          {isConnected
             ? t("Đã kết nối", "Connected")
             : provider.status === "pending_review"
               ? t("Đang chờ xét duyệt", "Pending review")
@@ -82,22 +121,39 @@ function McpProviderCard({
         </span>
       </div>
 
-      {provider.credential.kind === "api_key" ? (
-        <ApiKeyConnectionForm
-          accessToken={accessToken}
-          connection={connection}
-          credential={provider.credential}
-          providerId={provider.id}
-        />
-      ) : (
-        <OAuthConnectionForm
-          accessToken={accessToken}
-          connection={connection}
-          credential={provider.credential}
-          providerId={provider.id}
-          providerStatus={provider.status}
-        />
-      )}
+      <div className="provider-card__meta">
+        <span><ShieldCheck size={14} /> {t("Credential mã hóa server-side", "Server-side encrypted credential")}</span>
+        <span>
+          {provider.credential.kind === "api_key" ? <KeyRound size={14} /> : <Link2 size={14} />}
+          {provider.credential.kind === "api_key" ? "API KEY" : "OAUTH"}
+        </span>
+      </div>
+
+      <div className="provider-card__form">
+        {provider.credential.kind === "api_key" ? (
+          <ApiKeyConnectionForm
+            accessToken={accessToken}
+            connection={connection}
+            credential={provider.credential}
+            providerId={provider.id}
+          />
+        ) : (
+          <OAuthConnectionForm
+            accessToken={accessToken}
+            connection={connection}
+            credential={provider.credential}
+            providerId={provider.id}
+            providerStatus={provider.status}
+          />
+        )}
+      </div>
+
+      {connection?.lastVerifiedAt ? (
+        <div className="provider-card__footer">
+          <span>{t("Xác minh gần nhất", "Last verified")}</span>
+          <code>{connection.lastVerifiedAt}</code>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -128,13 +184,13 @@ function ApiKeyConnectionForm({
     <>
       <p className="muted">
         {t(
-          "Credential được gửi tới backend và mã hóa trước khi lưu.",
-          "The credential is sent to the backend and encrypted before storage.",
+          "Credential chỉ gửi tới Gateway backend và được mã hóa trước khi lưu. GPT không nhận provider credential.",
+          "The credential is sent only to Gateway backend and encrypted before storage. GPT never receives the provider credential.",
         )}
       </p>
 
-      <label>
-        {credential.label}
+      <label className="credential-field">
+        <span>{credential.label}</span>
         <input
           autoComplete="off"
           onChange={(event) => setCredentialValue(event.target.value)}
@@ -144,13 +200,13 @@ function ApiKeyConnectionForm({
         />
       </label>
 
-      <div className="row">
+      <div className="row provider-actions">
         <button
           disabled={!credentialValue || test.isPending}
           onClick={() => test.mutate(mutationInput)}
           type="button"
         >
-          {t("Kiểm tra", "Test connection")}
+          {t("Kiểm tra kết nối", "Test connection")}
         </button>
 
         <button
@@ -163,7 +219,7 @@ function ApiKeyConnectionForm({
           }
           type="button"
         >
-          {t("Lưu", "Save")}
+          {t("Lưu credential", "Save credential")}
         </button>
 
         {connection ? (
@@ -220,7 +276,7 @@ function OAuthConnectionForm({
         <p className="notice">{t(credential.note.vi, credential.note.en)}</p>
       ) : null}
 
-      <div className="row">
+      <div className="row provider-actions">
         <button
           disabled={!credential.configured || connect.isPending}
           onClick={() => connect.mutate(providerId)}
@@ -268,12 +324,8 @@ function OAuthConnectionForm({
                 )}
         </p>
       ) : null}
-      {connect.error ? (
-        <p className="notice error">{connect.error.message}</p>
-      ) : null}
-      {remove.error ? (
-        <p className="notice error">{remove.error.message}</p>
-      ) : null}
+      {connect.error ? <p className="notice error">{connect.error.message}</p> : null}
+      {remove.error ? <p className="notice error">{remove.error.message}</p> : null}
     </>
   );
 }

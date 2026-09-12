@@ -4,23 +4,48 @@ import {
   LayoutDashboard,
   LogOut,
   PlugZap,
+  ShieldCheck,
   Sparkles,
+  Waypoints,
 } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAccount } from "@/modules/account/queries/account.queries";
 import { AuthPanel } from "@/modules/auth/presentation/components/AuthPanel";
-import { useSession } from "@/modules/auth/presentation/hooks/useSession";
 import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
+import { useSession } from "@/modules/auth/presentation/hooks/useSession";
 import { GptIntegrationPanel } from "@/modules/gpt-integration/presentation/GptIntegrationPanel";
 import { McpConnectionsPanel } from "@/modules/mcp-connections/presentation/McpConnectionsPanel";
 import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
+type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
+
+const SCREEN_IDS = new Set<AppScreen>([
+  "overview",
+  "mcp-services",
+  "open-id",
+  "gpt-integration",
+]);
+
+function getScreenFromHash(): AppScreen {
+  if (typeof window === "undefined") return "overview";
+  const value = window.location.hash.replace(/^#/, "") as AppScreen;
+  return SCREEN_IDS.has(value) ? value : "overview";
+}
+
 export function DashboardPage() {
   const { t } = useUiLanguage();
   const { session, isLoading } = useSession();
   const accessToken = session?.access_token ?? "";
   const account = useAccount(accessToken);
+  const [activeScreen, setActiveScreen] = useState<AppScreen>(getScreenFromHash);
+
+  useEffect(() => {
+    const onHashChange = () => setActiveScreen(getScreenFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   if (isLoading) {
     return <main className="app-loading">{t("Đang tải…", "Loading…")}</main>;
@@ -41,6 +66,14 @@ export function DashboardPage() {
     );
   }
 
+  const setScreen = (screen: AppScreen) => {
+    setActiveScreen(screen);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${screen}`);
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  };
+
   return (
     <main className="app-shell">
       <aside className="app-sidebar">
@@ -49,11 +82,35 @@ export function DashboardPage() {
           MCP Gateway
         </a>
 
-        <nav className="app-nav" aria-label="Dashboard">
-          <a className="app-nav__item active" href="#overview"><LayoutDashboard size={18} />{t("Tổng quan", "Overview")}</a>
-          <a className="app-nav__item" href="#mcp-services"><Boxes size={18} />MCP Services</a>
-          <a className="app-nav__item" href="#open-id"><KeyRound size={18} />Open ID</a>
-          <a className="app-nav__item" href="#gpt-integration"><Sparkles size={18} />GPT Integration</a>
+        <nav className="app-nav" aria-label={t("Điều hướng Console", "Console navigation")}>
+          <AppNavItem
+            active={activeScreen === "overview"}
+            icon={<LayoutDashboard size={18} />}
+            label={t("Tổng quan", "Overview")}
+            onSelect={() => setScreen("overview")}
+            screen="overview"
+          />
+          <AppNavItem
+            active={activeScreen === "mcp-services"}
+            icon={<Boxes size={18} />}
+            label="MCP Services"
+            onSelect={() => setScreen("mcp-services")}
+            screen="mcp-services"
+          />
+          <AppNavItem
+            active={activeScreen === "open-id"}
+            icon={<KeyRound size={18} />}
+            label="Open ID"
+            onSelect={() => setScreen("open-id")}
+            screen="open-id"
+          />
+          <AppNavItem
+            active={activeScreen === "gpt-integration"}
+            icon={<Sparkles size={18} />}
+            label="GPT Integration"
+            onSelect={() => setScreen("gpt-integration")}
+            screen="gpt-integration"
+          />
         </nav>
 
         <div className="sidebar-account">
@@ -79,56 +136,250 @@ export function DashboardPage() {
         <header className="app-topbar">
           <div>
             <span className="topbar-kicker">CONTROL PLANE</span>
-            <strong>{t("MCP Gateway Console", "MCP Gateway Console")}</strong>
+            <strong>{screenLabel(activeScreen, t)}</strong>
           </div>
-          <LanguageSwitcher />
+          <div className="app-topbar__actions">
+            <span className="system-badge"><span /> {t("Gateway hoạt động", "Gateway operational")}</span>
+            <LanguageSwitcher />
+          </div>
         </header>
 
-        <div className="app-content">
-          <section className="dashboard-intro" id="overview">
-            <div>
-              <span className="eyebrow">CONTROL PLANE</span>
-              <h1>{t("Kết nối GPT với MCP.", "Connect GPT to MCP.")}</h1>
-              <p className="lead small">
-                {t(
-                  "Quản lý provider, quyền Gateway và bộ tích hợp Custom GPT từ một control plane.",
-                  "Manage providers, Gateway entitlement, and your Custom GPT integration from one control plane.",
-                )}
-              </p>
-            </div>
-            <div className="system-badge"><span /> {t("Gateway hoạt động", "Gateway operational")}</div>
-          </section>
-
+        <div className="app-content app-content--screen">
           {account.isLoading ? <p>{t("Đang tải tài khoản…", "Loading account…")}</p> : null}
           {account.error ? <p className="notice error">{account.error.message}</p> : null}
 
-          <section className="dashboard-section" id="mcp-services">
-            <div className="section-heading">
-              <div><span className="eyebrow">MCP SERVICES</span><h2>{t("Kết nối provider", "Provider connections")}</h2></div>
-              <span className="section-index">01</span>
-            </div>
-            <div className="dashboard-grid dashboard-grid--providers">
+          {activeScreen === "overview" ? (
+            <OverviewScreen
+              isMember={account.data?.membershipTier === "member"}
+              onNavigate={setScreen}
+            />
+          ) : null}
+
+          {activeScreen === "mcp-services" ? (
+            <ConsoleScreenHeader
+              eyebrow="MCP SERVICES"
+              title={t("Provider connections", "Provider connections")}
+              description={t(
+                "Kết nối credential của bạn với các MCP provider được Gateway hỗ trợ. Phase 1 dùng Google Stitch.",
+                "Connect your provider credentials to MCP services supported by Gateway. Phase 1 starts with Google Stitch.",
+              )}
+              badge={t("Credential mã hóa", "Encrypted credentials")}
+            >
               <McpConnectionsPanel accessToken={accessToken} />
-            </div>
-          </section>
+            </ConsoleScreenHeader>
+          ) : null}
 
-          <section className="dashboard-section" id="open-id">
-            <div className="section-heading">
-              <div><span className="eyebrow">OPEN ID HUB</span><h2>{t("Quyền truy cập Gateway", "Gateway access")}</h2></div>
-              <span className="section-index">02</span>
-            </div>
-            {account.data ? <OpenIdPanel accessToken={accessToken} account={account.data} /> : null}
-          </section>
+          {activeScreen === "open-id" && account.data ? (
+            <ConsoleScreenHeader
+              eyebrow="OPEN ID HUB"
+              title={t("Gateway access", "Gateway access")}
+              description={t(
+                "Open ID là entitlement kiểm soát mọi MCP execution. Trial chỉ bắt đầu khi bạn chủ động tạo Trial Token.",
+                "Open ID is the entitlement controlling every MCP execution. Trial starts only when you explicitly create a Trial Token.",
+              )}
+              badge={account.data.membershipTier === "member" ? "MEMBER" : "GUEST"}
+            >
+              <OpenIdPanel accessToken={accessToken} account={account.data} />
+            </ConsoleScreenHeader>
+          ) : null}
 
-          <section className="dashboard-section" id="gpt-integration">
-            <div className="section-heading">
-              <div><span className="eyebrow">CUSTOM GPT</span><h2>{t("Tích hợp GPT", "GPT integration")}</h2></div>
-              <span className="section-index">03</span>
-            </div>
-            <GptIntegrationPanel accessToken={accessToken} />
-          </section>
+          {activeScreen === "gpt-integration" ? (
+            <ConsoleScreenHeader
+              eyebrow="CUSTOM GPT"
+              title={t("GPT Integration", "GPT Integration")}
+              description={t(
+                "Cấu hình một Custom GPT dùng Gateway Action, instructions tối giản và Knowledge để tự discovery MCP tools.",
+                "Configure a Custom GPT with the Gateway Action, minimal instructions, and Knowledge for runtime MCP tool discovery.",
+              )}
+              badge="ACTION READY"
+            >
+              <GptIntegrationPanel
+                accessToken={accessToken}
+                isMember={account.data?.membershipTier === "member"}
+              />
+            </ConsoleScreenHeader>
+          ) : null}
         </div>
       </section>
     </main>
   );
+}
+
+function AppNavItem({
+  active,
+  icon,
+  label,
+  onSelect,
+  screen,
+}: {
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  onSelect: () => void;
+  screen: AppScreen;
+}) {
+  return (
+    <a
+      className={`app-nav__item ${active ? "active" : ""}`}
+      href={`#${screen}`}
+      onClick={(event) => {
+        event.preventDefault();
+        onSelect();
+      }}
+    >
+      {icon}
+      <span>{label}</span>
+    </a>
+  );
+}
+
+function OverviewScreen({
+  isMember,
+  onNavigate,
+}: {
+  isMember?: boolean;
+  onNavigate: (screen: AppScreen) => void;
+}) {
+  const { t } = useUiLanguage();
+
+  return (
+    <>
+      <section className="dashboard-intro dashboard-intro--screen">
+        <div>
+          <span className="eyebrow">CONTROL PLANE</span>
+          <h1>{t("MCP Gateway Console", "MCP Gateway Console")}</h1>
+          <p className="lead small">
+            {t(
+              "Một control plane cho provider credential, Open ID entitlement và Custom GPT integration.",
+              "One control plane for provider credentials, Open ID entitlement, and Custom GPT integration.",
+            )}
+          </p>
+        </div>
+        <span className="status good"><ShieldCheck size={14} /> {t("Gateway sẵn sàng", "Gateway ready")}</span>
+      </section>
+
+      <section className="overview-stats" aria-label={t("Trạng thái Gateway", "Gateway status")}>
+        <div className="overview-stat">
+          <span className="overview-stat__label">MCP PROVIDER</span>
+          <strong>Google Stitch</strong>
+          <small>{t("Phase 1 provider", "Phase 1 provider")}</small>
+        </div>
+        <div className="overview-stat">
+          <span className="overview-stat__label">ENTITLEMENT</span>
+          <strong>{isMember ? "Open ID" : "Trial / Open ID"}</strong>
+          <small>{isMember ? t("Member access", "Member access") : t("Guest access", "Guest access")}</small>
+        </div>
+        <div className="overview-stat">
+          <span className="overview-stat__label">GPT ROUTING</span>
+          <strong>Runtime discovery</strong>
+          <small>Intent → Service → Tool → Schema</small>
+        </div>
+      </section>
+
+      <section className="overview-grid">
+        <button className="overview-action-card" onClick={() => onNavigate("mcp-services")} type="button">
+          <span className="feature-icon"><Boxes /></span>
+          <span className="overview-action-card__index">01</span>
+          <strong>MCP Services</strong>
+          <p>{t("Kết nối Google Stitch và quản lý credential phía Gateway.", "Connect Google Stitch and manage provider credentials on Gateway.")}</p>
+          <span className="overview-action-card__link">{t("Quản lý provider", "Manage providers")} →</span>
+        </button>
+        <button className="overview-action-card" onClick={() => onNavigate("open-id")} type="button">
+          <span className="feature-icon"><KeyRound /></span>
+          <span className="overview-action-card__index">02</span>
+          <strong>Open ID Hub</strong>
+          <p>{t("Claim trial, quản lý Open ID và tạo Gateway token.", "Claim trial, manage Open ID, and generate Gateway tokens.")}</p>
+          <span className="overview-action-card__link">{t("Quản lý quyền", "Manage access")} →</span>
+        </button>
+        <button className="overview-action-card" onClick={() => onNavigate("gpt-integration")} type="button">
+          <span className="feature-icon"><Sparkles /></span>
+          <span className="overview-action-card__index">03</span>
+          <strong>GPT Integration</strong>
+          <p>{t("Tải kit, từng file cấu hình và làm theo setup guide.", "Download the kit, individual configuration files, and follow the setup guide.")}</p>
+          <span className="overview-action-card__link">{t("Cấu hình GPT", "Configure GPT")} →</span>
+        </button>
+      </section>
+
+      <section className="gateway-route-card">
+        <div className="panel-heading">
+          <div>
+            <span className="eyebrow">GATEWAY ROUTING</span>
+            <h2>{t("Execution boundary", "Execution boundary")}</h2>
+          </div>
+          <span className="status good">{t("Open ID enforced", "Open ID enforced")}</span>
+        </div>
+        <div className="route-pipeline">
+          <RouteStep index="01" label="Custom GPT" detail={t("Hiểu intent", "Understand intent")} />
+          <Waypoints size={18} />
+          <RouteStep index="02" label="Gateway" detail={t("Kiểm tra entitlement", "Resolve entitlement")} active />
+          <Waypoints size={18} />
+          <RouteStep index="03" label="MCP service" detail={t("Discovery + execute", "Discover + execute")} />
+        </div>
+        <p className="muted route-note">
+          {t(
+            "Invariant: Custom GPT không thể truy cập MCP nếu request không được authorize qua active Gateway Open ID entitlement.",
+            "Invariant: a Custom GPT cannot access MCP unless the request is authorized through an active Gateway Open ID entitlement.",
+          )}
+        </p>
+      </section>
+    </>
+  );
+}
+
+function RouteStep({
+  active = false,
+  detail,
+  index,
+  label,
+}: {
+  active?: boolean;
+  detail: string;
+  index: string;
+  label: string;
+}) {
+  return (
+    <div className={`route-step ${active ? "active" : ""}`}>
+      <span>{index}</span>
+      <strong>{label}</strong>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
+function ConsoleScreenHeader({
+  badge,
+  children,
+  description,
+  eyebrow,
+  title,
+}: {
+  badge: string;
+  children: ReactNode;
+  description: string;
+  eyebrow: string;
+  title: string;
+}) {
+  return (
+    <section className="console-screen">
+      <header className="console-screen__header">
+        <div>
+          <span className="eyebrow">{eyebrow}</span>
+          <h1>{title}</h1>
+          <p className="lead small">{description}</p>
+        </div>
+        <span className="status">{badge}</span>
+      </header>
+      <div className="console-screen__body">{children}</div>
+    </section>
+  );
+}
+
+function screenLabel(
+  screen: AppScreen,
+  t: (vi: string, en: string) => string,
+) {
+  if (screen === "mcp-services") return "MCP Services";
+  if (screen === "open-id") return "Open ID Hub";
+  if (screen === "gpt-integration") return "GPT Integration";
+  return t("Tổng quan", "Overview");
 }
