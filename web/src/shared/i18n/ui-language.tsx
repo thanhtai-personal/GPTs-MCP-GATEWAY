@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { UI_COPY } from "@/shared/i18n/ui-copy";
 
 export type UiLanguage = "vi" | "en" | "zh" | "ko" | "ja";
-export type UiTranslator = (vi: string, en: string) => string;
+export type UiTranslator = (vi: string, en: string, zh?: string, ko?: string, ja?: string) => string;
 
 export const UI_LANGUAGE_OPTIONS: ReadonlyArray<{ value: UiLanguage; label: string; shortLabel: string }> = [
   { value: "vi", label: "Tiếng Việt", shortLabel: "VI" },
@@ -19,10 +19,11 @@ type UiLanguageContextValue = { language: UiLanguage; setLanguage: (language: Ui
 const UiLanguageContext = createContext<UiLanguageContextValue | null>(null);
 
 export function createUiTranslator(language: UiLanguage): UiTranslator {
-  return (vi: string, en: string) => {
+  return (vi, en, zh, ko, ja) => {
     if (language === "vi") return vi;
     if (language === "en") return en;
-    return UI_COPY[en]?.[language] ?? en;
+    const explicit = language === "zh" ? zh : language === "ko" ? ko : ja;
+    return explicit ?? UI_COPY[en]?.[language] ?? en;
   };
 }
 
