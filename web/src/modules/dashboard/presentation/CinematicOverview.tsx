@@ -1,5 +1,6 @@
 import { Activity, ArrowRight, Boxes, KeyRound, ShieldCheck, Sparkles, Waypoints } from "lucide-react";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+import "./CinematicOverview.css";
 
 type OverviewTarget = "mcp-services" | "open-id" | "gpt-integration";
 
@@ -70,7 +71,11 @@ export function CinematicOverview({
           </article>
           <article className="cinematic-metric-card cinematic-metric-card--secure">
             <ShieldCheck size={18} />
-            <div><span>SECURITY BOUNDARY</span><strong>ACTIVE</strong><small>token → Open ID → provider</small></div>
+            <div className="cinematic-security-boundary-copy">
+              <span>{t("RANH GIỚI BẢO MẬT", "SECURITY BOUNDARY")}</span>
+              <strong>{t("ĐANG BẢO VỆ", "PROTECTED")}</strong>
+              <small>{t("Gateway token → xác thực Open ID → gọi provider", "Gateway token → verify Open ID → call provider")}</small>
+            </div>
           </article>
         </aside>
       </section>
@@ -110,18 +115,7 @@ export function CinematicOverview({
   );
 }
 
-
-function RouteStep({
-  active = false,
-  detail,
-  index,
-  label,
-}: {
-  active?: boolean;
-  detail: string;
-  index: string;
-  label: string;
-}) {
+function RouteStep({ active = false, detail, index, label }: { active?: boolean; detail: string; index: string; label: string }) {
   return (
     <div className={`route-step ${active ? "active" : ""}`}>
       <span>{index}</span>
@@ -130,4 +124,3 @@ function RouteStep({
     </div>
   );
 }
-
