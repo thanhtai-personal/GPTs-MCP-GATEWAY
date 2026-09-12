@@ -2388,3 +2388,396 @@ label { color: var(--text-2); }
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ==========================================================================
+   UI regression fixes — viewport containment + Light theme contrast
+   ========================================================================== */
+
+/*
+ * Keep decorative lighting inside the authenticated content viewport.
+ * `clip` is intentional here: unlike `hidden`, it does not create a scrolling
+ * container and therefore does not interfere with sticky UI.
+ */
+.app-shell,
+.app-main {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.app-main {
+  overflow-x: clip;
+}
+
+.app-topbar--dynamic,
+.app-topbar--dynamic > *,
+.app-content,
+.app-content--screen,
+.route-pipeline,
+.route-pipeline > * {
+  min-width: 0;
+}
+
+/* Preserve the responsive content width without allowing it to exceed its grid track. */
+.app-content,
+.app-content--screen {
+  max-width: calc(100% - 2rem);
+}
+
+/*
+ * Bridge legacy component tokens to the dual-theme semantic token system.
+ * A number of older components still consume --text / --muted / --border.
+ */
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --bg: var(--canvas);
+  --bg-elevated: var(--canvas-elevated);
+  --panel: var(--surface-1);
+  --panel-soft: var(--surface-2);
+  --panel-hover: var(--surface-3);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --text: var(--text-1);
+  --muted: var(--text-2);
+  --dim: var(--text-3);
+  --primary: var(--brand);
+  --primary-soft: color-mix(in srgb, var(--brand) 11%, transparent);
+  --cyan: var(--live);
+  --success: var(--ok);
+  --danger: var(--bad);
+}
+
+/* Semanticize dashboard routing so it remains readable in both themes. */
+.route-pipeline > svg {
+  color: var(--text-3);
+}
+
+.route-step {
+  color: var(--text-1);
+  border-color: var(--line);
+  background: var(--surface-code);
+}
+
+.route-step > span {
+  color: var(--text-3);
+}
+
+.route-step strong {
+  color: var(--text-1);
+}
+
+.route-step small,
+.route-note {
+  color: var(--text-2);
+}
+
+.route-step.active {
+  color: var(--text-1);
+  border-color: color-mix(in srgb, var(--live) 42%, var(--line));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--brand) 8%, var(--surface-2)),
+      color-mix(in srgb, var(--live) 5%, var(--surface-2))
+    );
+}
+
+/* Secondary labels must stay readable instead of inheriting old dark-theme grays. */
+.overview-stat__label,
+.overview-action-card__index,
+.section-index,
+.integration-step-card__number,
+.app-nav__group-label,
+.app-nav__item--disabled small {
+  color: var(--text-3);
+}
+
+.overview-action-card__link {
+  color: var(--brand-bright);
+}
+
+/* Light mode gets purpose-built surfaces and text, not an inversion of Dark mode. */
+:root[data-theme="light"] {
+  --canvas: #f3f6fb;
+  --canvas-elevated: #eaf0f7;
+  --surface-1: rgba(255, 255, 255, .96);
+  --surface-2: rgba(248, 250, 252, .98);
+  --surface-3: rgba(238, 243, 249, .98);
+  --surface-glass: rgba(255, 255, 255, .84);
+  --surface-code: rgba(241, 245, 249, .98);
+  --line: rgba(51, 65, 85, .17);
+  --line-strong: rgba(79, 70, 229, .32);
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
+  --brand: #4f46e5;
+  --brand-bright: #4338ca;
+  --live: #0e7490;
+  --ok: #047857;
+  --bad: #be123c;
+}
+
+/* Authenticated shell contrast */
+:root[data-theme="light"] .app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,249,252,.98));
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .app-topbar {
+  background: rgba(248, 250, 252, .88);
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .app-topbar__context,
+:root[data-theme="light"] .app-topbar__context code,
+:root[data-theme="light"] .app-topbar__search,
+:root[data-theme="light"] .app-topbar__search kbd {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .app-topbar__context strong {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .app-topbar__search {
+  background: rgba(255,255,255,.82);
+}
+
+:root[data-theme="light"] .app-nav__item {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .app-nav__item:hover {
+  color: var(--text-1);
+  background: rgba(79,70,229,.055);
+}
+
+:root[data-theme="light"] .app-nav__item.active {
+  color: #312e81;
+  background:
+    linear-gradient(90deg, rgba(79,70,229,.11), rgba(79,70,229,.035));
+  box-shadow:
+    inset 2px 0 var(--brand),
+    0 8px 22px rgba(79,70,229,.07);
+}
+
+/* Dashboard cards / routing */
+:root[data-theme="light"] .overview-stat,
+:root[data-theme="light"] .overview-action-card,
+:root[data-theme="light"] .gateway-route-card {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .overview-stat {
+  background: rgba(255,255,255,.94);
+}
+
+:root[data-theme="light"] .overview-action-card p,
+:root[data-theme="light"] .route-note {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .route-step {
+  background: #f8fafc;
+  border-color: rgba(51,65,85,.19);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+:root[data-theme="light"] .route-step.active {
+  background:
+    linear-gradient(135deg, rgba(79,70,229,.075), rgba(14,116,144,.045)),
+    #f8fafc;
+  border-color: rgba(14,116,144,.48);
+  box-shadow:
+    0 12px 28px rgba(14,116,144,.07),
+    inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* MCP Services */
+:root[data-theme="light"] .provider-summary > div,
+:root[data-theme="light"] .provider-card,
+:root[data-theme="light"] .provider-card__footer,
+:root[data-theme="light"] .provider-card__meta {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .provider-summary > div {
+  background: #ffffff;
+}
+
+:root[data-theme="light"] .provider-summary__value,
+:root[data-theme="light"] .credential-field > span {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .provider-summary > div > span:last-child,
+:root[data-theme="light"] .provider-card__meta,
+:root[data-theme="light"] .provider-card__footer,
+:root[data-theme="light"] .provider-card__footer code {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .provider-card__meta,
+:root[data-theme="light"] .provider-card__footer {
+  background: #f8fafc;
+}
+
+/* Open ID */
+:root[data-theme="light"] .open-id-invariant p,
+:root[data-theme="light"] .trial-active-box p,
+:root[data-theme="light"] .trial-expired-box p,
+:root[data-theme="light"] .entitlement-note-card p,
+:root[data-theme="light"] .access-timeline > div {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .access-timeline > div.done {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .access-timeline > div span,
+:root[data-theme="light"] .open-id-row,
+:root[data-theme="light"] .secret-token {
+  background: #f8fafc;
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .secret-token code {
+  color: #92400e;
+}
+
+/* GPT Integration workbench */
+:root[data-theme="light"] .integration-file,
+:root[data-theme="light"] .routing-code,
+:root[data-theme="light"] .routing-call-chain span,
+:root[data-theme="light"] .integration-inspector__trace {
+  background: #f8fafc;
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .integration-file code,
+:root[data-theme="light"] .routing-code code {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .integration-file small,
+:root[data-theme="light"] .routing-call-chain,
+:root[data-theme="light"] .routing-call-chain span {
+  color: var(--text-2);
+}
+
+/* Public marketing technical surfaces */
+:root[data-theme="light"] .landing-signal-strip,
+:root[data-theme="light"] .landing-status-strip,
+:root[data-theme="light"] .entitlement-visual,
+:root[data-theme="light"] .gateway-inspector,
+:root[data-theme="light"] .discovery-console,
+:root[data-theme="light"] .kit-file-list,
+:root[data-theme="light"] .final-cta__status {
+  color: var(--text-1);
+  background: rgba(255,255,255,.9);
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .marketing-step,
+:root[data-theme="light"] .workflow-step,
+:root[data-theme="light"] .mini-route span,
+:root[data-theme="light"] .entitlement-chain > div,
+:root[data-theme="light"] .inspector-node,
+:root[data-theme="light"] .product-distinction > div,
+:root[data-theme="light"] .provider-meta span,
+:root[data-theme="light"] .provider-operation {
+  color: var(--text-1);
+  background: #f8fafc;
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .landing-signals strong,
+:root[data-theme="light"] .landing-signals span,
+:root[data-theme="light"] .entitlement-chain small,
+:root[data-theme="light"] .entitlement-chain code,
+:root[data-theme="light"] .inspector-node > span,
+:root[data-theme="light"] .inspector-node small,
+:root[data-theme="light"] .inspector-node strong,
+:root[data-theme="light"] .gateway-inspector__metrics small,
+:root[data-theme="light"] .gateway-inspector__metrics strong,
+:root[data-theme="light"] .system-status > span,
+:root[data-theme="light"] .system-status > strong,
+:root[data-theme="light"] .marketing-step > span,
+:root[data-theme="light"] .workflow-step__index,
+:root[data-theme="light"] .protocol-strip code,
+:root[data-theme="light"] .protocol-strip span,
+:root[data-theme="light"] .product-distinction strong,
+:root[data-theme="light"] .provider-meta small,
+:root[data-theme="light"] .provider-meta strong,
+:root[data-theme="light"] .provider-operation code,
+:root[data-theme="light"] .console-row > span,
+:root[data-theme="light"] .console-row code,
+:root[data-theme="light"] .kit-file code,
+:root[data-theme="light"] .kit-file-list > small,
+:root[data-theme="light"] .journey-step strong,
+:root[data-theme="light"] .journey-note,
+:root[data-theme="light"] .footer-links strong,
+:root[data-theme="light"] .footer-links a,
+:root[data-theme="light"] .footer-system code,
+:root[data-theme="light"] .footer-system span {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .console-row.active code,
+:root[data-theme="light"] .journey-step.active strong {
+  color: var(--brand-bright);
+}
+
+:root[data-theme="light"] .console-row.success code {
+  color: var(--ok);
+}
+
+/* Sign-in light theme */
+:root[data-theme="light"] .auth-showcase,
+:root[data-theme="light"] .auth-form-pane,
+:root[data-theme="light"] .auth-card {
+  color: var(--text-1);
+}
+
+:root[data-theme="light"] .auth-route-preview > div,
+:root[data-theme="light"] .auth-system-grid > div,
+:root[data-theme="light"] .auth-security-note {
+  color: var(--text-2);
+  background: rgba(248,250,252,.88);
+  border-color: var(--line);
+}
+
+:root[data-theme="light"] .auth-route-preview > div.active {
+  color: #312e81;
+  background: rgba(79,70,229,.07);
+}
+
+:root[data-theme="light"] .auth-system-grid span,
+:root[data-theme="light"] .auth-security-note p,
+:root[data-theme="light"] .auth-back-link {
+  color: var(--text-2);
+}
+
+:root[data-theme="light"] .auth-system-grid strong {
+  color: var(--text-1);
+}
+
+/* Keep the navigation/content containment strict on smaller desktops too. */
+@media (max-width: 1180px) {
+  .app-topbar--dynamic {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  }
+
+  .app-topbar__context {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .app-topbar__context code,
+  .app-topbar__context strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
