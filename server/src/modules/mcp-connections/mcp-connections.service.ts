@@ -11,13 +11,11 @@ import { AuditService } from '@server/root/modules/audit/audit.service';
 import { resolveProviderAccessMode } from '@server/root/modules/mcp-connections/mcp-access-mode';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.service';
-import type { ConnectGoogleWorkspaceDto } from '@server/root/modules/mcp-connections/dto/connect-google-workspace.dto';
 import {
   groupProviderConnectionRows,
 } from '@server/root/modules/mcp-connections/mcp-connection-grouping';
 import {
   GOOGLE_WORKSPACE_PROVIDER_IDS,
-  googleWorkspaceCredential,
 } from '@server/root/modules/mcp-connections/google-workspace-connection';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
@@ -205,24 +203,17 @@ export class McpConnectionsService {
     }
   }
 
-  async connectGoogleWorkspace(
-    request: Request,
-    dto: ConnectGoogleWorkspaceDto,
+  async connectGoogleWorkspaceCredential(
+    userId: string,
+    credential: McpOAuthCredential,
   ) {
-    const user = await this.auth.requireUser(request);
     const providers = GOOGLE_WORKSPACE_PROVIDER_IDS.map((id) =>
       this.providers.get(id),
     );
-    const credential = googleWorkspaceCredential(dto);
     await Promise.all(
       providers.map((provider) => provider.testConnection(credential)),
     );
-    const connection = await this.saveCredential(
-      user.id,
-      providers[0],
-      credential,
-    );
-    return { connection, status: 'connected' as const };
+    return this.saveCredential(userId, providers[0], credential);
   }
 
   async removeOwn(request: Request, providerId: string) {

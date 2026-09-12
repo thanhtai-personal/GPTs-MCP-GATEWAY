@@ -102,3 +102,33 @@ runtime discovery still exposes separate Docs and Sheets services and skills.
 Google Workspace MCP is Developer Preview. Tool catalogs and provider behavior
 can change. GPT skills therefore route intent and safety workflow but runtime
 `tools/list` and tool schemas remain authoritative.
+
+
+## Gateway OAuth callback for test mode
+
+Google Workspace MCP authorization no longer reuses the Supabase
+`provider_token`. Supabase Google OAuth remains account sign-in only.
+
+MCP Gateway performs a separate Google OAuth web-server flow with the same
+Google OAuth client ID/secret and uses the signed-in account email as
+`login_hint`.
+
+Add this additional Authorized redirect URI to the Google OAuth Web client:
+
+```text
+<GATEWAY_PUBLIC_BASE_URL>/api/v1/mcp-connections/google-workspace/oauth/callback
+```
+
+Keep the existing Supabase redirect URI as well. Both redirects can coexist on
+the same Google OAuth Web client.
+
+The Gateway flow requests `access_type=offline`, `prompt=consent`, and the
+combined Docs + Sheets scopes. Before calling the remote MCP endpoint, Gateway
+validates the freshly-issued access token with Google's token diagnostics and
+checks the required scopes.
+
+If that fresh token is valid but the remote MCP still returns 401, Gateway
+reports `GOOGLE_WORKSPACE_MCP_ACCESS_REJECTED` instead of incorrectly asking
+the user to reconnect. For a Developer Preview test account, verify enrollment
+of both the Workspace account and Google Cloud project and verify the MCP APIs
+are enabled.

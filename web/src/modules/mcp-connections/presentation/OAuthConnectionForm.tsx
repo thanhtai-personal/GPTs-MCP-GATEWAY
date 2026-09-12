@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/infrastructure/google-workspace-oauth";
+import { startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/api/mcp-connections.api";
 import type {
   McpConnection,
   McpProvider,
@@ -128,16 +128,21 @@ export function OAuthConnectionForm({
             if (isGoogleWorkspaceProvider) {
               setGooglePending(true);
               setGoogleError(null);
-              void startGoogleWorkspaceOAuth(currentReturnTarget()).catch(
-                (error: unknown) => {
+              void startGoogleWorkspaceOAuth(
+                accessToken,
+                currentReturnTarget(),
+              )
+                .then(({ authorizationUrl }) => {
+                  window.location.assign(authorizationUrl);
+                })
+                .catch((error: unknown) => {
                   setGooglePending(false);
                   setGoogleError(
                     error instanceof Error
                       ? error.message
                       : "GOOGLE_WORKSPACE_OAUTH_FAILED",
                   );
-                },
-              );
+                });
               return;
             }
 

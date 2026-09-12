@@ -37,8 +37,8 @@ export class GoogleDocsMcpAdapter implements McpProviderAdapter {
       configured: tokens.configured,
       note: tokens.configured
         ? {
-            en: 'Uses the Google account already signed in to MCP Gateway. Google Docs/Sheets MCP is Developer Preview: the Google Cloud project and test account must have preview access, and the Docs/Sheets APIs plus MCP APIs must be enabled.',
-            vi: 'Dùng tài khoản Google đang đăng nhập MCP Gateway. Google Docs/Sheets MCP đang ở Developer Preview: Google Cloud project và tài khoản test phải được cấp preview access, đồng thời phải bật Docs/Sheets API và MCP API tương ứng.',
+            en: 'TEST / Developer Preview. Gateway runs a dedicated Google OAuth consent flow for Workspace MCP while using the signed-in account as login_hint. The Workspace account and Cloud project must be enrolled in Developer Preview.',
+            vi: 'TEST / Developer Preview. Gateway mở Google OAuth consent riêng cho Workspace MCP nhưng dùng login_hint của tài khoản đang đăng nhập. Google Workspace account và Cloud project phải được enroll Developer Preview.',
           }
         : {
             en: 'Configure GOOGLE_WORKSPACE_OAUTH_CLIENT_ID/SECRET with the same Google OAuth client used by Supabase Auth.',

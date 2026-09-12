@@ -18,6 +18,7 @@ import { RemoteMcpHttpClient } from '@server/root/modules/mcp-gateway/providers/
 import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
 import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
 import { McpConnectionsController } from '@server/root/modules/mcp-connections/mcp-connections.controller';
+import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { McpOAuthClientRegistrationClient } from '@server/root/modules/mcp-connections/mcp-oauth-client-registration.client';
@@ -73,6 +74,7 @@ import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.
     McpOAuthProtocolClient,
     McpOAuthService,
     McpConnectionsService,
+    GoogleWorkspaceOAuthService,
   ],
   exports: [McpConnectionsService, McpProviderRegistry],
 })

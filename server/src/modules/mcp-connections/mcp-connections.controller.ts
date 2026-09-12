@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
-import { ConnectGoogleWorkspaceDto } from '@server/root/modules/mcp-connections/dto/connect-google-workspace.dto';
 import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
+import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 
 @Controller('mcp-connections')
@@ -23,6 +23,7 @@ export class McpConnectionsController {
   constructor(
     private readonly config: AppConfigService,
     private readonly connections: McpConnectionsService,
+    private readonly googleWorkspaceOAuth: GoogleWorkspaceOAuthService,
   ) {}
 
   @Get('providers')
@@ -45,12 +46,57 @@ export class McpConnectionsController {
     return this.connections.saveOwn(request, dto);
   }
 
-  @Post('google-workspace')
-  connectGoogleWorkspace(
+  @Post('google-workspace/oauth/start')
+  startGoogleWorkspaceOAuth(
     @Req() request: Request,
-    @Body() dto: ConnectGoogleWorkspaceDto,
+    @Body() dto: StartMcpOAuthDto,
   ) {
-    return this.connections.connectGoogleWorkspace(request, dto);
+    return this.googleWorkspaceOAuth.start(request, dto);
+  }
+
+  @Get('google-workspace/oauth/callback')
+  async googleWorkspaceOAuthCallback(
+    @Query('code') code: string | undefined,
+    @Query('state') state: string | undefined,
+    @Query('error') oauthError: string | undefined,
+    @Res() response: Response,
+  ) {
+    const returnTo = state
+      ? this.googleWorkspaceOAuth.returnToFromState(state)
+      : undefined;
+
+    if (oauthError || !code || !state) {
+      response.redirect(
+        this.webRedirect(
+          'google-workspace',
+          'error',
+          oauthError || 'MCP_OAUTH_CALLBACK_INVALID',
+          returnTo,
+        ),
+      );
+      return;
+    }
+
+    try {
+      const result = await this.googleWorkspaceOAuth.complete(code, state);
+      response.redirect(
+        this.webRedirect(
+          'google-workspace',
+          'connected',
+          undefined,
+          result.returnTo ?? returnTo,
+        ),
+      );
+    } catch (error) {
+      response.redirect(
+        this.webRedirect(
+          'google-workspace',
+          'error',
+          this.errorCode(error),
+          returnTo,
+        ),
+      );
+    }
   }
 
   @Post(':provider/oauth/start')
