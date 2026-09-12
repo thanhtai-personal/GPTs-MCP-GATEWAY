@@ -32,7 +32,7 @@ export function GptIntegrationPanel({
   accessToken: string;
   isMember?: boolean;
 }) {
-  const { language, setLanguage, t } = useUiLanguage();
+  const { language, t } = useUiLanguage();
   const trial = useTrialStatus(accessToken);
   const skills = useProviderSkillSelection(accessToken);
   const [error, setError] = useState<string | null>(null);
@@ -120,22 +120,6 @@ export function GptIntegrationPanel({
                 ? "TRIAL ACTIVE"
                 : "SETUP AVAILABLE"}
           </span>
-          <div className="integration-language" aria-label={t("Ngôn ngữ kit", "Kit language")}>
-            <button
-              className={language === "en" ? "active" : ""}
-              onClick={() => setLanguage("en")}
-              type="button"
-            >
-              EN
-            </button>
-            <button
-              className={language === "vi" ? "active" : ""}
-              onClick={() => setLanguage("vi")}
-              type="button"
-            >
-              VI
-            </button>
-          </div>
         </div>
         {error ? <p className="notice error">{error}</p> : null}
       </section>
