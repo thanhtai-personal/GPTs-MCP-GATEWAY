@@ -2,14 +2,20 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import {
+  getProviderSkill,
+  providerSkills,
+} from '@server/root/modules/gpt-integration/provider-skills/provider-skill.catalog';
 import { CallMcpToolDto } from '@server/root/modules/mcp-gateway/dto/call-mcp-tool.dto';
 import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
 import { resolveMcpToolArguments } from '@server/root/modules/mcp-gateway/mcp-tool-arguments';
@@ -31,6 +37,28 @@ export class McpGatewayController {
   @Get('profile')
   profile(@Req() request: GatewayRequest) {
     return this.gateway.profile(this.principal(request));
+  }
+
+  @Get('skills')
+  listSkills() {
+    return providerSkills().map((skill) => ({ id: skill.id }));
+  }
+
+  @Get('skills/:skillId')
+  getSkill(
+    @Param('skillId') skillId: string,
+    @Query('language') languageRaw: string | undefined,
+  ) {
+    const skill = getProviderSkill(skillId);
+    if (!skill) {
+      throw new NotFoundException({
+        code: 'GATEWAY_SKILL_NOT_FOUND',
+        message: `Gateway skill not found: ${skillId}`,
+      });
+    }
+
+    const language = languageRaw === 'vi' ? 'vi' : 'en';
+    return { id: skill.id, content: skill.content(language) };
   }
 
   @Get('mcp/services')
@@ -58,7 +86,6 @@ export class McpGatewayController {
       toolName,
     );
   }
-
 
   @Get('responses/:transferId/chunks/:chunkIndex')
   @SkipGptResponseEnvelope()

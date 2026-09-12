@@ -19,19 +19,12 @@ const SKILLS: Record<ProviderSkillId, ProviderSkillFile> = {
   'google-sheets': googleSheetsSkill,
 };
 
-export function parseProviderSkills(raw?: string): ProviderSkillId[] {
-  if (!raw?.trim()) return [];
-
-  const requested = new Set(
-    raw
-      .split(',')
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean),
-  );
-
-  return PROVIDER_SKILL_IDS.filter((id) => requested.has(id));
+export function providerSkills() {
+  return PROVIDER_SKILL_IDS.map((id) => SKILLS[id]);
 }
 
-export function providerSkillFiles(ids: ProviderSkillId[]) {
-  return ids.map((id) => SKILLS[id]);
+export function getProviderSkill(id: string) {
+  return PROVIDER_SKILL_IDS.includes(id as ProviderSkillId)
+    ? SKILLS[id as ProviderSkillId]
+    : undefined;
 }
