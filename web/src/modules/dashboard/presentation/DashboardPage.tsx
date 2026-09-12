@@ -1,16 +1,22 @@
 import {
+  Activity,
+  Bell,
   Boxes,
+  CreditCard,
+  Download,
   KeyRound,
   LayoutDashboard,
   LogOut,
   PlugZap,
+  Search,
+  Settings,
   ShieldCheck,
   Sparkles,
   Waypoints,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAccount } from "@/modules/account/queries/account.queries";
-import { AuthPanel } from "@/modules/auth/presentation/components/AuthPanel";
+import { SignInExperience } from "@/modules/auth/presentation/components/SignInExperience";
 import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
 import { useSession } from "@/modules/auth/presentation/hooks/useSession";
 import { GptIntegrationPanel } from "@/modules/gpt-integration/presentation/GptIntegrationPanel";
@@ -20,7 +26,6 @@ import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
 type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
-
 const SCREEN_IDS = new Set<AppScreen>([
   "overview",
   "mcp-services",
@@ -40,7 +45,6 @@ export function DashboardPage() {
   const accessToken = session?.access_token ?? "";
   const account = useAccount(accessToken);
   const [activeScreen, setActiveScreen] = useState<AppScreen>(getScreenFromHash);
-
   useEffect(() => {
     const onHashChange = () => setActiveScreen(getScreenFromHash());
     window.addEventListener("hashchange", onHashChange);
@@ -51,21 +55,7 @@ export function DashboardPage() {
     return <main className="app-loading">{t("Đang tải…", "Loading…")}</main>;
   }
 
-  if (!session) {
-    return (
-      <main className="auth-page">
-        <div className="auth-page__bar">
-          <a className="brand brand--large" href="/">
-            <span className="brand-mark"><PlugZap size={18} /></span>
-            MCP Gateway
-          </a>
-          <LanguageSwitcher />
-        </div>
-        <div className="auth-page__content"><AuthPanel /></div>
-      </main>
-    );
-  }
-
+  if (!session) return <SignInExperience />;
   const setScreen = (screen: AppScreen) => {
     setActiveScreen(screen);
     if (typeof window !== "undefined") {
@@ -83,6 +73,7 @@ export function DashboardPage() {
         </a>
 
         <nav className="app-nav" aria-label={t("Điều hướng Console", "Console navigation")}>
+          <span className="app-nav__group-label">CORE</span>
           <AppNavItem
             active={activeScreen === "overview"}
             icon={<LayoutDashboard size={18} />}
@@ -111,6 +102,13 @@ export function DashboardPage() {
             onSelect={() => setScreen("gpt-integration")}
             screen="gpt-integration"
           />
+          <div className="app-nav__secondary" aria-label={t("Thông tin bổ sung", "Additional console areas")}>
+            <span className="app-nav__group-label">CREDENTIALS &amp; METRICS</span>
+            <span className="app-nav__item app-nav__item--disabled"><KeyRound size={18} /><span>Gateway Tokens</span><small>—</small></span>
+            <span className="app-nav__item app-nav__item--disabled"><Activity size={18} /><span>Usage &amp; Telemetry</span><small>—</small></span>
+            <span className="app-nav__item app-nav__item--disabled"><CreditCard size={18} /><span>Billing / Quota</span><small>—</small></span>
+            <span className="app-nav__item app-nav__item--disabled"><Settings size={18} /><span>Settings</span><small>—</small></span>
+          </div>
         </nav>
 
         <div className="sidebar-account">
@@ -133,13 +131,27 @@ export function DashboardPage() {
       </aside>
 
       <section className="app-main">
-        <header className="app-topbar">
-          <div>
-            <span className="topbar-kicker">CONTROL PLANE</span>
-            <strong>{screenLabel(activeScreen, t)}</strong>
+        <header className="app-topbar app-topbar--dynamic">
+          <div className="app-topbar__context">
+            <code>mcp-prod-ap-9</code>
+            <span>/</span>
+            <strong>mcp-gateway</strong>
           </div>
+          <div className="app-topbar__search" role="search">
+            <Search size={15} />
+            <span>{t("Tìm endpoint, tool, Open ID…", "Quick search endpoints, tools, Open ID…")}</span>
+            <kbd>⌘K</kbd>
+          </div>
+
           <div className="app-topbar__actions">
-            <span className="system-badge"><span /> {t("Gateway hoạt động", "Gateway operational")}</span>
+            <span className="system-badge"><span /> All Nodes 99.99%</span>
+            <button className="secondary compact-button" onClick={() => setScreen("gpt-integration")} type="button">
+              <Download size={14} /> {t("Tải Kit", "Download Kit")}
+            </button>
+            <button className="compact-button" onClick={() => setScreen("open-id")} type="button">
+              <KeyRound size={14} /> {t("Tạo Token", "Generate Token")}
+            </button>
+            <button aria-label={t("Thông báo", "Notifications")} className="icon-button" type="button"><Bell size={16} /></button>
             <LanguageSwitcher />
           </div>
         </header>

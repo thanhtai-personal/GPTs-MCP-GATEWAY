@@ -25,31 +25,39 @@ export function AuthPanel() {
   }
 
   return (
-    <section className="card auth-card">
-      <h2>{t("Đăng nhập MCP Gateway", "Sign in to MCP Gateway")}</h2>
-      <p className="muted">
-        {t(
-          "Dùng tài khoản Google để thêm MCP key, lấy GPT kit và bắt đầu trial.",
-          "Use your Google account to add MCP keys, download the GPT kit, and start your trial.",
-        )}
-      </p>
+    <section className="auth-card">
+      <div className="auth-card__heading">
+        <span className="eyebrow">SECURE ACCOUNT ACCESS</span>
+        <h2>{t("Đăng nhập", "Sign in")}</h2>
+        <p className="muted">
+          {t(
+            "Truy cập MCP Gateway account của bạn.",
+            "Access your MCP Gateway account.",
+          )}
+        </p>
+      </div>
 
       <button
+        className="auth-google-button"
         disabled={isSigningIn}
         onClick={() => void signInWithGoogle()}
         type="button"
       >
+        <span className="google-mark" aria-hidden="true">G</span>
         {isSigningIn
           ? t("Đang chuyển đến Google…", "Redirecting to Google…")
           : t("Tiếp tục với Google", "Continue with Google")}
       </button>
 
-      <p className="muted">
-        {t(
-          "Đăng nhập được xử lý bởi Google và Supabase Auth. MCP Gateway không nhận mật khẩu Google của bạn.",
-          "Sign-in is handled by Google and Supabase Auth. MCP Gateway never receives your Google password.",
-        )}
-      </p>
+      <div className="auth-security-note">
+        <span className="status-dot status-dot--success" />
+        <p>
+          {t(
+            "Google và Supabase Auth xử lý đăng nhập. MCP Gateway không nhận mật khẩu Google và không đưa provider credentials vào GPT context.",
+            "Google and Supabase Auth handle sign-in. MCP Gateway never receives your Google password or exposes provider credentials to GPT context.",
+          )}
+        </p>
+      </div>
 
       {error ? <p className="notice error">{error}</p> : null}
     </section>
