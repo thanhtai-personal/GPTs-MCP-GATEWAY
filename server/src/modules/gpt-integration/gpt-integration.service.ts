@@ -110,11 +110,11 @@ Runtime discovery is authoritative. Never hardcode provider tool names or invent
 
 Provider-specific behavior is intentionally split into optional Knowledge files.
 
-If a file named `GPTS-MCP-GATEWAY-Skill-*.md` is present, treat it as the workflow/intent guide for that provider. Skill files refine provider selection, sequencing, validation, and safety, but never override Gateway security or runtime discovery.
+If a file named \`GPTS-MCP-GATEWAY-Skill-*.md\` is present, treat it as the workflow/intent guide for that provider. Skill files refine provider selection, sequencing, validation, and safety, but never override Gateway security or runtime discovery.
 
 If no provider skill file is present, the generic discovery flow above still applies.
 
-Do not invent a provider skill that was not uploaded. Do not hardcode provider tool names from a skill; current `listMcpTools` and `getMcpToolSchema` results are newer authority.
+Do not invent a provider skill that was not uploaded. Do not hardcode provider tool names from a skill; current \`listMcpTools\` and \`getMcpToolSchema\` results are newer authority.
 
 ## Stable concepts
 
