@@ -14,6 +14,7 @@ import {
   LiveRouterConsole,
   MarketingStep,
 } from "@/modules/marketing/presentation/LandingVisuals";
+import { WorkflowTransformationSection } from "@/modules/marketing/presentation/WorkflowTransformationSection";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { useLandingScrollReveal } from "@/modules/marketing/presentation/hooks/useLandingScrollReveal";
@@ -209,9 +210,9 @@ export function LandingPage({ language }: Props) {
 
       <section className="landing-section container" id="mcp-services">
         <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
-          <span className="eyebrow">FIRST PROVIDER INTEGRATION</span>
-          <h2>{t("Bắt đầu với Google Stitch.", "Start with Google Stitch.")}</h2>
-          <p>{t("Hỗ trợ provider được phê duyệt, credential thuộc chính user.", "Approved providers only, with user-owned credentials.")}</p>
+          <span className="eyebrow">PROVIDER INTEGRATIONS</span>
+          <h2>{t("Bắt đầu với Stitch, làm việc trực tiếp với GitHub.", "Start with Stitch, work directly with GitHub.")}</h2>
+          <p>{t("Provider được kết nối qua Gateway với credential thuộc chính user.", "Providers connect through Gateway with user-owned credentials.")}</p>
         </div>
 
         <article className="stitch-provider-v2" data-reveal="zoom-in">
@@ -239,7 +240,7 @@ export function LandingPage({ language }: Props) {
         </article>
 
         <div className="coming-provider-row">
-          <article><span>G</span><div><strong>GitHub MCP Provider</strong><small>COMING SOON</small></div></article>
+          <article><span>G</span><div><strong>GitHub MCP Provider</strong><small>AVAILABLE · READ / WRITE</small></div></article>
           <article><span>F</span><div><strong>Figma MCP Provider</strong><small>COMING SOON</small></div></article>
         </div>
       </section>
@@ -264,6 +265,8 @@ export function LandingPage({ language }: Props) {
           </div>
         </div>
       </section>
+
+      <WorkflowTransformationSection language={language} />
 
       <section className="landing-section container walkthrough-section" id="walkthrough">
         <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
