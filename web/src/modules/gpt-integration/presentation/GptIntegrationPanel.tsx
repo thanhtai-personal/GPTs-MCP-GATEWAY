@@ -10,15 +10,12 @@ import {
   Waypoints,
 } from "lucide-react";
 import { useState } from "react";
-import { ProviderSkillSelector } from "@/modules/gpt-integration/provider-skills/ProviderSkillSelector";
 import { GptSetupWalkthrough } from "@/modules/gpt-integration/presentation/GptSetupWalkthrough";
-import { PROVIDER_SKILL_OPTIONS } from "@/modules/gpt-integration/provider-skills/provider-skill.types";
-import { useProviderSkillSelection } from "@/modules/gpt-integration/provider-skills/useProviderSkillSelection";
 import { useTrialStatus } from "@/modules/open-id/queries/open-id.queries";
 import { downloadGatewayFile } from "@/shared/api/gateway-api";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
-const BASE_KIT_FILES = [
+const KIT_FILES = [
   { name: "instructions.md", icon: FileText, kind: "INSTRUCTIONS" },
   { name: "GPTS-MCP-GATEWAY-Knowledge.md", icon: FileText, kind: "KNOWLEDGE" },
   { name: "openapi.yaml", icon: FileCode2, kind: "ACTION SCHEMA" },
@@ -34,23 +31,10 @@ export function GptIntegrationPanel({
 }) {
   const { language, t } = useUiLanguage();
   const trial = useTrialStatus(accessToken);
-  const skills = useProviderSkillSelection(accessToken);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const entitlementReady = isMember || trial.data?.status === "active";
-  const skillQuery = skills.enabled.join(",");
-  const kitFiles = [
-    ...BASE_KIT_FILES.slice(0, 2),
-    ...PROVIDER_SKILL_OPTIONS
-      .filter((skill) => skills.enabled.includes(skill.id))
-      .map((skill) => ({
-        name: skill.filename,
-        icon: FileText,
-        kind: `${skill.label.toUpperCase()} SKILL`,
-      })),
-    ...BASE_KIT_FILES.slice(2),
-  ];
 
   async function downloadFile(path: string, filename: string) {
     setError(null);
@@ -71,19 +55,19 @@ export function GptIntegrationPanel({
 
   function downloadKit() {
     return downloadFile(
-      `/gpt-integration/package?language=${language}&skills=${encodeURIComponent(skillQuery)}`,
+      `/gpt-integration/package?language=${language}`,
       `mcp-gateway-gpt-kit-${language}.zip`,
     );
   }
 
   function downloadKitFile(filename: string) {
     return downloadFile(
-      `/gpt-integration/file/${encodeURIComponent(filename)}?language=${language}&skills=${encodeURIComponent(skillQuery)}`,
+      `/gpt-integration/file/${encodeURIComponent(filename)}?language=${language}`,
       filename,
     );
   }
 
-  const routingConvention = "Intent → Capability → MCP Service → MCP Tool → Arguments → Gateway Call";
+  const routingConvention = "Intent → Gateway Skill → MCP Service → MCP Tool → Arguments → Gateway Call";
 
   return (
     <div className="gpt-integration-layout cinematic-gpt-workbench">
@@ -91,7 +75,7 @@ export function GptIntegrationPanel({
         <div><span>KIT</span><strong>READY</strong><small>Instructions · Knowledge · Schema</small></div>
         <div><span>DISCOVERY</span><strong>DYNAMIC</strong><small>Runtime tool catalog</small></div>
         <div><span>ENTITLEMENT</span><strong>{entitlementReady ? "ACTIVE" : "SETUP ONLY"}</strong><small>Open ID execution boundary</small></div>
-        <div><span>SKILLS</span><strong>{skills.enabled.length}</strong><small>Optional provider Knowledge</small></div>
+        <div><span>SKILLS</span><strong>ON DEMAND</strong><small>Loaded from Gateway</small></div>
       </div>
 
       <section className="card integration-hero-card integration-hero-card--cinematic">
@@ -104,8 +88,8 @@ export function GptIntegrationPanel({
         </div>
         <p className="lead small">
           {t(
-            "Kit cấu hình dạy Custom GPT tự nhận diện khi cần MCP, discovery service/tool/schema ở runtime và chỉ execute qua Gateway.",
-            "The setup kit teaches Custom GPT to recognize when MCP is needed, discover services/tools/schemas at runtime, and execute only through Gateway.",
+            "Kit cấu hình dạy Custom GPT tự nhận diện khi cần MCP, lấy provider skill từ Gateway khi cần và discovery service/tool/schema ở runtime.",
+            "The setup kit teaches Custom GPT to recognize when MCP is needed, fetch provider skills from Gateway on demand, and discover services/tools/schemas at runtime.",
           )}
         </p>
         <div className="integration-hero-actions">
@@ -124,184 +108,131 @@ export function GptIntegrationPanel({
         {error ? <p className="notice error">{error}</p> : null}
       </section>
 
-      <ProviderSkillSelector
-        connectedIds={skills.connectedIds}
-        enabled={skills.enabled}
-        onToggle={skills.toggle}
-      />
-
       <GptSetupWalkthrough />
 
       <div className="integration-workbench">
         <div className="integration-workbench__main">
-              <section className="card integration-files-card">
-                <div className="panel-heading">
+          <section className="card integration-files-card">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">BUNDLE CONTENTS</span>
+                <h2>{t("Tải cả kit hoặc từng file", "Download the kit or individual files")}</h2>
+              </div>
+              <span className="section-index">{KIT_FILES.length.toString().padStart(2, "0")} FILES</span>
+            </div>
+            <div className="integration-file-grid">
+              {KIT_FILES.map(({ name, icon: Icon, kind }) => (
+                <div className="integration-file" key={name}>
+                  <span className="integration-file__icon"><Icon size={18} /></span>
                   <div>
-                    <span className="eyebrow">BUNDLE CONTENTS</span>
-                    <h2>{t("Tải cả kit hoặc từng file", "Download the kit or individual files")}</h2>
-                  </div>
-                  <span className="section-index">{kitFiles.length.toString().padStart(2, "0")} FILES</span>
-                </div>
-                <div className="integration-file-grid">
-                  {kitFiles.map(({ name, icon: Icon, kind }) => (
-                    <div className="integration-file" key={name}>
-                      <span className="integration-file__icon"><Icon size={18} /></span>
-                      <div>
-                        <small>{kind}</small>
-                        <code>{name}</code>
-                      </div>
-                      <button
-                        aria-label={t(`Tải ${name}`, `Download ${name}`)}
-                        className="file-download-button"
-                        onClick={() => void downloadKitFile(name)}
-                        title={t("Tải file", "Download file")}
-                        type="button"
-                      >
-                        <Download size={15} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <p className="muted integration-footnote">
-                  {t(
-                    "Package không chứa Open ID, Gateway token hoặc provider credential của user.",
-                    "The package never contains the user's Open ID, Gateway token, or provider credentials.",
-                  )}
-                </p>
-              </section>
-
-              <section className="integration-grid">
-                <article className="card integration-step-card">
-                  <span className="integration-step-card__number">01</span>
-                  <span className="feature-icon"><Sparkles /></span>
-                  <h3>{t("Instructions tối giản", "Minimal instructions")}</h3>
-                  <p>
-                    {t(
-                      "Instructions chỉ giữ trigger + pointer tới Knowledge. Provider workflow nằm trong các skill Knowledge file đã bật.",
-                      "Instructions keep only the trigger and Knowledge pointer. Provider workflows live in enabled skill Knowledge files.",
-                    )}
-                  </p>
-                </article>
-
-                <article className="card integration-step-card">
-                  <span className="integration-step-card__number">02</span>
-                  <span className="feature-icon"><Waypoints /></span>
-                  <h3>{t("Knowledge giữ protocol", "Knowledge owns the protocol")}</h3>
-                  <p>
-                    {t(
-                      "Gateway concepts, discovery flow, Open ID errors và safety rules nằm trong GPTS-MCP-GATEWAY-Knowledge.md thay vì làm Instructions phình to.",
-                      "Gateway concepts, discovery flow, Open ID errors, and safety rules live in GPTS-MCP-GATEWAY-Knowledge.md instead of bloating Instructions.",
-                    )}
-                  </p>
-                </article>
-              </section>
-
-              <section className="card routing-card">
-                <div className="panel-heading">
-                  <div>
-                    <span className="eyebrow">ROUTING CONVENTION</span>
-                    <h2>{t("Protocol ổn định, catalog động", "Stable protocol, dynamic catalog")}</h2>
+                    <small>{kind}</small>
+                    <code>{name}</code>
                   </div>
                   <button
-                    className="secondary compact-button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(routingConvention);
-                      setCopied(true);
-                      window.setTimeout(() => setCopied(false), 1200);
-                    }}
+                    aria-label={t(`Tải ${name}`, `Download ${name}`)}
+                    className="file-download-button"
+                    onClick={() => void downloadKitFile(name)}
+                    title={t("Tải file", "Download file")}
                     type="button"
                   >
-                    {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-                    {copied ? t("Đã sao chép", "Copied") : t("Sao chép", "Copy")}
+                    <Download size={15} />
                   </button>
                 </div>
-                <div className="routing-code">
-                  <code>{routingConvention}</code>
-                </div>
-                <div className="routing-call-chain">
-                  <span>listMcpServices</span>
-                  <i>→</i>
-                  <span>listMcpTools(service)</span>
-                  <i>→</i>
-                  <span>getMcpToolSchema</span>
-                  <i>→</i>
-                  <span>callMcpTool</span>
-                </div>
-              </section>
+              ))}
+            </div>
+            <p className="muted integration-footnote">
+              {t(
+                "Package chỉ chứa một Knowledge file chung. Provider skills được build trong Gateway và lấy qua Action khi cần.",
+                "The package contains one shared Knowledge file. Provider skills are built into Gateway and fetched through the Action on demand.",
+              )}
+            </p>
+          </section>
 
-              <section className="card setup-guide-card">
-                <div className="panel-heading">
-                  <div>
-                    <span className="eyebrow">SETUP GUIDE</span>
-                    <h2>{t("Cấu hình Custom GPT", "Configure your Custom GPT")}</h2>
-                  </div>
-                  <span className="status">4 STEPS</span>
-                </div>
-                <ol className="setup-steps">
-                  <li>
-                    <span>01</span>
-                    <div><strong>{t("Thêm Instructions", "Add Instructions")}</strong><p>{t("Dùng nội dung instructions.md.", "Use the contents of instructions.md.")}</p></div>
-                  </li>
-                  <li>
-                    <span>02</span>
-                    <div><strong>{t("Upload Knowledge", "Upload Knowledge")}</strong><p>{t("Upload GPTS-MCP-GATEWAY-Knowledge.md.", "Upload GPTS-MCP-GATEWAY-Knowledge.md.")}</p></div>
-                  </li>
-                  <li>
-                    <span>03</span>
-                    <div><strong>{t("Import Action Schema", "Import Action Schema")}</strong><p>{t("Import openapi.yaml và cấu hình Bearer authentication.", "Import openapi.yaml and configure Bearer authentication.")}</p></div>
-                  </li>
-                  <li>
-                    <span>04</span>
-                    <div><strong>{t("Gắn Gateway Token", "Attach Gateway Token")}</strong><p>{t("Trial hoặc Member token đều resolve qua Open ID entitlement.", "Trial and Member tokens both resolve through Open ID entitlement.")}</p></div>
-                  </li>
-                </ol>
-              </section>
+          <section className="integration-grid">
+            <article className="card integration-step-card">
+              <span className="integration-step-card__number">01</span>
+              <span className="feature-icon"><Sparkles /></span>
+              <h3>{t("Instructions tối giản", "Minimal instructions")}</h3>
+              <p>{t(
+                "Instructions chỉ giữ trigger và quy tắc lấy skill. Provider workflow được tải từ Gateway khi task thực sự cần.",
+                "Instructions keep only the trigger and skill-fetch rule. Provider workflows are loaded from Gateway only when the task needs them.",
+              )}</p>
+            </article>
 
+            <article className="card integration-step-card">
+              <span className="integration-step-card__number">02</span>
+              <span className="feature-icon"><Waypoints /></span>
+              <h3>{t("Knowledge giữ protocol", "Knowledge owns the protocol")}</h3>
+              <p>{t(
+                "Gateway concepts, discovery flow, Open ID errors và safety rules nằm trong một Knowledge file chung; skill chuyên biệt ở server.",
+                "Gateway concepts, discovery flow, Open ID errors, and safety rules stay in one shared Knowledge file; specialized skills live on the server.",
+              )}</p>
+            </article>
+          </section>
+
+          <section className="card routing-card">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">ROUTING CONVENTION</span>
+                <h2>{t("Protocol ổn định, catalog động", "Stable protocol, dynamic catalog")}</h2>
+              </div>
+              <button
+                className="secondary compact-button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(routingConvention);
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 1200);
+                }}
+                type="button"
+              >
+                {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
+                {copied ? t("Đã sao chép", "Copied") : t("Sao chép", "Copy")}
+              </button>
+            </div>
+            <div className="routing-code"><code>{routingConvention}</code></div>
+            <div className="routing-call-chain">
+              <span>getGatewaySkill</span><i>→</i>
+              <span>listMcpServices</span><i>→</i>
+              <span>listMcpTools(service)</span><i>→</i>
+              <span>getMcpToolSchema</span><i>→</i>
+              <span>callMcpTool</span>
+            </div>
+          </section>
+
+          <section className="card setup-guide-card">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">SETUP GUIDE</span>
+                <h2>{t("Cấu hình Custom GPT", "Configure your Custom GPT")}</h2>
+              </div>
+              <span className="status">4 STEPS</span>
+            </div>
+            <ol className="setup-steps">
+              <li><span>01</span><div><strong>{t("Thêm Instructions", "Add Instructions")}</strong><p>{t("Dùng nội dung instructions.md.", "Use the contents of instructions.md.")}</p></div></li>
+              <li><span>02</span><div><strong>{t("Upload Knowledge", "Upload Knowledge")}</strong><p>{t("Chỉ upload GPTS-MCP-GATEWAY-Knowledge.md.", "Upload only GPTS-MCP-GATEWAY-Knowledge.md.")}</p></div></li>
+              <li><span>03</span><div><strong>{t("Import Action Schema", "Import Action Schema")}</strong><p>{t("Import openapi.yaml và cấu hình Bearer authentication.", "Import openapi.yaml and configure Bearer authentication.")}</p></div></li>
+              <li><span>04</span><div><strong>{t("Gắn Gateway Token", "Attach Gateway Token")}</strong><p>{t("Trial hoặc Member token đều resolve qua Open ID entitlement.", "Trial and Member tokens both resolve through Open ID entitlement.")}</p></div></li>
+            </ol>
+          </section>
         </div>
 
         <aside className="integration-inspector" aria-label="Gateway Inspector">
           <div className="integration-inspector__header">
-            <div>
-              <span className="eyebrow">GATEWAY INSPECTOR</span>
-              <strong>Execution sandbox</strong>
-            </div>
-            <span className={`status ${entitlementReady ? "good" : ""}`}>
-              {entitlementReady ? "AUTHORIZED" : "SETUP ONLY"}
-            </span>
+            <div><span className="eyebrow">GATEWAY INSPECTOR</span><strong>Execution sandbox</strong></div>
+            <span className={`status ${entitlementReady ? "good" : ""}`}>{entitlementReady ? "AUTHORIZED" : "SETUP ONLY"}</span>
           </div>
-
           <div className="integration-inspector__body">
-            <div className="integration-inspector__row">
-              <span>intent</span>
-              <code>external MCP action</code>
-            </div>
-            <div className="integration-inspector__row">
-              <span>service</span>
-              <code>stitch</code>
-            </div>
-            <div className="integration-inspector__row">
-              <span>discovery</span>
-              <code>listMcpTools</code>
-            </div>
-            <div className="integration-inspector__row">
-              <span>schema</span>
-              <code>getMcpToolSchema</code>
-            </div>
-            <div className="integration-inspector__row">
-              <span>entitlement</span>
-              <code className={entitlementReady ? "good" : ""}>
-                {entitlementReady ? "ACTIVE" : "REQUIRED"}
-              </code>
-            </div>
-            <div className="integration-inspector__row">
-              <span>language</span>
-              <code>{language.toUpperCase()}</code>
-            </div>
+            <div className="integration-inspector__row"><span>intent</span><code>external MCP action</code></div>
+            <div className="integration-inspector__row"><span>skill</span><code>gateway on-demand</code></div>
+            <div className="integration-inspector__row"><span>service</span><code>stitch</code></div>
+            <div className="integration-inspector__row"><span>discovery</span><code>listMcpTools</code></div>
+            <div className="integration-inspector__row"><span>schema</span><code>getMcpToolSchema</code></div>
+            <div className="integration-inspector__row"><span>entitlement</span><code className={entitlementReady ? "good" : ""}>{entitlementReady ? "ACTIVE" : "REQUIRED"}</code></div>
+            <div className="integration-inspector__row"><span>language</span><code>{language.toUpperCase()}</code></div>
           </div>
-
           <div className="integration-inspector__trace">
             <small>RUNTIME ROUTE</small>
-            <code>Intent → Capability</code>
+            <code>Intent → Gateway Skill</code>
             <code>→ MCP Service → Tool</code>
             <code>→ Schema → Gateway Call</code>
           </div>
@@ -312,12 +243,10 @@ export function GptIntegrationPanel({
         <KeyRound size={20} />
         <div>
           <strong>{t("Setup trước, entitlement khi execute", "Configure first, enforce entitlement on execution")}</strong>
-          <p>
-            {t(
-              "User đã đăng nhập có thể tải kit và hoàn thành setup trước khi mua Open ID. MCP call chỉ được execute khi có active trial hoặc paid Open ID.",
-              "Logged-in users can download the kit and finish setup before buying Open ID. MCP calls execute only with an active trial or paid Open ID.",
-            )}
-          </p>
+          <p>{t(
+            "User đã đăng nhập có thể tải kit và hoàn thành setup trước khi mua Open ID. Gateway skill và MCP call chỉ dùng qua Gateway runtime.",
+            "Logged-in users can download the kit and finish setup before buying Open ID. Gateway skills and MCP calls are used only through the Gateway runtime.",
+          )}</p>
         </div>
       </section>
     </div>
