@@ -5687,3 +5687,635 @@ label { color: var(--text-2); }
   .walkthrough-video__badges { display: none; }
   .walkthrough-video__timeline > div { grid-template-columns: 1fr; }
 }
+
+
+/* ==========================================================================
+   Admin Settings — cinematic control plane
+   ========================================================================== */
+
+.admin-control-plane {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2.35rem 0 3rem;
+}
+
+.admin-control-plane__hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-control-plane__heading {
+  max-width: 760px;
+}
+
+.admin-control-plane__heading h1 {
+  margin: .45rem 0 .65rem;
+  color: var(--text-1);
+  font-size: clamp(2rem, 4vw, 3.15rem);
+  line-height: 1;
+  letter-spacing: -.05em;
+}
+
+.admin-control-plane__heading p {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.admin-control-plane__status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .55rem;
+}
+
+.admin-settings-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--line);
+  gap: 1px;
+}
+
+.admin-settings-metrics article {
+  min-width: 0;
+  padding: 1rem 1.15rem;
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+}
+
+.admin-settings-metrics span,
+.admin-settings-metrics small {
+  display: block;
+  color: var(--text-3);
+  font-family: var(--mono);
+}
+
+.admin-settings-metrics span {
+  margin-bottom: .45rem;
+  font-size: .58rem;
+  letter-spacing: .08em;
+}
+
+.admin-settings-metrics strong {
+  display: block;
+  color: var(--text-1);
+  font-size: .9rem;
+}
+
+.admin-settings-metrics small {
+  margin-top: .25rem;
+  font-size: .58rem;
+}
+
+.admin-settings-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(330px, .8fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.admin-settings-workbench__main {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-settings-card,
+.admin-preview-panel,
+.admin-settings-security,
+.admin-mcp-roadmap {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-glass) 94%, transparent),
+      var(--surface-1)
+    );
+  box-shadow:
+    var(--shadow-low),
+    inset 0 1px 0 color-mix(in srgb, white 5%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.admin-settings-card {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+.admin-settings-card--primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-settings-card--primary::before {
+  position: absolute;
+  content: "";
+  width: 250px;
+  height: 250px;
+  top: -150px;
+  right: -110px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--brand) 14%, transparent),
+    transparent 70%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.admin-settings-card__top,
+.admin-settings-card__identity,
+.admin-settings-card__actions {
+  display: flex;
+  align-items: center;
+}
+
+.admin-settings-card__top {
+  position: relative;
+  z-index: 1;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-settings-card__identity {
+  gap: .8rem;
+  min-width: 0;
+}
+
+.admin-settings-card__icon,
+.admin-settings-security__icon,
+.admin-mcp-candidate__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--brand-bright);
+  border: 1px solid color-mix(in srgb, var(--brand) 26%, var(--line));
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface-2));
+  box-shadow: 0 0 22px color-mix(in srgb, var(--brand) 8%, transparent);
+}
+
+.admin-settings-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+}
+
+.admin-settings-card__identity h2,
+.admin-mcp-roadmap__header h2 {
+  margin: .2rem 0 .3rem;
+  color: var(--text-1);
+  font-size: 1.05rem;
+}
+
+.admin-settings-card__identity p,
+.admin-mcp-roadmap__header p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--text-2);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.admin-settings-input-block {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: .55rem;
+}
+
+.admin-settings-input-block label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-settings-input-block label > span {
+  color: var(--text-1);
+  font-weight: 650;
+  font-size: .74rem;
+}
+
+.admin-settings-input-block label > small {
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .56rem;
+}
+
+.admin-settings-input-block textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 150px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: .9rem 1rem;
+  background: var(--surface-code);
+  color: var(--text-1);
+  font: .78rem/1.6 var(--mono);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 3%, transparent);
+}
+
+.admin-settings-input-block textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+.admin-settings-input-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .58rem;
+}
+
+.admin-settings-input-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-settings-input-meta svg {
+  color: var(--ok);
+}
+
+.admin-settings-card__actions {
+  position: relative;
+  z-index: 1;
+  justify-content: flex-end;
+  gap: .65rem;
+  padding-top: .15rem;
+}
+
+.admin-settings-security {
+  padding: 1rem 1.1rem;
+}
+
+.admin-settings-security > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+}
+
+.admin-settings-security__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 24%, var(--line));
+  background: color-mix(in srgb, var(--ok) 6%, var(--surface-2));
+}
+
+.admin-settings-security strong {
+  display: block;
+  margin: .2rem 0 .3rem;
+  color: var(--text-1);
+  font-size: .83rem;
+}
+
+.admin-settings-security p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: .7rem;
+  line-height: 1.55;
+}
+
+.admin-settings-security__chain {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .9rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .54rem;
+}
+
+.admin-settings-security__chain i {
+  flex: 1;
+  min-width: 14px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand) 60%, transparent),
+    color-mix(in srgb, var(--live) 70%, transparent)
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--live) 20%, transparent);
+}
+
+.admin-preview-panel {
+  position: sticky;
+  top: 88px;
+  overflow: hidden;
+}
+
+.admin-preview-panel__header,
+.admin-preview-panel__footer,
+.admin-preview-panel__chrome {
+  display: flex;
+  align-items: center;
+}
+
+.admin-preview-panel__header {
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-preview-panel__header > div {
+  display: grid;
+  gap: .2rem;
+}
+
+.admin-preview-panel__header strong {
+  color: var(--text-1);
+  font-size: .78rem;
+}
+
+.admin-preview-panel__chrome {
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 .8rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-code);
+}
+
+.admin-preview-panel__chrome > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.admin-preview-panel__chrome > span:nth-child(1) { background: #ef4444; }
+.admin-preview-panel__chrome > span:nth-child(2) { background: #f59e0b; }
+.admin-preview-panel__chrome > span:nth-child(3) { background: var(--ok); }
+
+.admin-preview-panel__chrome code {
+  margin-left: .35rem;
+  color: var(--text-3);
+  font-size: .54rem;
+}
+
+.admin-preview-panel__viewport {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--brand) 8%, transparent),
+      transparent 48%
+    ),
+    #020409;
+}
+
+.admin-preview-panel__viewport iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.admin-preview-panel__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: .45rem;
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.admin-preview-panel__empty svg {
+  color: #64748b;
+}
+
+.admin-preview-panel__empty strong {
+  color: #cbd5e1;
+  font-size: .84rem;
+}
+
+.admin-preview-panel__empty span {
+  max-width: 280px;
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+.admin-preview-panel__footer {
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .7rem 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .55rem;
+}
+
+.admin-preview-panel__footer span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.admin-preview-panel__footer svg {
+  color: var(--ok);
+}
+
+.admin-mcp-roadmap {
+  padding: 1.2rem;
+}
+
+.admin-mcp-roadmap__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.admin-mcp-roadmap__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+.admin-mcp-candidate {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.admin-mcp-candidate:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--line));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--brand) 6%, transparent);
+}
+
+.admin-mcp-candidate__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-mcp-candidate__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.admin-mcp-candidate__top code {
+  color: var(--text-3);
+  font-size: .55rem;
+}
+
+.admin-mcp-candidate > strong,
+.admin-mcp-candidate > span,
+.admin-mcp-candidate > small {
+  display: block;
+}
+
+.admin-mcp-candidate > strong {
+  margin-top: .75rem;
+  color: var(--text-1);
+  font-size: .82rem;
+}
+
+.admin-mcp-candidate > span {
+  margin-top: .16rem;
+  color: var(--brand-bright);
+  font-family: var(--mono);
+  font-size: .55rem;
+  letter-spacing: .05em;
+}
+
+.admin-mcp-candidate p {
+  min-height: 2.7em;
+  margin: .55rem 0 .75rem;
+  color: var(--text-2);
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+.admin-mcp-candidate > small {
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .5rem;
+}
+
+.admin-mcp-roadmap__note {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: .85rem;
+  padding: .75rem .85rem;
+  border: 1px solid color-mix(in srgb, var(--ok) 20%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ok) 4%, var(--surface-2));
+  color: var(--text-2);
+  font-size: .64rem;
+  line-height: 1.5;
+}
+
+.admin-mcp-roadmap__note svg:first-child {
+  flex: 0 0 auto;
+  color: var(--ok);
+}
+
+.admin-mcp-roadmap__note svg:last-child {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+:root[data-theme="light"] .admin-preview-panel__viewport {
+  background:
+    radial-gradient(circle, rgba(79,70,229,.08), transparent 50%),
+    #0b1020;
+}
+
+@media (max-width: 1050px) {
+  .admin-settings-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-settings-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-preview-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-control-plane {
+    padding-top: 1.35rem;
+  }
+
+  .admin-control-plane__hero,
+  .admin-mcp-roadmap__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-control-plane__status {
+    justify-content: flex-start;
+  }
+
+  .admin-mcp-roadmap__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-settings-metrics,
+  .admin-mcp-roadmap__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-settings-input-block label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .25rem;
+  }
+
+  .admin-settings-card__top,
+  .admin-settings-card__actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-settings-card__actions button {
+    width: 100%;
+  }
+
+  .admin-settings-security__chain {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-settings-security__chain i {
+    width: 1px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+}
