@@ -1,6 +1,7 @@
 import type {
   McpConnection,
   McpProvider,
+  McpProviderAccessMode,
 } from "@/modules/mcp-connections/domain/mcp-connection.types";
 import { gatewayRequest } from "@/shared/api/gateway-api";
 
@@ -38,12 +39,20 @@ export function saveMcpConnection(
   });
 }
 
-export function startMcpOAuth(accessToken: string, provider: string) {
+export function startMcpOAuth(
+  accessToken: string,
+  provider: string,
+  options: {
+    accessMode?: McpProviderAccessMode;
+    returnTo?: string;
+  },
+) {
   return gatewayRequest<{ provider: string; authorizationUrl: string }>(
     `/mcp-connections/${encodeURIComponent(provider)}/oauth/start`,
     accessToken,
     {
       method: "POST",
+      body: JSON.stringify(options),
     },
   );
 }

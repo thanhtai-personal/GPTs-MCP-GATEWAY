@@ -9,10 +9,10 @@ import {
   useMcpProviders,
   useRemoveMcpConnection,
   useSaveMcpConnection,
-  useStartMcpOAuth,
   useTestMcpConnection,
 } from "@/modules/mcp-connections/queries/mcp-connections.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
+import { OAuthConnectionForm } from "@/modules/mcp-connections/presentation/OAuthConnectionForm";
 import {
   ProviderViewToolbar,
   type ProviderViewMode,
@@ -326,90 +326,6 @@ function ApiKeyConnectionForm({
       ) : null}
       {test.error ? <p className="notice error">{test.error.message}</p> : null}
       {save.error ? <p className="notice error">{save.error.message}</p> : null}
-      {remove.error ? <p className="notice error">{remove.error.message}</p> : null}
-    </>
-  );
-}
-
-function OAuthConnectionForm({
-  accessToken,
-  connection,
-  credential,
-  providerId,
-  providerStatus,
-}: {
-  accessToken: string;
-  connection?: McpConnection;
-  credential: Extract<McpProvider["credential"], { kind: "oauth" }>;
-  providerId: string;
-  providerStatus: McpProvider["status"];
-}) {
-  const { t } = useUiLanguage();
-  const connect = useStartMcpOAuth(accessToken);
-  const remove = useRemoveMcpConnection(accessToken);
-
-  return (
-    <>
-      <p className="muted">
-        {t(
-          "Đăng nhập trực tiếp với provider qua OAuth. Gateway mã hóa access/refresh token và không gửi chúng cho GPT.",
-          "Sign in with the provider through OAuth. Gateway encrypts access/refresh tokens and never sends them to GPT.",
-        )}
-      </p>
-
-      {credential.note ? (
-        <p className="notice">{t(credential.note.vi, credential.note.en)}</p>
-      ) : null}
-
-      <div className="row provider-actions">
-        <button
-          disabled={!credential.configured || connect.isPending}
-          onClick={() => connect.mutate(providerId)}
-          type="button"
-        >
-          {connection
-            ? t("Kết nối lại", "Reconnect")
-            : t(credential.connectLabel.vi, credential.connectLabel.en)}
-        </button>
-
-        {connection ? (
-          <button
-            className="danger"
-            disabled={remove.isPending}
-            onClick={() => remove.mutate(providerId)}
-            type="button"
-          >
-            {t("Ngắt kết nối", "Disconnect")}
-          </button>
-        ) : null}
-      </div>
-
-      {!credential.configured ? (
-        <p
-          className={`notice ${
-            providerStatus === "pending_review" ||
-            providerStatus === "provider_restricted"
-              ? ""
-              : "error"
-          }`}
-        >
-          {providerStatus === "pending_review"
-            ? t(
-                "Provider đang chờ xét duyệt. Kết nối sẽ được bật sau khi provider phê duyệt MCP client và OAuth client được cấu hình.",
-                "Provider review is pending. Connect will be enabled after the MCP client is approved and its OAuth client is configured.",
-              )
-            : providerStatus === "provider_restricted"
-              ? t(
-                  "Provider hiện chưa cho phép OAuth từ Gateway hosted này. Kết nối sẽ được bật khi provider cho phép hoặc đăng ký OAuth client riêng cho Gateway.",
-                  "The provider does not currently allow OAuth from this hosted Gateway. Connect will be enabled when the provider allows or registers an OAuth client for the Gateway.",
-                )
-              : t(
-                  "OAuth client cho provider này chưa được cấu hình trên Gateway.",
-                  "The OAuth client for this provider is not configured on Gateway.",
-                )}
-        </p>
-      ) : null}
-      {connect.error ? <p className="notice error">{connect.error.message}</p> : null}
       {remove.error ? <p className="notice error">{remove.error.message}</p> : null}
     </>
   );

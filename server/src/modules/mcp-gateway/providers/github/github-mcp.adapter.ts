@@ -11,6 +11,8 @@ import type {
 import { RemoteMcpHttpClient } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.client';
 
 const GITHUB_MCP_ENDPOINT = 'https://api.githubcopilot.com/mcp';
+const GITHUB_MCP_READ_ONLY_ENDPOINT =
+  'https://api.githubcopilot.com/mcp/x/all/readonly';
 const GITHUB_RESOURCE_METADATA =
   'https://api.githubcopilot.com/.well-known/oauth-protected-resource/mcp';
 
@@ -36,13 +38,34 @@ export class GithubMcpAdapter implements McpProviderAdapter {
       configured,
       note: configured
         ? {
-            en: 'GitHub Remote MCP OAuth is configured for this Gateway. Access remains limited by the scopes approved during sign-in and organization policy.',
-            vi: 'GitHub Remote MCP OAuth đã được cấu hình cho Gateway này. Quyền truy cập vẫn bị giới hạn bởi scope người dùng phê duyệt và policy của organization.',
+            en: 'Read-only is the default. Write tools are enabled only after you explicitly select Read + write and reconnect GitHub.',
+            vi: 'Mặc định chỉ đọc. Write tools chỉ được bật khi bạn chủ động chọn Đọc + ghi và kết nối lại GitHub.',
           }
         : {
             en: 'Register a GitHub OAuth App or GitHub App for this hosted Gateway callback, then configure the server-side MCP OAuth client ID and secret.',
             vi: 'Hãy đăng ký GitHub OAuth App hoặc GitHub App cho callback của Gateway hosted này, sau đó cấu hình MCP OAuth client ID và secret ở server.',
           },
+      accessModes: {
+        default: 'read',
+        options: [
+          {
+            id: 'read',
+            label: { en: 'Read only', vi: 'Chỉ đọc' },
+            description: {
+              en: 'Source, repositories, issues, pull requests, Actions and metadata can be inspected. GitHub MCP write tools are filtered out.',
+              vi: 'Có thể đọc source, repository, issue, pull request, Actions và metadata. GitHub MCP sẽ loại toàn bộ write tools.',
+            },
+          },
+          {
+            id: 'write',
+            label: { en: 'Read + write', vi: 'Đọc + ghi' },
+            description: {
+              en: 'Allows write-capable GitHub MCP tools exposed by the granted OAuth scopes and organization policy.',
+              vi: 'Cho phép các GitHub MCP write tools trong phạm vi OAuth scope và policy của organization.',
+            },
+          },
+        ],
+      },
     };
 
     this.oauth = {
@@ -71,9 +94,10 @@ export class GithubMcpAdapter implements McpProviderAdapter {
   listTools(
     credential: McpProviderCredential,
   ): Promise<McpToolDefinition[]> {
+    const oauth = this.oauthCredential(credential);
     return this.client.listTools(
-      GITHUB_MCP_ENDPOINT,
-      this.oauthCredential(credential),
+      this.endpointFor(oauth),
+      oauth,
       this.displayName,
     );
   }
@@ -83,13 +107,20 @@ export class GithubMcpAdapter implements McpProviderAdapter {
     toolName: string,
     argumentsValue: McpToolArguments,
   ): Promise<McpToolCallResult> {
+    const oauth = this.oauthCredential(credential);
     return this.client.callTool(
-      GITHUB_MCP_ENDPOINT,
-      this.oauthCredential(credential),
+      this.endpointFor(oauth),
+      oauth,
       this.displayName,
       toolName,
       argumentsValue,
     );
+  }
+
+  private endpointFor(credential: McpOAuthCredential): string {
+    return credential.accessMode === 'write'
+      ? GITHUB_MCP_ENDPOINT
+      : GITHUB_MCP_READ_ONLY_ENDPOINT;
   }
 
   private oauthCredential(

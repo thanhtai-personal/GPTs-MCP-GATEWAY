@@ -16,6 +16,7 @@ import { isJsonObject } from '@server/root/modules/mcp-gateway/mcp-json';
 import type {
   McpOAuthCredential,
   McpOAuthProviderConfig,
+  McpProviderAccessMode,
   McpProviderAdapter,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
@@ -30,6 +31,8 @@ type OAuthStatePayload = {
   redirectUri: string;
   issuer: string;
   resource: string;
+  accessMode?: McpProviderAccessMode;
+  returnTo?: string;
   issuedAt: number;
 };
 
@@ -51,6 +54,10 @@ export class McpOAuthService {
   async createAuthorizationRequest(
     userId: string,
     provider: McpProviderAdapter,
+    context?: {
+      accessMode?: McpProviderAccessMode;
+      returnTo?: string;
+    },
   ) {
     const oauth = this.requireOAuth(provider);
     const metadata = await this.protocol.discoverAuthorizationServer(oauth);
@@ -76,6 +83,8 @@ export class McpOAuthService {
       redirectUri,
       issuer: metadata.issuer,
       resource: metadata.resource,
+      ...(context?.accessMode ? { accessMode: context.accessMode } : {}),
+      ...(context?.returnTo ? { returnTo: context.returnTo } : {}),
       issuedAt: Date.now(),
     });
 
@@ -104,7 +113,11 @@ export class McpOAuthService {
     code: string,
     stateValue: string,
     authorizationIssuer?: string,
-  ): Promise<{ userId: string; credential: McpOAuthCredential }> {
+  ): Promise<{
+    userId: string;
+    credential: McpOAuthCredential;
+    returnTo?: string;
+  }> {
     const oauth = this.requireOAuth(provider);
     const state = this.readAndValidateState(provider, stateValue);
 
@@ -150,7 +163,9 @@ export class McpOAuthService {
                 : {}),
             }
           : undefined,
+        state.accessMode,
       ),
+      ...(state.returnTo ? { returnTo: state.returnTo } : {}),
     };
   }
 
@@ -190,7 +205,19 @@ export class McpOAuthService {
               : {}),
           }
         : undefined,
+      credential.accessMode,
     );
+  }
+
+  returnToFromState(
+    provider: McpProviderAdapter,
+    stateValue: string,
+  ): string | undefined {
+    try {
+      return this.readAndValidateState(provider, stateValue).returnTo;
+    } catch {
+      return undefined;
+    }
   }
 
   callbackUri(providerId: string): string {
@@ -226,6 +253,13 @@ export class McpOAuthService {
       ('dynamicClient' in parsed &&
         parsed.dynamicClient !== undefined &&
         typeof parsed.dynamicClient !== 'boolean') ||
+      ('accessMode' in parsed &&
+        parsed.accessMode !== undefined &&
+        parsed.accessMode !== 'read' &&
+        parsed.accessMode !== 'write') ||
+      ('returnTo' in parsed &&
+        parsed.returnTo !== undefined &&
+        typeof parsed.returnTo !== 'string') ||
       typeof parsed.redirectUri !== 'string' ||
       typeof parsed.issuer !== 'string' ||
       typeof parsed.resource !== 'string' ||
@@ -342,6 +376,7 @@ export class McpOAuthService {
   private toCredential(
     token: OAuthTokenPayload,
     dynamicClient?: { clientId: string; clientSecret?: string },
+    accessMode?: McpProviderAccessMode,
   ): McpOAuthCredential {
     return {
       kind: 'oauth',
@@ -358,6 +393,7 @@ export class McpOAuthService {
               : {}),
           }
         : {}),
+      ...(accessMode ? { accessMode } : {}),
     };
   }
 

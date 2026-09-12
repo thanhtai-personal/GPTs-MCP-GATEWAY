@@ -6585,3 +6585,91 @@ label { color: var(--text-2); }
     text-align: right;
   }
 }
+
+
+/* ==========================================================================
+   Provider permission mode
+   ========================================================================== */
+
+.provider-permissions {
+  display: grid;
+  gap: .7rem;
+  margin: 0;
+  padding: .85rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-code) 72%, transparent);
+}
+
+.provider-permissions legend {
+  padding: 0 .3rem;
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: .66rem;
+  font-weight: 650;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.provider-permissions__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .6rem;
+}
+
+.provider-permission-option {
+  position: relative;
+  display: flex;
+  gap: .65rem;
+  min-width: 0;
+  padding: .75rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+.provider-permission-option:hover {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--line));
+}
+
+.provider-permission-option.active {
+  border-color: color-mix(in srgb, var(--brand) 54%, var(--line));
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface-2));
+  box-shadow: 0 0 22px color-mix(in srgb, var(--brand) 6%, transparent);
+}
+
+.provider-permission-option input {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: .15rem 0 0;
+  accent-color: var(--brand);
+}
+
+.provider-permission-option > span {
+  display: grid;
+  gap: .25rem;
+  min-width: 0;
+}
+
+.provider-permission-option strong {
+  color: var(--text-1);
+  font-size: .75rem;
+}
+
+.provider-permission-option small {
+  color: var(--text-3);
+  font-size: .65rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .provider-permissions__options {
+    grid-template-columns: 1fr;
+  }
+}

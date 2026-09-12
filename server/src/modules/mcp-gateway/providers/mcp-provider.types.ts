@@ -23,6 +23,8 @@ export type McpApiKeyCredential = {
   value: string;
 };
 
+export type McpProviderAccessMode = 'read' | 'write';
+
 export type McpOAuthCredential = {
   kind: 'oauth';
   accessToken: string;
@@ -32,6 +34,7 @@ export type McpOAuthCredential = {
   scope?: string;
   clientId?: string;
   clientSecret?: string;
+  accessMode?: McpProviderAccessMode;
 };
 
 export type McpProviderCredential =
@@ -50,6 +53,14 @@ export type McpProviderCredentialDefinition =
       connectLabel: { en: string; vi: string };
       configured: boolean;
       note?: { en: string; vi: string };
+      accessModes?: {
+        default: McpProviderAccessMode;
+        options: Array<{
+          id: McpProviderAccessMode;
+          label: { en: string; vi: string };
+          description: { en: string; vi: string };
+        }>;
+      };
     };
 
 export type McpOAuthProviderConfig = {

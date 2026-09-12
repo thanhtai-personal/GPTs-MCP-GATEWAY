@@ -55,3 +55,15 @@ listMcpServices
 
 Tool names are discovered from GitHub MCP at runtime and are not hardcoded into
 the GPT instructions.
+
+
+## Gateway permission mode
+
+MCP Gateway exposes two user-selectable GitHub permission modes:
+
+- `Read only` — default. Gateway uses GitHub MCP's remote read-only endpoint, which filters write tools at the GitHub MCP server.
+- `Read + write` — explicit opt-in. Gateway uses the normal remote MCP endpoint and GitHub exposes write-capable tools allowed by OAuth scopes and organization policy.
+
+Existing GitHub connections created before this setting existed are treated as `Read only`.
+
+Changing the mode requires reconnecting GitHub so the selected mode is stored with the encrypted OAuth credential.

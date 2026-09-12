@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { McpProviderAccessMode } from "@/modules/mcp-connections/domain/mcp-connection.types";
 import {
   listMcpConnections,
   listMcpProviders,
@@ -58,7 +59,15 @@ export function useTestMcpConnection(accessToken: string) {
 
 export function useStartMcpOAuth(accessToken: string) {
   return useMutation({
-    mutationFn: (provider: string) => startMcpOAuth(accessToken, provider),
+    mutationFn: ({
+      provider,
+      accessMode,
+      returnTo,
+    }: {
+      provider: string;
+      accessMode?: McpProviderAccessMode;
+      returnTo?: string;
+    }) => startMcpOAuth(accessToken, provider, { accessMode, returnTo }),
     onSuccess: ({ authorizationUrl }) => {
       window.location.assign(authorizationUrl);
     },

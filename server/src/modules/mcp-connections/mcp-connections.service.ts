@@ -11,8 +11,10 @@ import { AuditService } from '@server/root/modules/audit/audit.service';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.service';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
+import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
 import type {
+  McpProviderAccessMode,
   McpProviderAdapter,
   McpProviderCredential,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
@@ -64,7 +66,27 @@ export class McpConnectionsService {
         message: 'Could not load MCP connections',
       });
     }
-    return (data ?? []).map((row) => this.toView(row));
+    return (data ?? []).map((row) => {
+      const provider = this.providers.get(row.provider);
+      if (
+        provider.credential.kind !== 'oauth' ||
+        !provider.credential.accessModes
+      ) {
+        return this.toView(row);
+      }
+
+      const credential = this.codec.decode(
+        row.credential_ciphertext,
+        row.credential_version,
+        provider,
+      );
+      return this.toView(
+        row,
+        credential.kind === 'oauth'
+          ? credential.accessMode ?? provider.credential.accessModes.default
+          : undefined,
+      );
+    });
   }
 
   async testOwn(request: Request, dto: SaveMcpConnectionDto) {
@@ -106,7 +128,11 @@ export class McpConnectionsService {
     return this.saveCredential(user.id, provider, credential);
   }
 
-  async startOAuth(request: Request, providerId: string) {
+  async startOAuth(
+    request: Request,
+    providerId: string,
+    dto: StartMcpOAuthDto,
+  ) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.get(providerId);
 
@@ -117,7 +143,15 @@ export class McpConnectionsService {
       });
     }
 
-    return this.oauth.createAuthorizationRequest(user.id, provider);
+    const accessMode = this.resolveAccessMode(provider, dto.accessMode);
+    return this.oauth.createAuthorizationRequest(user.id, provider, {
+      ...(accessMode ? { accessMode } : {}),
+      ...(dto.returnTo ? { returnTo: dto.returnTo } : {}),
+    });
+  }
+
+  oauthReturnTo(providerId: string, state: string): string | undefined {
+    return this.oauth.returnToFromState(this.providers.get(providerId), state);
   }
 
   async completeOAuth(
@@ -351,7 +385,10 @@ export class McpConnectionsService {
     };
   }
 
-  private toView(row: ConnectionRow) {
+  private toView(
+    row: ConnectionRow,
+    accessMode?: McpProviderAccessMode,
+  ) {
     return {
       id: row.id,
       provider: row.provider,
@@ -360,6 +397,7 @@ export class McpConnectionsService {
       lastErrorCode: row.last_error_code,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      ...(accessMode ? { accessMode } : {}),
     };
   }
 }

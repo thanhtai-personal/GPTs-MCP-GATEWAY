@@ -86,6 +86,9 @@ export class McpCredentialCodec {
       ...(typeof value.clientSecret === 'string'
         ? { clientSecret: value.clientSecret }
         : {}),
+      ...(value.accessMode === 'read' || value.accessMode === 'write'
+        ? { accessMode: value.accessMode }
+        : {}),
     };
   }
 

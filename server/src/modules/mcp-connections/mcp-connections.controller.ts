@@ -14,6 +14,7 @@ import {
 import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
+import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 
 @Controller('mcp-connections')
@@ -47,8 +48,9 @@ export class McpConnectionsController {
   startOAuth(
     @Req() request: Request,
     @Param('provider') provider: string,
+    @Body() dto: StartMcpOAuthDto,
   ) {
-    return this.connections.startOAuth(request, provider);
+    return this.connections.startOAuth(request, provider, dto);
   }
 
   @Get(':provider/oauth/callback')
@@ -60,19 +62,35 @@ export class McpConnectionsController {
     @Query('error') oauthError: string | undefined,
     @Res() response: Response,
   ) {
+    const returnTo = state
+      ? this.connections.oauthReturnTo(provider, state)
+      : undefined;
+
     if (oauthError || !code || !state) {
       response.redirect(
-        this.webRedirect(provider, 'error', oauthError || 'MCP_OAUTH_CALLBACK_INVALID'),
+        this.webRedirect(
+          provider,
+          'error',
+          oauthError || 'MCP_OAUTH_CALLBACK_INVALID',
+          returnTo,
+        ),
       );
       return;
     }
 
     try {
       await this.connections.completeOAuth(provider, code, state, issuer);
-      response.redirect(this.webRedirect(provider, 'connected'));
+      response.redirect(
+        this.webRedirect(provider, 'connected', undefined, returnTo),
+      );
     } catch (error) {
       response.redirect(
-        this.webRedirect(provider, 'error', this.errorCode(error)),
+        this.webRedirect(
+          provider,
+          'error',
+          this.errorCode(error),
+          returnTo,
+        ),
       );
     }
   }
@@ -86,12 +104,14 @@ export class McpConnectionsController {
     provider: string,
     status: 'connected' | 'error',
     code?: string,
+    returnTo?: string,
   ): string {
     const base = this.config.webBaseUrl.replace(/\/+$/u, '');
     const url = new URL(`${base}/app`);
     url.searchParams.set('mcpOAuth', provider);
     url.searchParams.set('status', status);
     if (code) url.searchParams.set('code', code);
+    url.hash = (returnTo ?? '#mcp-services').replace(/^#/u, '');
     return url.toString();
   }
 

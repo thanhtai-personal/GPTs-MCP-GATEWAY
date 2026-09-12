@@ -1,4 +1,5 @@
 export type McpConnectionStatus = "connected" | "invalid" | "unavailable";
+export type McpProviderAccessMode = "read" | "write";
 
 export type McpConnection = {
   id: string;
@@ -8,6 +9,7 @@ export type McpConnection = {
   lastErrorCode: string | null;
   createdAt: string;
   updatedAt: string;
+  accessMode?: McpProviderAccessMode;
 };
 
 export type McpProviderCredential =
@@ -22,6 +24,14 @@ export type McpProviderCredential =
       connectLabel: { en: string; vi: string };
       configured: boolean;
       note?: { en: string; vi: string };
+      accessModes?: {
+        default: McpProviderAccessMode;
+        options: Array<{
+          id: McpProviderAccessMode;
+          label: { en: string; vi: string };
+          description: { en: string; vi: string };
+        }>;
+      };
     };
 
 export type McpProvider = {
