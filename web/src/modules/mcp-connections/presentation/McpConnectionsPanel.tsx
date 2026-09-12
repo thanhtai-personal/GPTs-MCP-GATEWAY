@@ -48,15 +48,15 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
       <div className="provider-summary">
         <div>
           <span className="provider-summary__value">{providerList.length}</span>
-          <span>{t("Provider trong catalog", "Providers in catalog")}</span>
+          <span>{t("Provider catalog", "Provider catalog")}</span>
         </div>
         <div>
           <span className="provider-summary__value">{connectionList.length}</span>
-          <span>{t("Connection đã lưu", "Saved connections")}</span>
+          <span>{t("Credential connections", "Credential connections")}</span>
         </div>
         <div>
           <span className="provider-summary__value">Stitch</span>
-          <span>{t("Phase 1", "Phase 1")}</span>
+          <span>{t("Provider khả dụng", "Provider khả dụng")}</span>
         </div>
       </div>
 

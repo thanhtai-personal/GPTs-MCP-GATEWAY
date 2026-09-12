@@ -4,14 +4,16 @@
   font-family: "Geist", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #f5f7ff;
   font-synthesis: none;
-  --bg: #070912;
-  --bg-elevated: #0c101d;
-  --panel: rgba(14, 19, 34, 0.92);
-  --panel-soft: rgba(17, 24, 39, 0.76);
-  --border: rgba(148, 163, 184, 0.14);
-  --border-strong: rgba(99, 102, 241, 0.34);
-  --text: #f8fafc;
-  --muted: #8f9bb3;
+  --bg: #090a0f;
+  --bg-elevated: #11131a;
+  --panel: #11131a;
+  --panel-soft: #181b24;
+  --panel-hover: #232734;
+  --border: #2a2f3f;
+  --border-strong: rgba(99, 102, 241, 0.5);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --dim: #64748b;
   --primary: #6366f1;
   --primary-soft: rgba(99, 102, 241, 0.13);
   --cyan: #06b6d4;
@@ -26,10 +28,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 body {
   margin: 0;
   min-width: 320px;
-  background:
-    radial-gradient(circle at 72% -10%, rgba(99, 102, 241, .14), transparent 30rem),
-    radial-gradient(circle at -5% 45%, rgba(6, 182, 212, .07), transparent 34rem),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
 }
 body::before {
@@ -158,8 +157,11 @@ code { font-family: var(--mono); overflow-wrap: anywhere; }
 .grid { display: grid; gap: 1rem; }
 .grid.three { grid-template-columns: repeat(3, 1fr); }
 .card {
-  border: 1px solid var(--border); background: linear-gradient(180deg, rgba(16,22,38,.9), rgba(10,15,27,.92));
-  border-radius: 12px; padding: 1.35rem; box-shadow: 0 18px 55px rgba(0,0,0,.15);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 1.35rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
 }
 .card h2, .card h3 { margin-top: .35rem; }
 .card p { line-height: 1.65; }
@@ -879,5 +881,292 @@ code { font-family: var(--mono); overflow-wrap: anywhere; }
   .app-nav > .app-nav__group-label,
   .app-nav__secondary {
     display: none;
+  }
+}
+
+
+/* Stitch Nexus Gateway screen parity */
+.app-main { min-width: 0; background: #090a0f; }
+.app-content--screen { width: min(1280px, calc(100% - 4rem)); }
+
+.app-nav__item {
+  min-height: 40px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+.app-nav__item.active {
+  background: #181b24;
+  color: #f1f5f9;
+  box-shadow: inset 2px 0 #6366f1, inset 0 1px rgba(255,255,255,.025);
+}
+
+.console-screen__header {
+  min-height: 176px;
+  padding: 2.5rem 0 2rem;
+}
+.console-screen__header h1 {
+  margin: .5rem 0 .65rem;
+  font-size: 40px;
+  line-height: 48px;
+  letter-spacing: -.025em;
+}
+.console-screen__header p {
+  max-width: 760px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 22px;
+}
+.console-screen__body { padding-top: 1.5rem; }
+
+.status,
+.system-badge {
+  min-height: 24px;
+  padding: .125rem .5rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.status.good {
+  color: #4edea3;
+  border-color: rgba(5,150,105,.4);
+  background: rgba(6,78,59,.2);
+}
+
+/* MCP Services */
+.provider-summary {
+  border-radius: 16px;
+  border-color: #2a2f3f;
+  background: #2a2f3f;
+}
+.provider-summary > div {
+  min-height: 88px;
+  padding: 1rem 1.25rem;
+  background: #11131a;
+  align-content: center;
+}
+.provider-card {
+  background: #11131a;
+  border-radius: 16px;
+  box-shadow: inset 0 1px rgba(255,255,255,.03);
+}
+.provider-card__header { padding: 1.5rem; }
+.provider-card__identity h2 {
+  font-size: 22px;
+  line-height: 30px;
+}
+.provider-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #181b24;
+  border-color: #2a2f3f;
+}
+.provider-card__meta,
+.provider-card__footer {
+  background: #0e1017;
+  border-color: #1f2430;
+}
+.provider-card__form { padding: 1.5rem; }
+.provider-card input {
+  min-height: 44px;
+  background: #11131a;
+  border-color: #2a2f3f;
+}
+.provider-card input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+/* Open ID */
+.open-id-layout {
+  grid-template-columns: minmax(0,.94fr) minmax(0,1.06fr);
+  gap: 1.5rem;
+}
+.open-id-product-card,
+.access-state-card,
+.secret-card {
+  border-radius: 16px;
+  background: #11131a;
+}
+.open-id-invariant,
+.trial-active-box,
+.trial-expired-box,
+.entitlement-note-card {
+  background: #181b24;
+  border-color: #2a2f3f;
+  border-radius: 12px;
+}
+.open-id-invariant {
+  position: relative;
+  overflow: hidden;
+}
+.open-id-invariant::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(#6366f1,#06b6d4);
+}
+.access-timeline { gap: 0; }
+.access-timeline > div {
+  position: relative;
+  min-height: 54px;
+  padding: .45rem 0;
+}
+.access-timeline > div:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 38px;
+  bottom: -9px;
+  width: 1px;
+  background: #2a2f3f;
+}
+.open-id-row,
+.secret-token {
+  background: #181b24;
+  border-color: #2a2f3f;
+}
+
+/* GPT Integration */
+.gpt-integration-layout { gap: 1.5rem; }
+.integration-hero-card {
+  padding: 1.5rem;
+  background: #11131a;
+  border-radius: 16px;
+}
+.integration-files-card,
+.routing-card,
+.setup-guide-card,
+.entitlement-note-card {
+  border-radius: 16px;
+}
+.integration-file {
+  min-height: 64px;
+  background: #181b24;
+  border-color: #2a2f3f;
+  border-radius: 8px;
+}
+.integration-file:hover {
+  border-color: rgba(99,102,241,.5);
+  background: #232734;
+}
+.integration-language {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  padding: 3px;
+  border: 1px solid #2a2f3f;
+  border-radius: 8px;
+  background: #0e1017;
+}
+.integration-language button {
+  min-height: 30px;
+  padding: .25rem .65rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: #64748b;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+.integration-language button.active {
+  background: #232734;
+  color: #f1f5f9;
+}
+
+.integration-workbench {
+  display: grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(300px,.65fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.integration-workbench__main {
+  display: grid;
+  gap: 1.5rem;
+}
+.integration-inspector {
+  position: sticky;
+  top: 88px;
+  overflow: hidden;
+  border: 1px solid #2a2f3f;
+  border-radius: 16px;
+  background: #11131a;
+}
+.integration-inspector__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 1rem;
+  border-bottom: 1px solid #1f2430;
+}
+.integration-inspector__body {
+  display: grid;
+}
+.integration-inspector__row {
+  display: grid;
+  grid-template-columns: 104px minmax(0,1fr);
+  gap: .75rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid #1f2430;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.integration-inspector__row span { color: #64748b; }
+.integration-inspector__row code { color: #c7c4d7; }
+.integration-inspector__row code.good { color: #4edea3; }
+.integration-inspector__trace {
+  padding: 1rem;
+  background: #0e1017;
+}
+.integration-inspector__trace small {
+  display: block;
+  margin-bottom: .75rem;
+  color: #64748b;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+.integration-inspector__trace code {
+  display: block;
+  color: #4cd7f6;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+@media (max-width: 1050px) {
+  .integration-workbench { grid-template-columns: 1fr; }
+  .integration-inspector { position: static; }
+}
+@media (max-width: 900px) {
+  .app-content--screen { width: min(100% - 2rem, 1280px); }
+  .console-screen__header h1 {
+    font-size: 30px;
+    line-height: 38px;
+  }
+}
+@media (max-width: 720px) {
+  .app-content--screen { width: calc(100% - 2rem); }
+  .console-screen__header {
+    min-height: auto;
+    padding: 1.5rem 0 1.25rem;
+  }
+  .console-screen__body { padding-top: 1rem; }
+  .provider-card__header,
+  .provider-card__form,
+  .provider-card__meta,
+  .provider-card__footer { padding-inline: 1rem; }
+  .open-id-layout,
+  .integration-workbench,
+  .integration-workbench__main,
+  .gpt-integration-layout { gap: .75rem; }
+  .integration-inspector { border-radius: 12px; }
+  .integration-inspector__row {
+    grid-template-columns: 86px minmax(0,1fr);
   }
 }
