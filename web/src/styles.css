@@ -4989,3 +4989,234 @@ label { color: var(--text-2); }
     rotate: 90deg;
   }
 }
+
+
+/* ==========================================================================
+   Landing final CTA + footer spacing regression fixes
+   ========================================================================== */
+
+.final-cta--supercharged-v2 .row {
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* The v2 markup uses direct <span> items instead of .system-status children. */
+.final-cta--supercharged-v2 .final-cta__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem 1rem;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 1rem;
+  padding: .6rem .8rem;
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-code) 72%, transparent);
+}
+
+.final-cta--supercharged-v2 .final-cta__status > span {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+  color: var(--text-2);
+  font-size: .72rem;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.final-cta--supercharged-v2 .final-cta__status .status-dot {
+  flex: 0 0 auto;
+}
+
+/* The new footer markup is different from the legacy .footer--expanded shape. */
+.site-footer--v2 .site-footer__row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.25fr) minmax(150px, .7fr) minmax(150px, .7fr);
+  align-items: start;
+  gap: 2rem 3.5rem;
+  padding-block: 2.5rem 1.6rem;
+}
+
+.site-footer--v2 .footer-brand {
+  display: grid;
+  align-content: start;
+  gap: .65rem;
+  min-width: 0;
+}
+
+.site-footer--v2 .footer-brand > small {
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  line-height: 1.5;
+}
+
+.site-footer--v2 .footer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .55rem;
+  min-width: 0;
+}
+
+.site-footer--v2 .footer-links strong {
+  margin-bottom: .15rem;
+  color: var(--text-1);
+  font-size: .72rem;
+}
+
+.site-footer--v2 .footer-links a {
+  color: var(--text-2);
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+.site-footer--v2 .footer-links a:hover {
+  color: var(--brand-bright);
+}
+
+.site-footer--v2 .footer-system {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  margin-top: .35rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--line);
+}
+
+.site-footer--v2 .footer-system code,
+.site-footer--v2 .footer-system span {
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: .58rem;
+  line-height: 1.5;
+  letter-spacing: .04em;
+}
+
+@media (max-width: 720px) {
+  .final-cta--supercharged-v2 .final-cta__status {
+    width: 100%;
+    border-radius: 12px;
+    padding: .7rem .8rem;
+  }
+
+  .final-cta--supercharged-v2 .final-cta__status > span {
+    flex: 1 1 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .site-footer--v2 {
+    margin-top: 56px;
+  }
+
+  .site-footer--v2 .site-footer__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 2rem;
+    padding-block: 2rem 1.35rem;
+  }
+
+  .site-footer--v2 .footer-brand,
+  .site-footer--v2 .footer-system {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-footer--v2 .site-footer__row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .site-footer--v2 .footer-brand,
+  .site-footer--v2 .footer-links,
+  .site-footer--v2 .footer-system {
+    grid-column: 1;
+  }
+
+  .site-footer--v2 .footer-system {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* ==========================================================================
+   Landing header inner padding / spacing fix
+   ========================================================================== */
+
+.site-header--v2 {
+  padding-inline: clamp(1rem, 1.8vw, 1.5rem);
+  gap: 1rem;
+}
+
+.site-header--v2 .brand {
+  flex: 0 0 auto;
+}
+
+.site-header--v2 .landing-nav {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 0;
+}
+
+.site-header--v2 .site-header__actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1100px) {
+  .site-header--v2 {
+    padding-inline: 1rem;
+    gap: .85rem;
+  }
+
+  .site-header--v2 .landing-nav {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-header--v2 {
+    min-height: auto;
+    padding-block: .75rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .site-header--v2 .brand {
+    order: 1;
+  }
+
+  .site-header--v2 .site-header__actions {
+    order: 2;
+  }
+
+  .site-header--v2 .landing-nav {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    padding-top: .25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-header--v2 .landing-nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header--v2 {
+    padding-inline: .85rem;
+  }
+}
