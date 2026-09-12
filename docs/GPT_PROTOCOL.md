@@ -55,6 +55,21 @@ The generated Knowledge includes stable intent hints without hardcoding tools:
 
 GitHub may be connected as `read` or `write`. `read` is the default and provider-side read-only filtering removes write tools from discovery.
 
+## Optional provider Knowledge skills
+
+The GPT Integration Kit can include one independent provider Knowledge skill per enabled provider:
+
+- `GPTS-MCP-GATEWAY-Skill-GitHub.md`
+- `GPTS-MCP-GATEWAY-Skill-Stitch.md`
+- `GPTS-MCP-GATEWAY-Skill-Figma.md`
+- `GPTS-MCP-GATEWAY-Skill-Lovable.md`
+
+`instructions.md` intentionally contains no provider-specific workflow. It only points the GPT to the base Knowledge file and enabled skill files.
+
+Skill selection affects generated/downloaded kit contents, not Gateway authorization. A skill can be included before a provider is connected; runtime calls still enforce connection, Open ID, provider permissions, and current tool discovery.
+
+The browser remembers the user's skill selection locally. On first use, connected providers are selected by default.
+
 ## Runtime discovery is authoritative
 
 Provider tool catalogs can evolve independently of this repository.

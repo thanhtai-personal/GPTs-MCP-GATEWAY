@@ -10,11 +10,14 @@ import {
   Waypoints,
 } from "lucide-react";
 import { useState } from "react";
+import { ProviderSkillSelector } from "@/modules/gpt-integration/provider-skills/ProviderSkillSelector";
+import { PROVIDER_SKILL_OPTIONS } from "@/modules/gpt-integration/provider-skills/provider-skill.types";
+import { useProviderSkillSelection } from "@/modules/gpt-integration/provider-skills/useProviderSkillSelection";
 import { useTrialStatus } from "@/modules/open-id/queries/open-id.queries";
 import { downloadGatewayFile } from "@/shared/api/gateway-api";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 
-const KIT_FILES = [
+const BASE_KIT_FILES = [
   { name: "instructions.md", icon: FileText, kind: "INSTRUCTIONS" },
   { name: "GPTS-MCP-GATEWAY-Knowledge.md", icon: FileText, kind: "KNOWLEDGE" },
   { name: "openapi.yaml", icon: FileCode2, kind: "ACTION SCHEMA" },
@@ -30,10 +33,23 @@ export function GptIntegrationPanel({
 }) {
   const { language, setLanguage, t } = useUiLanguage();
   const trial = useTrialStatus(accessToken);
+  const skills = useProviderSkillSelection(accessToken);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const entitlementReady = isMember || trial.data?.status === "active";
+  const skillQuery = skills.enabled.join(",");
+  const kitFiles = [
+    ...BASE_KIT_FILES.slice(0, 2),
+    ...PROVIDER_SKILL_OPTIONS
+      .filter((skill) => skills.enabled.includes(skill.id))
+      .map((skill) => ({
+        name: skill.filename,
+        icon: FileText,
+        kind: `${skill.label.toUpperCase()} SKILL`,
+      })),
+    ...BASE_KIT_FILES.slice(2),
+  ];
 
   async function downloadFile(path: string, filename: string) {
     setError(null);
@@ -54,14 +70,14 @@ export function GptIntegrationPanel({
 
   function downloadKit() {
     return downloadFile(
-      `/gpt-integration/package?language=${language}`,
+      `/gpt-integration/package?language=${language}&skills=${encodeURIComponent(skillQuery)}`,
       `mcp-gateway-gpt-kit-${language}.zip`,
     );
   }
 
   function downloadKitFile(filename: string) {
     return downloadFile(
-      `/gpt-integration/file/${encodeURIComponent(filename)}?language=${language}`,
+      `/gpt-integration/file/${encodeURIComponent(filename)}?language=${language}&skills=${encodeURIComponent(skillQuery)}`,
       filename,
     );
   }
@@ -74,7 +90,7 @@ export function GptIntegrationPanel({
         <div><span>KIT</span><strong>READY</strong><small>Instructions · Knowledge · Schema</small></div>
         <div><span>DISCOVERY</span><strong>DYNAMIC</strong><small>Runtime tool catalog</small></div>
         <div><span>ENTITLEMENT</span><strong>{entitlementReady ? "ACTIVE" : "SETUP ONLY"}</strong><small>Open ID execution boundary</small></div>
-        <div><span>PROVIDER</span><strong>STITCH</strong><small>Phase 1 supported MCP</small></div>
+        <div><span>SKILLS</span><strong>{skills.enabled.length}</strong><small>Optional provider Knowledge</small></div>
       </div>
 
       <section className="card integration-hero-card integration-hero-card--cinematic">
@@ -123,6 +139,12 @@ export function GptIntegrationPanel({
         {error ? <p className="notice error">{error}</p> : null}
       </section>
 
+      <ProviderSkillSelector
+        connectedIds={skills.connectedIds}
+        enabled={skills.enabled}
+        onToggle={skills.toggle}
+      />
+
       <div className="integration-workbench">
         <div className="integration-workbench__main">
               <section className="card integration-files-card">
@@ -131,10 +153,10 @@ export function GptIntegrationPanel({
                     <span className="eyebrow">BUNDLE CONTENTS</span>
                     <h2>{t("Tải cả kit hoặc từng file", "Download the kit or individual files")}</h2>
                   </div>
-                  <span className="section-index">04 FILES</span>
+                  <span className="section-index">{kitFiles.length.toString().padStart(2, "0")} FILES</span>
                 </div>
                 <div className="integration-file-grid">
-                  {KIT_FILES.map(({ name, icon: Icon, kind }) => (
+                  {kitFiles.map(({ name, icon: Icon, kind }) => (
                     <div className="integration-file" key={name}>
                       <span className="integration-file__icon"><Icon size={18} /></span>
                       <div>
@@ -168,8 +190,8 @@ export function GptIntegrationPanel({
                   <h3>{t("Instructions tối giản", "Minimal instructions")}</h3>
                   <p>
                     {t(
-                      "Instructions chỉ giữ trigger cần thiết: khi task nhắc MCP/provider/connector/tool/action hoặc cần external data/action thì chủ động dùng Gateway.",
-                      "Instructions keep only the essential trigger: when a task mentions MCP/provider/connector/tool/action or needs external data/action, proactively use Gateway.",
+                      "Instructions chỉ giữ trigger + pointer tới Knowledge. Provider workflow nằm trong các skill Knowledge file đã bật.",
+                      "Instructions keep only the trigger and Knowledge pointer. Provider workflows live in enabled skill Knowledge files.",
                     )}
                   </p>
                 </article>

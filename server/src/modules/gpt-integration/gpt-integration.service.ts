@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
+import { providerSkillFiles } from '@server/root/modules/gpt-integration/provider-skills/provider-skill.catalog';
+import type { ProviderSkillId } from '@server/root/modules/gpt-integration/provider-skills/provider-skill.types';
 import { buildStoredZip } from '@server/root/modules/gpt-integration/zip.util';
 
 export type IntegrationLanguage = 'vi' | 'en';
@@ -8,10 +10,18 @@ export type IntegrationLanguage = 'vi' | 'en';
 export class GptIntegrationService {
   constructor(private readonly config: AppConfigService) {}
 
-  buildBundle(language: IntegrationLanguage) {
+  buildBundle(
+    language: IntegrationLanguage,
+    skills: ProviderSkillId[] = [],
+  ) {
+    const skillFiles = providerSkillFiles(skills).map((skill) => ({
+      name: skill.filename,
+      content: skill.content(language),
+    }));
     const files = [
       { name: 'instructions.md', content: this.instructions(language) },
       { name: 'GPTS-MCP-GATEWAY-Knowledge.md', content: this.knowledge(language) },
+      ...skillFiles,
       { name: 'openapi.yaml', content: this.openApiSchema() },
       { name: 'setup-guide.md', content: this.setupGuide(language) },
     ];
@@ -26,8 +36,12 @@ export class GptIntegrationService {
     return this.openApiSchema();
   }
 
-  getBundleFile(language: IntegrationLanguage, filename: string) {
-    const file = this.buildBundle(language).files.find(
+  getBundleFile(
+    language: IntegrationLanguage,
+    filename: string,
+    skills: ProviderSkillId[] = [],
+  ) {
+    const file = this.buildBundle(language, skills).files.find(
       (candidate) => candidate.name === filename,
     );
     if (!file) {
@@ -46,19 +60,17 @@ export class GptIntegrationService {
     if (language === 'vi') {
       return `# MCP Gateway
 
-Khi user nhắc MCP/provider/connector/tool/action hoặc yêu cầu cần dữ liệu/hành động bên ngoài, hãy **chủ động dùng Gateway**, không chờ user nhắc lại.
-Đọc \`GPTS-MCP-GATEWAY-Knowledge.md\` để route đúng provider theo intent và làm đúng flow discovery/runtime schema.
-Gateway là execution boundary duy nhất; không hỏi/tiết lộ provider credential và không bypass Open ID.
-Nếu response là chunked, lấy đủ continuation chunks trước khi trả lời.
+Khi task cần dữ liệu/hành động bên ngoài hoặc nhắc MCP/provider, chủ động dùng Gateway.
+Đọc \`GPTS-MCP-GATEWAY-Knowledge.md\` và mọi \`GPTS-MCP-GATEWAY-Skill-*.md\` đã bật/upload.
+Gateway là execution boundary duy nhất; không bypass Open ID/permission và lấy đủ chunks trước khi trả lời.
 `;
     }
 
     return `# MCP Gateway
 
-When the user mentions MCP/provider/connector/tool/action, or their request needs external data/action, **proactively use Gateway** without waiting for another prompt.
-Read \`GPTS-MCP-GATEWAY-Knowledge.md\` for provider-intent routing and follow its runtime discovery/schema flow.
-Gateway is the only execution boundary; never request/expose provider credentials or bypass Open ID.
-For chunked responses, fetch all required continuation chunks before answering.
+When a task needs external data/action or names an MCP/provider, proactively use Gateway.
+Read \`GPTS-MCP-GATEWAY-Knowledge.md\` and every enabled/uploaded \`GPTS-MCP-GATEWAY-Skill-*.md\`.
+Gateway is the only execution boundary; never bypass Open ID/permissions and fetch all chunks before answering.
 `;
   }
 
@@ -94,36 +106,15 @@ Do not claim you cannot access a named provider before checking Gateway. When a 
 
 Runtime discovery is authoritative. Never hardcode provider tool names or invent tool arguments.
 
-## Provider intent routing
+## Enabled provider skills
 
-Provider IDs returned by \`listMcpServices\` are authoritative. Known examples can include \`github\`, \`notion\`, \`figma\`, and \`stitch\`, but always prefer the current runtime list.
+Provider-specific behavior is intentionally split into optional Knowledge files.
 
-### GitHub
+If a file named `GPTS-MCP-GATEWAY-Skill-*.md` is present, treat it as the workflow/intent guide for that provider. Skill files refine provider selection, sequencing, validation, and safety, but never override Gateway security or runtime discovery.
 
-Prefer the \`github\` service when the user asks to:
-- inspect, understand, review, or search a repository or source tree;
-- read files/directories, branches, commits, pull requests, issues, releases, Actions/workflows, or repository metadata;
-- find where code is implemented, trace a bug through source, or compare repository changes;
-- perform an explicitly requested GitHub action.
+If no provider skill file is present, the generic discovery flow above still applies.
 
-For requests such as "read my source", "inspect this repo", or "find where this function is implemented", check the connected GitHub service before asking the user to upload a ZIP.
-
-GitHub can be connected in read-only mode. If the user requests a write action but runtime discovery exposes no matching write tool, tell them to enable **Read + write** for GitHub in MCP Gateway and reconnect. Never bypass read-only mode.
-
-### Notion
-
-Prefer the \`notion\` service when the user asks to:
-- find, read, summarize, or search workspace documents, pages, databases, specs, meeting notes, or internal knowledge;
-- use information the user says is stored in Notion;
-- create or update Notion content when explicitly requested.
-
-For requests such as "check our docs", "find the spec in Notion", or "what does our workspace say about X", check the connected Notion service before asking the user to paste or upload the content.
-
-### Ambiguity
-
-If the user explicitly names a provider, prefer it. Otherwise use the resource location and intent above. When multiple connected services could satisfy the same request and the correct source cannot be inferred safely, ask only for the missing business choice.
-
-Never assume GitHub or Notion tool names. Discover the current tools and schema at runtime.
+Do not invent a provider skill that was not uploaded. Do not hardcode provider tool names from a skill; current `listMcpTools` and `getMcpToolSchema` results are newer authority.
 
 ## Stable concepts
 
@@ -156,7 +147,7 @@ Gateway is the mandatory execution boundary. Never call the provider directly to
 1. Trong GPT Builder, mở **Actions** và import \`openapi.yaml\`.
 2. Chọn API authentication / Bearer và nhập Gateway token được app hiển thị một lần.
 3. Dán nội dung \`instructions.md\` vào Instructions.
-4. Upload \`GPTS-MCP-GATEWAY-Knowledge.md\` vào Knowledge.
+4. Upload \`GPTS-MCP-GATEWAY-Knowledge.md\` và mọi file \`GPTS-MCP-GATEWAY-Skill-*.md\` đã bật vào Knowledge.
 5. Test action \`getGatewayProfile\`.
 6. Nếu chưa có trial/Open ID hợp lệ, hãy tạo trial hoặc mua Open ID trong app.
 
@@ -168,7 +159,7 @@ Không đưa bất kỳ MCP provider credential nào vào GPT Builder.
 1. In GPT Builder open **Actions** and import \`openapi.yaml\`.
 2. Configure API/Bearer authentication with the one-time Gateway token shown by the app.
 3. Add \`instructions.md\` to Instructions.
-4. Upload \`GPTS-MCP-GATEWAY-Knowledge.md\` as Knowledge.
+4. Upload \`GPTS-MCP-GATEWAY-Knowledge.md\` and every enabled \`GPTS-MCP-GATEWAY-Skill-*.md\` file as Knowledge.
 5. Test \`getGatewayProfile\`.
 6. If no active trial/Open ID exists, start the trial or activate a paid Open ID in the app.
 

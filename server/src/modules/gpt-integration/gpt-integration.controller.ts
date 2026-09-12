@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from '@server/root/modules/auth/auth.service';
+import { parseProviderSkills } from '@server/root/modules/gpt-integration/provider-skills/provider-skill.catalog';
 import {
   GptIntegrationService,
   type IntegrationLanguage,
@@ -32,11 +33,16 @@ export class GptIntegrationController {
     @Req() request: Request,
     @Param('filename') filename: string,
     @Query('language') languageRaw: string | undefined,
+    @Query('skills') skillsRaw: string | undefined,
     @Res() response: Response,
   ) {
     await this.auth.requireUser(request);
     const language: IntegrationLanguage = languageRaw === 'vi' ? 'vi' : 'en';
-    const file = this.integration.getBundleFile(language, filename);
+    const file = this.integration.getBundleFile(
+      language,
+      filename,
+      parseProviderSkills(skillsRaw),
+    );
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="${file.name}"`,
@@ -48,11 +54,15 @@ export class GptIntegrationController {
   async download(
     @Req() request: Request,
     @Query('language') languageRaw: string | undefined,
+    @Query('skills') skillsRaw: string | undefined,
     @Res() response: Response,
   ) {
     await this.auth.requireUser(request);
     const language: IntegrationLanguage = languageRaw === 'vi' ? 'vi' : 'en';
-    const bundle = this.integration.buildBundle(language);
+    const bundle = this.integration.buildBundle(
+      language,
+      parseProviderSkills(skillsRaw),
+    );
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="mcp-gateway-gpt-kit-${language}.zip"`,
