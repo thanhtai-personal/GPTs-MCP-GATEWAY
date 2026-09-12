@@ -3,7 +3,7 @@ import { Braces } from "lucide-react";
 
 export function IdentityOrbit({ t }: { t: (vi: string, en: string) => string }) {
   return (
-    <section className="identity-orbit" aria-label={t("Gateway identity layer", "Gateway identity layer")}>
+    <section className="identity-orbit" data-reveal="zoom-in" aria-label={t("Gateway identity layer", "Gateway identity layer")}>
       <div className="identity-orbit__header">
         <span className="eyebrow">01 · VALIDATED IDENTITY LAYER &amp; SCOPES</span>
         <div>
@@ -73,7 +73,7 @@ export function LiveRouterConsole({
   ];
 
   return (
-    <section className="live-router-console" aria-label="Live MCP router console">
+    <section className="live-router-console" data-reveal="fade-up" aria-label="Live MCP router console">
       <div className="live-router-console__bar">
         <span className="window-dots"><i /><i /><i /></span>
         <strong>LIVE MCP ROUTER CONSOLE // NETWORK INSPECTOR</strong>

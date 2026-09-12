@@ -16,15 +16,17 @@ import {
 } from "@/modules/marketing/presentation/LandingVisuals";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
+import { useLandingScrollReveal } from "@/modules/marketing/presentation/hooks/useLandingScrollReveal";
 
 type Props = { language: "vi" | "en" };
 
 export function LandingPage({ language }: Props) {
   const vi = language === "vi";
   const t = (viText: string, enText: string) => (vi ? viText : enText);
+  const revealRootRef = useLandingScrollReveal();
 
   return (
-    <main className="landing landing--supercharged-v2" lang={language}>
+    <main className="landing landing--supercharged-v2" lang={language} ref={revealRootRef}>
       <div className="landing-v2-bg" aria-hidden="true">
         <i className="landing-v2-bg__grid" />
         <i className="landing-v2-bg__orb landing-v2-bg__orb--indigo" />
@@ -54,32 +56,32 @@ export function LandingPage({ language }: Props) {
       </header>
 
       <section className="landing-hero-v2 container">
-        <div className="landing-hero-v2__badge">
+        <div className="landing-hero-v2__badge" data-reveal="fade-down">
           <span className="status-dot status-dot--cyan" />
           CUSTOM GPT × MCP CONTROL PLANE
           <small>OPEN ID ENFORCED</small>
         </div>
 
-        <h1>
+        <h1 data-reveal="zoom-in">
           {t(
             "Kết nối Custom GPT của bạn với MCP services qua một Gateway bảo mật.",
             "Connect your Custom GPT to MCP services through one secure Gateway.",
           )}
         </h1>
 
-        <p>
+        <p data-reveal="fade-up">
           {t(
             "Discovery và gọi MCP tools động qua Zero-trust Gateway với provider credentials được mã hóa, Open ID entitlement bắt buộc và context của GPT luôn sạch.",
             "Dynamically discover and invoke MCP tools through a zero-trust Gateway with encrypted provider credentials, mandatory Open ID entitlement, and clean GPT context.",
           )}
         </p>
 
-        <div className="landing-hero-v2__actions">
+        <div className="landing-hero-v2__actions" data-reveal="fade-up">
           <Link className="button" to="/app">{t("Bắt đầu thử 7 ngày", "Start Free 7-Day Trial")}<ArrowRight size={15} /></Link>
           <a className="button secondary" href="#control-plane">{t("Khám phá Live Protocol", "Inspect Live Protocol")}</a>
         </div>
 
-        <div className="landing-hero-v2__status">
+        <div className="landing-hero-v2__status" data-reveal-group>
           <span><i className="status-dot status-dot--success" /> Google Stitch Available</span>
           <span><i className="status-dot status-dot--cyan" /> 7-Day Trial Included</span>
           <span><i className="status-dot status-dot--success" /> Open ID Protected</span>
@@ -92,13 +94,13 @@ export function LandingPage({ language }: Props) {
       </section>
 
       <section className="landing-section landing-section--problem container" id="control-plane">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">ARCHITECTURAL VALUE</span>
           <h2>{t("Custom GPT cần một MCP control plane bảo mật.", "Custom GPTs need a secure MCP control plane.")}</h2>
           <p>{t("Xóa credential khỏi GPT context, kiểm soát entitlement và discovery tool động ở Gateway.", "Keep credentials out of GPT context, enforce entitlement, and discover tools dynamically at Gateway.")}</p>
         </div>
 
-        <div className="control-plane-compare">
+        <div className="control-plane-compare" data-reveal-group>
           <article className="control-plane-card control-plane-card--bad">
             <div className="control-plane-card__top">
               <span>WITHOUT GATEWAY</span>
@@ -132,33 +134,33 @@ export function LandingPage({ language }: Props) {
       </section>
 
       <section className="landing-section container">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">THIS IS HOW IT FLOWS</span>
           <h2>{t("Architecture Execution Pipeline", "Architecture Execution Pipeline")}</h2>
           <p>{t("Một đường thực thi duy nhất từ provider credential đến MCP execution.", "One controlled execution path from provider credential to MCP execution.")}</p>
         </div>
 
-        <div className="architecture-pipeline">
+        <div className="architecture-pipeline" data-reveal-group>
           <MarketingStep index="01" icon={<Boxes />} title={t("Kết nối MCP Provider", "Connect MCP Provider")} detail={t("Lưu credential trong Gateway, không đưa vào GPT.", "Store provider credentials inside Gateway, never GPT.")} />
           <MarketingStep index="02" icon={<Code2 />} title={t("Cấu hình Custom GPT", "Configure Your GPT")} detail={t("Instructions tối giản + Knowledge + Action Schema.", "Minimal Instructions + Knowledge + Action Schema.")} />
           <MarketingStep index="03" icon={<KeyRound />} title={t("Kích hoạt quyền", "Activate Access")} detail={t("Trial Open ID hoặc paid Open ID authorize execution.", "Trial Open ID or paid Open ID authorizes execution.")} />
           <MarketingStep index="04" icon={<Waypoints />} title={t("Dùng MCP động", "Use MCP Dynamically")} detail={t("Discovery tool runtime rồi execute qua Gateway.", "Discover runtime tools and execute through Gateway.")} />
         </div>
 
-        <div className="pipeline-protocol">
+        <div className="pipeline-protocol" data-reveal="fade-up">
           <span>Gateway Runtime Sequence</span>
           <code>listMcpServices</code><i>→</i><code>listMcpTools</code><i>→</i><code>getMcpToolSchema</code><i>→</i><code>callMcpTool</code>
         </div>
       </section>
 
       <section className="landing-section open-id-v2 container" id="open-id">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">ACCESS &amp; ENTITLEMENTS</span>
           <h2>{t("Open ID là quyền truy cập Gateway.", "Open ID is your Gateway access.")}</h2>
           <p>{t("Mọi MCP execution phải resolve được một active Open ID entitlement.", "Every MCP execution must resolve an active Open ID entitlement.")}</p>
         </div>
 
-        <div className="open-id-v2__grid">
+        <div className="open-id-v2__grid" data-reveal-group>
           <article className="open-id-v2__card">
             <div className="open-id-v2__status"><i className="status-dot status-dot--success" /> MASTER OPEN ID ENTITLEMENT <span>STATUS: MEMBER ACTIVE</span></div>
             <small>ENTITLEMENT ID</small>
@@ -184,13 +186,13 @@ export function LandingPage({ language }: Props) {
       </section>
 
       <section className="landing-section container" id="mcp-services">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">FIRST PROVIDER INTEGRATION</span>
           <h2>{t("Bắt đầu với Google Stitch.", "Start with Google Stitch.")}</h2>
           <p>{t("Hỗ trợ provider được phê duyệt, credential thuộc chính user.", "Approved providers only, with user-owned credentials.")}</p>
         </div>
 
-        <article className="stitch-provider-v2">
+        <article className="stitch-provider-v2" data-reveal="zoom-in">
           <div className="stitch-provider-v2__header">
             <div className="provider-showcase__logo">S</div>
             <div><span className="eyebrow">GOOGLE STITCH MCP PROVIDER</span><h3>Connected through Gateway</h3></div>
@@ -221,7 +223,7 @@ export function LandingPage({ language }: Props) {
       </section>
 
       <section className="landing-section container" id="gpt-integration">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">ZERO-COST SETUP</span>
           <h2>{t("Cấu hình GPT trước khi mua.", "Configure your GPT before you buy.")}</h2>
           <p>{t("Integration kit miễn phí. Execution chỉ bắt đầu khi trial hoặc Open ID active.", "The integration kit is free. Execution starts only when trial or Open ID is active.")}</p>
@@ -242,7 +244,7 @@ export function LandingPage({ language }: Props) {
       </section>
 
       <section className="landing-section container">
-        <div className="landing-section__heading landing-section__heading--centered">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
           <span className="eyebrow">CLEAR PATH TO PRODUCTION</span>
           <h2>{t("Onboarding Funnel & Trial Clarity", "Onboarding Funnel & Trial Clarity")}</h2>
           <p>{t("Trial chỉ bắt đầu khi user chủ động tạo Trial Token.", "The trial starts only when the user explicitly creates a Trial Token.")}</p>
@@ -281,7 +283,7 @@ export function LandingPage({ language }: Props) {
         </article>
       </section>
 
-      <footer className="site-footer site-footer--v2">
+      <footer className="site-footer site-footer--v2" data-reveal="fade-up">
         <div className="container site-footer__row">
           <div className="footer-brand">
             <BrandLogo variant="lockup" />
