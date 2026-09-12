@@ -25,13 +25,15 @@ import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { CinematicOverview } from "@/modules/dashboard/presentation/CinematicOverview";
+import { AdminSiteSettingsPanel } from "@/modules/site-settings/presentation/AdminSiteSettingsPanel";
 
-type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration";
+type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration" | "settings";
 const SCREEN_IDS = new Set<AppScreen>([
   "overview",
   "mcp-services",
   "open-id",
   "gpt-integration",
+  "settings",
 ]);
 
 function getScreenFromHash(): AppScreen {
@@ -107,7 +109,17 @@ export function DashboardPage() {
             <span className="app-nav__item app-nav__item--disabled"><KeyRound size={18} /><span>Gateway Tokens</span><small>—</small></span>
             <span className="app-nav__item app-nav__item--disabled"><Activity size={18} /><span>Usage &amp; Telemetry</span><small>—</small></span>
             <span className="app-nav__item app-nav__item--disabled"><CreditCard size={18} /><span>Billing / Quota</span><small>—</small></span>
-            <span className="app-nav__item app-nav__item--disabled"><Settings size={18} /><span>Settings</span><small>—</small></span>
+            {account.data?.systemRole === "admin" ? (
+              <AppNavItem
+                active={activeScreen === "settings"}
+                icon={<Settings size={18} />}
+                label="Settings"
+                onSelect={() => setScreen("settings")}
+                screen="settings"
+              />
+            ) : (
+              <span className="app-nav__item app-nav__item--disabled"><Settings size={18} /><span>Settings</span><small>ADMIN</small></span>
+            )}
           </div>
         </nav>
 
@@ -211,6 +223,10 @@ export function DashboardPage() {
                 isMember={account.data?.membershipTier === "member"}
               />
             </ConsoleScreenHeader>
+          ) : null}
+
+          {activeScreen === "settings" && account.data?.systemRole === "admin" ? (
+            <AdminSiteSettingsPanel accessToken={accessToken} />
           ) : null}
         </div>
       </section>

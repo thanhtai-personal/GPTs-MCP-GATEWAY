@@ -11,6 +11,7 @@ import { HealthModule } from '@server/root/modules/health/health.module';
 import { McpConnectionsModule } from '@server/root/modules/mcp-connections/mcp-connections.module';
 import { McpGatewayModule } from '@server/root/modules/mcp-gateway/mcp-gateway.module';
 import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
+import { SiteSettingsModule } from '@server/root/modules/site-settings/site-settings.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
     McpConnectionsModule,
     OpenIdModule,
     GptIntegrationModule,
+    SiteSettingsModule,
     McpGatewayModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

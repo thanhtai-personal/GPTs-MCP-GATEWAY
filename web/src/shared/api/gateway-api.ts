@@ -14,14 +14,14 @@ export class GatewayApiError extends Error {
 
 export async function gatewayRequest<T>(
   path: string,
-  accessToken: string,
+  accessToken?: string,
   init?: RequestInit,
 ): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init?.headers,
     },
   });

@@ -17,6 +17,7 @@ import {
 import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { useLandingScrollReveal } from "@/modules/marketing/presentation/hooks/useLandingScrollReveal";
+import { usePublicLandingVideo } from "@/modules/site-settings/queries/site-settings.queries";
 
 type Props = { language: "vi" | "en" };
 
@@ -24,6 +25,7 @@ export function LandingPage({ language }: Props) {
   const vi = language === "vi";
   const t = (viText: string, enText: string) => (vi ? viText : enText);
   const revealRootRef = useLandingScrollReveal();
+  const walkthrough = usePublicLandingVideo();
 
   return (
     <main className="landing landing--supercharged-v2" lang={language} ref={revealRootRef}>
@@ -241,6 +243,85 @@ export function LandingPage({ language }: Props) {
             <Link className="button" to="/app#gpt-integration">{t("Tải GPT Integration Kit", "Download GPT Integration Kit")}</Link>
           </div>
         </div>
+      </section>
+
+      <section className="landing-section container walkthrough-section" id="walkthrough">
+        <div className="landing-section__heading landing-section__heading--centered" data-reveal="fade-up">
+          <span className="eyebrow">WALKTHROUGH &amp; LIVE DEMO</span>
+          <h2>
+            {t(
+              "Xem cách kết nối Custom GPT trong chưa đầy 3 phút.",
+              "Watch how to connect your Custom GPT in under 3 minutes.",
+            )}
+          </h2>
+          <p>
+            {t(
+              "Hướng dẫn trực quan từng bước để bind Open ID entitlement, cấu hình zero-credential Action schema và gọi live MCP tools.",
+              "Step-by-step visual demonstration of binding Open ID entitlements, configuring zero-credential Action schemas, and calling live MCP tools.",
+            )}
+          </p>
+        </div>
+
+        <article className="walkthrough-video" data-reveal="zoom-in">
+          <header className="walkthrough-video__chrome">
+            <div className="walkthrough-video__lights" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </div>
+            <code>VIDEO GUIDE // GPT_MCP_INTEGRATION_WALKTHROUGH</code>
+            <div className="walkthrough-video__badges">
+              <span>4K</span>
+              <span>ENCLAVE SECURE</span>
+              <strong>{walkthrough.data?.youtubeVideoId ? "READY" : "AWAITING VIDEO"}</strong>
+            </div>
+          </header>
+
+          <div className="walkthrough-video__viewport">
+            {walkthrough.data?.youtubeVideoId ? (
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                src={`https://www.youtube-nocookie.com/embed/${walkthrough.data.youtubeVideoId}?rel=0`}
+                title={t("Video hướng dẫn MCP Gateway", "MCP Gateway walkthrough video")}
+              />
+            ) : (
+              <div className="walkthrough-video__empty">
+                <span>VIDEO WALKTHROUGH</span>
+                <strong>{t("Video sẽ sớm được cập nhật", "Walkthrough video coming soon")}</strong>
+                <small>
+                  {t(
+                    "Admin có thể cấu hình YouTube video sau khi đăng nhập.",
+                    "An administrator can configure the YouTube video after signing in.",
+                  )}
+                </small>
+              </div>
+            )}
+          </div>
+
+          <footer className="walkthrough-video__timeline">
+            <span className="eyebrow">INTERACTIVE TIMESTAMP CUES</span>
+            <div>
+              <article>
+                <code>0:00</code>
+                <strong>Architecture Overview</strong>
+                <small>Zero-leak enclave controls</small>
+              </article>
+              <article>
+                <code>1:15</code>
+                <strong>Actions &amp; Schema Setup</strong>
+                <small>Import openapi.yaml specs</small>
+              </article>
+              <article>
+                <code>2:10</code>
+                <strong>Handshake &amp; Invocation</strong>
+                <small>Live Google Stitch generation</small>
+              </article>
+            </div>
+          </footer>
+        </article>
       </section>
 
       <section className="landing-section container">
