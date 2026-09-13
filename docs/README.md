@@ -1,6 +1,6 @@
 # Documentation
 
-This directory documents the behavior that exists in the current MCP Gateway source. Product ideas that are not implemented should stay in `REQUIREMENTS.md` or `PROJECT_STATUS.md`, not be described as shipped behavior.
+This directory documents the behavior that exists in the current MCP Gateway source. Product ideas that are not implemented should stay in `REQUIREMENTS.md`, `PROJECT_STATUS.md`, or explicitly marked direction/requirements documents, not be described as shipped behavior.
 
 ## Read by goal
 
@@ -11,14 +11,23 @@ This directory documents the behavior that exists in the current MCP Gateway sou
 3. [Security Model](./SECURITY_MODEL.md)
 4. [Data Handling](./DATA_HANDLING.md)
 
+### I want to understand the product/source direction
+
+1. [Skill-Orchestrated MCP Source Direction](./SKILL_ORCHESTRATION_DIRECTION.md)
+2. [Skill-Orchestrated MCP Requirements](./SKILL_ORCHESTRATION_REQUIREMENTS.md)
+3. [Project Status](./PROJECT_STATUS.md) — implemented behavior vs product intent
+4. [../REQUIREMENTS.md](../REQUIREMENTS.md) — current MVP requirements snapshot
+
+Direction/requirements documents describe target behavior. They are not evidence that a capability is already implemented.
+
 ### I want to run it
 
 1. [Self-hosting](./SELF_HOSTING.md)
 2. [API Reference](./API_REFERENCE.md)
 3. [GitHub MCP setup](./GITHUB_MCP_SETUP.md)
 4. [Google Docs + Sheets MCP setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
-4. [Notion MCP setup](./NOTION_MCP_SETUP.md)
-5. [Troubleshooting](./TROUBLESHOOTING.md)
+5. [Notion MCP setup](./NOTION_MCP_SETUP.md)
+6. [Troubleshooting](./TROUBLESHOOTING.md)
 
 ### I want to contribute
 
@@ -41,6 +50,6 @@ When documentation and code disagree, use this priority:
 1. current source and migration;
 2. automated validation/check scripts;
 3. architecture/API/security docs;
-4. requirements/roadmap documents.
+4. requirements/roadmap/direction documents.
 
 Open an issue or PR to bring stale documentation back in sync.
