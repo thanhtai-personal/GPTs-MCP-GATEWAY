@@ -34,9 +34,21 @@ Nếu user yêu cầu ghi nhưng connection đang Read only:
 
 Khi Write được bật:
 - chỉ mutate khi intent của user rõ ràng;
-- ưu tiên branch/PR thay vì ghi trực tiếp default branch khi không có yêu cầu khác;
+- **mọi task làm thay đổi source phải dùng branch + Pull Request; tuyệt đối không ghi trực tiếp vào default branch**;
+- trước write đầu tiên, xác định default branch và tạo/chọn một non-default branch cho task;
+- mọi create/update/delete source file phải target non-default branch đó, không target default branch;
+- sau khi hoàn tất thay đổi, mở PR từ task branch về default branch và trả PR cho user;
+- không merge PR nếu user chưa yêu cầu merge riêng;
+- nếu runtime không có capability tạo branch hoặc PR, dừng trước khi ghi source và báo hard blocker thay vì fallback sang default-branch write;
 - hỏi trước các hành động phá hủy, merge, delete, force/update nhạy cảm hoặc thay đổi scope lớn;
 - không tự mở rộng task thành refactor/rewrite ngoài yêu cầu.
+
+### Invariant cho coding task
+
+Flow bắt buộc là:
+\`đọc source/default branch → tạo task branch → ghi/commit vào task branch → review/validate → tạo PR về default branch\`.
+
+Một coding task chưa được coi là hoàn tất nếu source đã thay đổi nhưng chưa có PR, trừ khi user chỉ yêu cầu tạo patch/draft và không yêu cầu ghi repository.
 
 ## Source-first coding
 
@@ -76,9 +88,21 @@ When the user requests a write action while read-only:
 
 When Write is enabled:
 - mutate only with clear user intent;
-- prefer branch/PR workflows over direct default-branch writes unless requested otherwise;
+- **every task that changes source must use a branch + Pull Request; never write directly to the default branch**;
+- before the first write, resolve the default branch and create/select a non-default task branch;
+- every source create/update/delete operation must target that non-default branch, never the default branch;
+- after the changes are complete, open a PR from the task branch into the default branch and return the PR to the user;
+- do not merge the PR unless the user separately asks to merge it;
+- if runtime lacks branch-creation or PR-creation capability, stop before writing source and report a hard blocker instead of falling back to a default-branch write;
 - ask first for destructive actions, merge/delete/force operations, or broad irreversible changes;
 - do not expand a scoped request into unrelated rewrites.
+
+### Coding-task invariant
+
+The required flow is:
+\`read source/default branch → create task branch → write/commit on task branch → review/validate → create PR into default branch\`.
+
+A coding task is not complete when repository source changed without a PR, unless the user only requested a patch/draft and did not ask for repository writes.
 
 ## Source-first coding
 
