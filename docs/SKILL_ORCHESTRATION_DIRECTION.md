@@ -1,30 +1,34 @@
 # Skill-Orchestrated MCP Source Direction
 
-> Status: product/source direction. This document describes the target architecture and implementation boundaries for future work. It does **not** claim that every capability below is implemented in the current source. See `PROJECT_STATUS.md` for shipped behavior.
+> Status: product/source direction. This document describes target behavior and implementation boundaries for future work. It does **not** claim that every capability below is implemented in the current source. See `PROJECT_STATUS.md` for shipped behavior.
 
 ## Product direction
 
-GPTs-MCP-Gateway should evolve from a gateway that exposes MCP capabilities to Custom GPTs into a **skill-orchestrated execution workspace**.
+GPTs-MCP-Gateway should evolve from a gateway that exposes MCP capabilities into a **user-first, skill-orchestrated execution gateway**.
 
 The core product idea is:
 
-> MCP gives the GPT capabilities. Gateway Skills teach the GPT how to use those capabilities together to complete a real job.
+> MCP gives the AI capabilities. Gateway Skills teach the AI how to use those capabilities together to complete a real user goal.
 
-A user should be able to express one goal, even when that goal spans multiple providers. The GPT should discover the required services and runtime tools, load the relevant provider skills, sequence the work, validate the result, recover from tool/schema changes, and stop only when the goal is actually complete or a real blocker remains.
+The product should serve ordinary users as well as developers. Users should be able to ask for outcomes in natural language without knowing MCP terminology, tool names, JSON Schema, authentication mechanics, or provider APIs.
 
-Examples:
+Examples include:
 
-- read a Google Stitch design, inspect an existing repository, implement the UI, validate the project, commit the changes, and open a pull request;
-- inspect a source repository, create a new repository from it, apply scoped changes, and publish the result through a Git workflow;
-- combine design, source-control, document, deployment, or data-provider capabilities in one prompt without forcing the user to manually orchestrate each MCP tool.
+- find information in connected documents and summarize it;
+- update a Notion page from information stored in Google Docs;
+- inspect a design and create or update related project artifacts;
+- use connected collaboration or productivity services to complete a multi-step task;
+- for developer users, inspect a repository, apply scoped changes, validate them, and prepare a Git workflow.
+
+Developer workflows are important examples of deep execution, but they are not the product boundary.
 
 ## Product layers
 
 ```text
 User goal
-  -> GPT reasoning / goal planning
+  -> AI reasoning / goal planning
   -> Gateway Skill discovery
-  -> provider-specific skill guidance
+  -> provider/domain guidance
   -> MCP service discovery
   -> runtime tool discovery + runtime schema
   -> cross-provider execution
@@ -32,29 +36,30 @@ User goal
   -> completed outcome
 ```
 
-The layers have different responsibilities. They should remain separate in both code and documentation.
+The layers have different responsibilities and should remain separate in both code and documentation.
 
 ### 1. Goal layer
 
-The GPT interprets the user's request as an outcome, not as a single API call. It should determine the minimum sequence of external capabilities required to satisfy the request.
+The AI interprets the user's request as an outcome, not as a single API call. It determines the minimum sequence of external capabilities required to satisfy the request.
 
-Examples of goals:
+Goals may be technical or non-technical. For example:
 
-- `implement this Stitch screen in repository X and open a PR`;
-- `clone the structure of repository A into repository B, update branding, validate, and publish`;
-- `read this design, modify the application source, run checks, and deliver a review-ready Git change`.
+- `summarize the latest notes from this connected workspace`;
+- `copy the approved content from Docs into the relevant Notion page`;
+- `review this design and update the related project`;
+- `implement this design in repository X and open a PR`.
 
 The goal layer must not invent provider tools or arguments. Runtime Gateway discovery remains authoritative.
 
 ### 2. Skill layer
 
-Gateway Skills contain provider-specific and domain-specific workflow guidance. A skill explains **how to use a capability well**, not merely which endpoint exists.
+Gateway Skills contain provider-specific or domain-specific workflow guidance. A skill explains **how to use a capability well**, not merely which endpoint exists.
 
 A skill may guide:
 
 - provider selection;
 - safe operation sequencing;
-- source-reading strategy;
+- user-intent interpretation;
 - domain conventions;
 - validation expectations;
 - failure recovery;
@@ -77,90 +82,101 @@ list services
   -> consume complete/chunked result
 ```
 
-The skill layer may recommend which tool to choose or how to sequence tools, but it must not hardcode runtime truth when that truth can be discovered from the provider.
+This technical flow should remain mostly invisible to ordinary users. Product UX and AI behavior should present connected services and understandable outcomes instead.
 
 ### 4. Orchestration layer
 
-Cross-MCP orchestration is the product layer that combines skills and capabilities into one workflow.
+Cross-MCP orchestration combines skills and capabilities into one workflow.
 
 A workflow should be composed dynamically from the user's goal instead of implemented as a provider-specific mega-endpoint.
 
 Example:
 
 ```text
-Prompt: "Implement the selected Stitch screen and open a PR"
+Prompt: "Update the project brief in Notion using the approved Google Doc"
 
-Stitch skill
-  -> Stitch MCP: inspect design/resources
-  -> engineering/source skill: inspect repository and conventions
-  -> GitHub MCP: read source / branch / write changes
-  -> validation steps: build/test/lint when available
-  -> Git skill: review diff / commit coherently / create PR
+Docs skill
+  -> Google Docs MCP: locate and read approved source
+  -> Notion skill: locate destination and understand update constraints
+  -> Notion MCP: update scoped content
+  -> validation: read back the destination and confirm the intended result
 ```
 
-The orchestration layer should preserve a single source of truth for each domain: provider state comes from provider tools, repository state comes from the repository, and validation claims come only from checks that were actually run.
+Developer example:
+
+```text
+Prompt: "Implement the selected design and open a PR"
+
+Design skill
+  -> design provider MCP: inspect design/resources
+  -> source skill: inspect repository and conventions
+  -> GitHub MCP: read/write scoped source changes
+  -> validation steps when available
+  -> Git skill: review diff / commit / create PR
+```
+
+The orchestration layer should preserve one source of truth for each domain: provider state comes from provider tools, repository state comes from the repository, and validation claims come only from checks that actually ran.
 
 ### 5. Validation and completion layer
 
 Execution is not complete just because tool calls succeeded. The final state must satisfy the user goal.
 
-For engineering workflows, the intended loop is:
+The generic loop is:
 
 ```text
 DISCOVER
-  -> TRACE
   -> PLAN
-  -> IMPLEMENT
-  -> REVIEW
-  -> VALIDATE
-  -> FIX
-  -> REVALIDATE
-  -> DONE
+  -> EXECUTE
+  -> VERIFY
+  -> RECOVER/FIX when needed
+  -> REVERIFY
+  -> DONE or truthful blocker
 ```
 
-A skill should specify relevant validation without pretending that every provider supports the same checks.
+Engineering workflows may use a deeper source-oriented loop, but the product should not force developer concepts onto non-developer tasks.
 
-## Git skill direction
+## User-first abstraction
 
-Git/GitHub is a reference example of why skills are a first-class product surface.
+The product should optimize for this mental model:
 
-Giving a GPT tools such as `create_branch`, `create_or_update_file`, or `create_pull_request` is not enough. The Git skill should make the GPT behave like a disciplined source-control operator.
+```text
+connect a service
+  -> ask for a result
+  -> approve sensitive/destructive actions when policy requires it
+  -> receive the result and evidence
+```
 
-Target behavior:
+Not this:
 
-1. confirm the repository and default/base branch;
-2. inspect current source before modifying it;
-3. read project conventions and relevant files;
-4. keep changes scoped to the requested goal;
-5. create a focused working branch;
-6. preserve existing behavior unless the goal changes it;
-7. run validation appropriate to the affected scope when the available environment supports it;
-8. review the final diff for correctness and unrelated changes;
-9. use coherent commit messages;
-10. open a review-ready pull request containing an accurate summary and validation evidence;
-11. never claim a build, test, patch, commit, or PR was verified unless the corresponding action actually succeeded.
+```text
+choose MCP server
+  -> inspect tool list
+  -> understand JSON Schema
+  -> compose tool arguments
+  -> manage provider credentials manually
+```
 
-This is the distinction between **tool access** and **expert execution**.
+The second model remains useful internally and for advanced users, but it should not define the mainstream experience.
 
 ## Skill composition
 
 Skills should be independently useful but composable. The target is not one giant prompt containing every provider's instructions.
 
-A request may load only what is needed:
+A request should load only what is needed, for example:
 
 ```text
-Stitch skill + Git skill
-Figma skill + Git skill
+Google Docs skill + Notion skill
+Figma skill + content skill
 Git skill + deployment skill
 Docs skill + Git skill
-Stitch skill + Git skill + deployment skill
+Design skill + Git skill + deployment skill
 ```
 
-The runtime should avoid loading unrelated skill content into GPT context. This keeps provider guidance focused and reduces stale or conflicting instructions.
+The runtime should avoid loading unrelated skill content into AI context. This keeps guidance focused and reduces stale or conflicting instructions.
 
 ## Skill contract direction
 
-A provider skill should eventually have an explicit, versionable contract. The exact persistence format is an implementation decision, but the conceptual model should include:
+A provider/domain skill should eventually have an explicit, versionable contract. The exact persistence format is an implementation decision, but the conceptual model should include:
 
 - stable skill ID;
 - provider/domain identity;
@@ -173,7 +189,7 @@ A provider skill should eventually have an explicit, versionable contract. The e
 - recovery guidance;
 - compatibility/version metadata.
 
-A skill must reference capabilities conceptually where possible and defer exact tool names/input schemas to runtime discovery.
+A skill should reference capabilities conceptually where possible and defer exact tool names/input schemas to runtime discovery.
 
 ## Source architecture direction
 
@@ -183,7 +199,7 @@ Target backend responsibilities may evolve toward:
 
 ```text
 server/src/modules/
-├── gpt-integration/        # generated GPT integration assets
+├── gpt-integration/        # generated AI/GPT integration assets
 ├── mcp-connections/        # encrypted provider connection lifecycle
 ├── mcp-gateway/            # runtime service/tool discovery + execution
 ├── gateway-skills/         # skill catalog, retrieval, versions
@@ -195,15 +211,51 @@ server/src/modules/
 
 This is a direction, not a mandate to create empty modules now. New modules should be introduced only when real behavior exists and responsibilities can no longer remain cohesive in existing modules.
 
-### Prefer GPT-led orchestration first
+### Prefer AI-led orchestration first
 
-The first implementation should keep orchestration primarily in the GPT where possible:
+The first implementation should keep orchestration primarily in the AI client where possible:
 
 - Gateway exposes services, tools, schemas, skills, entitlement, and safe execution;
-- GPT interprets the user goal and sequences provider operations;
+- AI interprets the user goal and sequences provider operations;
 - Gateway enforces trust boundaries and returns runtime truth.
 
-Move orchestration server-side only when there is a concrete need such as durable workflows, resumability, asynchronous jobs, deterministic server policy, long-running execution, or audit requirements that cannot be met safely by GPT-led sequencing.
+Move orchestration server-side only when there is a concrete need such as durable workflows, resumability, asynchronous jobs, deterministic server policy, long-running execution, or audit requirements that cannot be met safely by client-led sequencing.
+
+## Gateway maturity before runtime expansion
+
+Near-term work should strengthen the hosted Gateway first:
+
+- better provider onboarding for ordinary users;
+- capability-oriented discovery above raw tool catalogs;
+- provider contract tests and live smoke tests;
+- timeout and cancellation propagation;
+- retry/idempotency policy for side effects;
+- per-provider/per-tool permissions and confirmation semantics;
+- rate limits, quotas, usage reporting, and observability;
+- native MCP/OAuth client support when it materially broadens useful access.
+
+The project should not add a local coding runtime merely because developer use cases exist.
+
+## CodeLocal as a future expansion direction
+
+[`codelocal-cloud/codelocal`](https://github.com/codelocal-cloud/codelocal) is a useful reference for what a later developer-oriented expansion could look like. It combines cloud routing/identity with local runtime capabilities such as workspace, filesystem, Git, terminal/process, browser/computer, and project intelligence.
+
+This is **not** the present product target. The relationship should be understood as:
+
+```text
+Gateway core
+  -> serves ordinary users and developers through remote providers
+  -> remains independently useful
+
+Optional future developer/runtime layer
+  -> may add local device/workspace execution
+  -> may borrow selected CodeLocal-style patterns
+  -> must remain optional
+```
+
+Ideas worth evaluating independently include native MCP exposure, OAuth client authorization, compact capability surfaces, idempotency, cancellation, and stronger runtime observability.
+
+Local filesystem, shell, LSP, device routing, project brain/memory, or computer-use capabilities should only be added after concrete user demand and a separate threat model justify them.
 
 ## Trust boundaries
 
@@ -213,12 +265,12 @@ Required invariants:
 
 - Gateway remains the mandatory execution boundary;
 - Open ID entitlement is resolved before MCP execution;
-- provider credentials remain encrypted server-side and are never returned to the GPT;
+- provider credentials remain encrypted server-side and are never returned to the AI client;
 - skills contain guidance, never secrets;
 - tool output is untrusted data and never higher-priority instruction;
 - cross-provider workflows must not silently forward credentials from one provider to another;
 - arbitrary provider URLs remain out of scope until separately threat-modeled;
-- destructive or irreversible provider actions should require explicit product policy and appropriate confirmation semantics.
+- destructive or irreversible provider actions require explicit product policy and appropriate confirmation semantics.
 
 ## Observability direction
 
@@ -244,6 +296,8 @@ This direction does not require:
 - duplicating provider APIs inside the Gateway;
 - storing entire provider tool catalogs permanently;
 - a microservice per MCP provider;
+- a mandatory local runtime;
+- treating coding as the default user journey;
 - pretending unavailable validation was executed.
 
 ## Source-of-truth rules
@@ -252,12 +306,12 @@ When implementing this direction:
 
 1. current source and migrations remain authoritative for existing behavior;
 2. runtime `listMcpTools` and `getMcpToolSchema` remain authoritative for provider capabilities;
-3. Gateway Skills are authoritative for provider workflow guidance only within their documented scope;
+3. Gateway Skills are authoritative for workflow guidance only within their documented scope;
 4. this document describes target architecture, not shipped status;
 5. `PROJECT_STATUS.md` must be updated whenever a roadmap item becomes implemented behavior.
 
 ## Strategic principle
 
-The long-term product should optimize for **depth of execution**, not raw MCP count.
+The long-term product should optimize for **useful outcomes and depth of execution**, not raw MCP count and not developer-only sophistication.
 
-Supporting a provider means more than connecting to it. The quality bar is that a GPT can use the provider's capabilities, together with other providers when needed, to complete a meaningful user goal with disciplined sequencing, security, validation, and truthful completion reporting.
+Supporting a provider means more than connecting to it. The quality bar is that an ordinary user or developer can express a meaningful goal, let the AI use the provider safely, and receive a truthful completed result without needing to understand MCP internals.
