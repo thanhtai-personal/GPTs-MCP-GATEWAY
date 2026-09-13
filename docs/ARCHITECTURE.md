@@ -2,6 +2,21 @@
 
 MCP Gateway is a modular monolith. The project deliberately avoids microservices, CQRS, repository interfaces for every table, or a separate cache layer while the domain is still small.
 
+## Architecture principle
+
+The current architecture is **gateway-first**. The system is designed to connect AI clients to external services through one trusted execution boundary while hiding provider credentials and most MCP complexity from end users.
+
+The product is intentionally not limited to developers. Developer workflows are one category of use case alongside document, design, productivity, collaboration, and other provider-backed workflows.
+
+The Gateway should therefore optimize for:
+
+- safe provider access;
+- simple account and connection onboarding;
+- runtime capability discovery;
+- stable authorization and entitlement;
+- clear user-facing outcomes rather than raw tool mechanics;
+- support for additional AI client surfaces without forcing a local developer runtime.
+
 ## System context
 
 ```text
@@ -21,7 +36,8 @@ MCP Gateway is a modular monolith. The project deliberately avoids microservices
 └────────────────────┘
 
 ┌────────────────────┐
-│ Custom GPT         │
+│ AI client          │
+│ Custom GPT today   │
 └─────────┬──────────┘
           │ Gateway bearer token
           ▼
@@ -37,15 +53,18 @@ MCP Gateway is a modular monolith. The project deliberately avoids microservices
           │ provider credential
           ▼
 ┌────────────────────┐
-│ Provider adapter   │
-│ StitchMcpAdapter   │
+│ Provider registry  │
+│ + provider adapter │
 └─────────┬──────────┘
-          │ MCP JSON-RPC
+          │ provider-specific MCP/API transport
           ▼
-┌────────────────────┐
-│ Google Stitch MCP  │
-└────────────────────┘
+┌────────────────────────────────────────────┐
+│ Stitch / Lovable / Figma / GitHub /        │
+│ Google Docs / Google Sheets / Notion / ... │
+└────────────────────────────────────────────┘
 ```
+
+The client-facing transport may expand later. The trusted boundary should remain the Gateway.
 
 ## Trust boundaries
 
@@ -60,36 +79,33 @@ The browser may hold:
 The browser must never receive:
 
 - Supabase service-role key;
-- `MCP_CREDENTIAL_ENCRYPTION_KEY`;
-- saved provider API keys after persistence;
-- token hashes.
+- provider credential encryption keys;
+- saved provider credentials after persistence;
+- Gateway token hashes.
 
 ### Dashboard API boundary
 
-Dashboard endpoints authenticate a real application user with a Supabase Bearer token. `AuthService.requireUser()` verifies that token with Supabase Auth and then loads the application profile through the service-role client.
+Dashboard endpoints authenticate a real application user with a Supabase Bearer token. The server verifies that token with Supabase Auth and loads the application profile through the trusted backend boundary.
 
 ### GPT execution boundary
 
 GPT endpoints do **not** use the user's Supabase session. `GatewayAccessGuard` authenticates the Gateway Bearer token and resolves a `GatewayPrincipal`.
 
-The principal contains:
-
-- credential ID;
-- Open ID database ID;
-- Open ID string;
-- account;
-- entitlement kind (`trial` or `paid`).
+The principal represents the credential, Open ID, account, and entitlement used to authorize execution.
 
 ### Provider boundary
 
-Provider adapters receive the decrypted provider credential only inside the trusted server process. A provider adapter owns:
+Provider adapters receive decrypted provider credentials only inside the trusted server process. A provider adapter owns provider-specific concerns such as:
 
-- provider endpoint;
-- provider authentication mechanism;
-- MCP transport details;
-- provider-specific error mapping.
+- endpoint selection;
+- authentication mechanism;
+- MCP/API transport details;
+- provider-specific error mapping;
+- connection testing or OAuth-backed connection behavior where applicable.
 
 ## Backend modules
+
+The current source contains modules for responsibilities including:
 
 ```text
 server/src/modules/
@@ -100,33 +116,74 @@ server/src/modules/
 ├── mcp-connections/
 ├── mcp-gateway/
 │   └── providers/
-│       └── stitch/
-└── open-id/
+├── open-id/
+└── ...
 ```
 
-Responsibilities:
+The provider registry currently includes adapters for:
+
+```text
+stitch
+lovable
+figma
+github
+google-docs
+google-sheets
+notion
+```
+
+Responsibilities remain separated by domain:
 
 - `auth`: Supabase user authentication and app profile loading.
-- `mcp-connections`: provider credential test/save/delete/decrypt boundary.
-- `open-id`: trial, paid Open ID, Gateway token lifecycle.
-- `gpt-integration`: generated Instructions/Knowledge/OpenAPI/ZIP.
-- `mcp-gateway`: GPT runtime API, entitlement enforcement, provider routing.
+- `mcp-connections`: provider connection lifecycle and trusted credential access.
+- `open-id`: trial, paid Open ID, and Gateway token lifecycle.
+- `gpt-integration`: generated GPT integration assets.
+- `mcp-gateway`: runtime service/tool discovery, schema lookup, entitlement enforcement, and provider execution.
 - `audit`: sanitized operational audit events.
-- `health`: liveness endpoint.
+- `health`: liveness and related health endpoints.
 
-Controllers remain thin; database/provider orchestration stays in services.
+Controllers should remain thin; database/provider orchestration belongs in services.
 
-## Frontend structure
+## User-facing abstraction
 
-The web app uses TanStack Start/React and TanStack React Query.
+Ordinary users should not need to understand `tools/list`, JSON Schema, MCP transports, or provider credential formats. Those are implementation details.
 
-Server-owned state such as account, MCP connections, trial state, Open ID, and tokens belongs to query/API layers rather than a duplicated global client store.
+The intended user model is closer to:
 
-The public site and authenticated application share the same project, with Vietnamese/English UI support.
+```text
+Connect service
+  -> ask for an outcome
+  -> Gateway discovers available capability
+  -> AI client selects and calls the required operation
+  -> Gateway enforces authorization and provider boundaries
+  -> result is returned to the user
+```
+
+Technical discovery endpoints remain essential internally because runtime provider truth is more reliable than stale static descriptions. Product UX should translate that runtime model into connected services and understandable capabilities.
+
+## Gateway Skill and tool discovery model
+
+Gateway Skills provide workflow guidance. Runtime provider discovery remains authoritative for actual service/tool names and schemas.
+
+Conceptually:
+
+```text
+user goal
+  -> relevant Gateway Skill when useful
+  -> service discovery
+  -> tool discovery
+  -> selected tool schema
+  -> authorized execution
+  -> complete or chunked result
+```
+
+This approach lets the Gateway support many providers without hardcoding every upstream tool into one client contract.
+
+A future capability catalog may sit above raw tool discovery to make the model and UI more concise, but it should not replace runtime schema authority.
 
 ## Database model
 
-Core tables:
+Core concepts include:
 
 ```text
 app_users
@@ -137,81 +194,54 @@ mcp_connections
 gateway_audit_events
 ```
 
-Important invariants:
+Important invariants include:
 
-- one `trial_entitlements` row per account lifetime;
-- trial expires exactly seven days after claim;
-- one trial Open ID per account;
-- one paid Open ID per account in the MVP;
-- Gateway credential belongs to the same user as its Open ID;
-- Gateway token hash is unique;
-- provider connection is unique per `(user_id, provider)`.
+- one trial entitlement per account lifetime;
+- trial expiry governed by the entitlement lifecycle;
+- Gateway credentials belong to the same account/Open ID relationship they authorize;
+- raw Gateway tokens are not persisted;
+- provider connections are scoped to their owner and provider.
 
-The `claim_gateway_trial(...)` PostgreSQL function performs the trial entitlement, internal Open ID, and trial Gateway credential creation atomically.
+Current migrations and source are authoritative for exact constraints.
 
 ## Open ID model
 
 An Open ID is an **entitlement object**, not an authentication protocol.
 
-### Trial Open ID
+A Gateway token authenticates a client request; its linked Open ID determines entitlement to Gateway execution.
 
-- created by the atomic trial RPC;
-- non-exportable;
-- expires with the seven-day trial;
-- one per account lifetime.
-
-### Paid Open ID
-
-- only available to `member`;
-- exportable;
-- one per account in the current MVP;
-- may have multiple Gateway credentials/tokens.
-
-## Gateway token model
-
-The raw token is generated from cryptographically random bytes and shown only once.
-
-Stored data includes:
-
-- SHA-256 token hash;
-- display prefix;
-- owner/Open ID relation;
-- optional expiry;
-- revoked timestamp;
-- last-used timestamp.
-
-SHA-256 is appropriate here because the input is a high-entropy generated secret, not a human password.
+This separation is intentional so authentication credentials can be rotated or revoked without redefining the entitlement model.
 
 ## MCP request flow
 
 ### Discover tools
 
 ```text
-GET /api/v1/gpt/mcp/:service/tools
-  -> GatewayAccessGuard
-  -> GatewayCredentialService.authenticate()
-  -> McpProviderRegistry.get(service)
-  -> McpConnectionsService.getProviderApiKey(user)
-  -> adapter.listTools(apiKey)
-  -> upstream tools/list
+client
+  -> Gateway authentication
+  -> Open ID entitlement
+  -> provider registry
+  -> owner connection lookup
+  -> adapter runtime discovery
   -> sanitized audit event
-  -> GPT
+  -> client
 ```
 
 ### Call a tool
 
 ```text
-POST /api/v1/gpt/mcp/:service/tools/:toolName/call
-  -> same auth / entitlement path
-  -> adapter.callTool(apiKey, toolName, arguments)
-  -> upstream tools/call
+client
+  -> same authentication / entitlement path
+  -> runtime-selected provider adapter
+  -> tool execution using server-held provider credential
+  -> complete or chunked response handling
   -> sanitized audit event
-  -> GPT
+  -> client
 ```
 
 ## Why provider URLs are not user-configurable
 
-The MVP uses an explicit provider registry. This reduces:
+The current product uses an explicit provider registry. This reduces:
 
 - SSRF risk;
 - credential exfiltration to arbitrary hosts;
@@ -220,13 +250,51 @@ The MVP uses an explicit provider registry. This reduces:
 
 If arbitrary MCP endpoints are added later, they require a separate threat model and network egress policy.
 
-## Adding scale only when needed
+## Near-term architecture direction
 
-Current design intentionally has no Redis or background queue. Before adding either, measure:
+The preferred evolution is to strengthen the hosted Gateway before adding broader runtime infrastructure. Likely additions include:
 
-- upstream request latency;
-- tool catalog churn;
-- rate-limit pressure;
-- database contention.
+- provider contract and smoke-test coverage;
+- timeout/cancellation propagation;
+- idempotency for mutating operations;
+- per-provider/per-tool policy;
+- quotas and usage accounting;
+- richer capability discovery;
+- stronger operational observability;
+- native MCP transport plus OAuth/PKCE for additional AI clients when justified.
 
-A short-lived tool catalog cache may be reasonable later, but runtime discovery is currently simple enough to call upstream directly.
+The existing modular-monolith architecture remains appropriate for these changes. Add queues, Redis, or additional services only when measured requirements justify them.
+
+## CodeLocal as an expansion reference
+
+[`codelocal-cloud/codelocal`](https://github.com/codelocal-cloud/codelocal) demonstrates a broader architecture in which cloud identity/routing is combined with a native local runtime for filesystem, Git, terminal/process, browser/computer, workspace, and project-intelligence capabilities.
+
+That model is useful as a **future reference**, not as the current target.
+
+The architectural boundary should remain explicit:
+
+```text
+Current product
+AI client
+  -> hosted Gateway
+  -> remote providers
+
+Possible future expansion
+AI client
+  -> hosted Gateway
+  -> remote providers
+  -> optional local/device runtime
+```
+
+If a local runtime is ever introduced, it should be optional and separately threat-modeled. Normal document, design, productivity, and SaaS workflows must remain usable without developer tooling or a local agent installation.
+
+Selected CodeLocal-style ideas that can be evaluated independently of a local runtime include:
+
+- native MCP client support;
+- OAuth-based client authorization;
+- compact capability/tool surfaces;
+- idempotency and retry safety;
+- cancellation propagation;
+- stronger runtime observability.
+
+Do not copy broader coding-runtime architecture unless concrete product demand requires it.
