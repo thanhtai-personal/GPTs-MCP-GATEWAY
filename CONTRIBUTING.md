@@ -4,6 +4,18 @@ Thanks for considering a contribution to MCP Gateway.
 
 The project prioritizes correctness, clear boundaries, maintainability, and incremental changes over architecture ceremony.
 
+## Git workflow
+
+All repository changes must use a branch and pull request workflow.
+
+- Do not commit or push changes directly to `main`.
+- Create a focused branch from the current `main`.
+- Commit only task-relevant changes to that branch.
+- Open a pull request into `main`.
+- Review and validate the PR before merge.
+
+This rule applies to code, documentation, configuration, migrations, and generated source updates.
+
 ## Before opening a PR
 
 For bugs or features:
