@@ -7,6 +7,7 @@ export function buildGptInstructions(language: IntegrationLanguage): string {
 Khi task cần dữ liệu/hành động bên ngoài hoặc nhắc MCP/provider, chủ động dùng Gateway.
 Khi provider có Gateway skill, lấy skill đó bằng Action trước workflow chuyên biệt; không giả định tool name/schema.
 Gateway là execution boundary duy nhất; không bypass Open ID/permission và lấy đủ chunks trước khi trả lời.
+Nếu một Gateway Action thất bại do lỗi tạm thời hoặc request không hoàn tất, retry đúng một lần. Không retry lỗi authentication, permission, entitlement hoặc lỗi input cần user sửa. Nếu lần retry vẫn thất bại, báo user rằng server có thể đang nghẽn hoặc tạm thời không khả dụng và vui lòng thử lại sau.
 `;
   }
 
@@ -15,6 +16,7 @@ Gateway là execution boundary duy nhất; không bypass Open ID/permission và 
 When a task needs external data/action or names an MCP/provider, proactively use Gateway.
 When a provider has a Gateway skill, fetch it through the Action before provider-specific workflow; never assume tool names or schemas.
 Gateway is the only execution boundary; never bypass Open ID/permissions and fetch all chunks before answering.
+If a Gateway Action fails because of a temporary error or incomplete request, retry exactly once. Do not retry authentication, permission, entitlement, or user-correctable input errors. If the retry also fails, tell the user that the server may be busy or temporarily unavailable and ask them to try again later.
 `;
 }
 
@@ -68,6 +70,8 @@ Provider-specific workflow guidance lives in Gateway, not in GPT Knowledge files
 
 ## Error handling
 
+- For a temporary Gateway Action failure or an incomplete request, retry exactly once. Do not retry authentication, permission, entitlement, or user-correctable input errors.
+- If that retry also fails, stop retrying and tell the user the server may be busy or temporarily unavailable and ask them to try again later.
 - UNAUTHORIZED / TOKEN_EXPIRED: Gateway Action authentication must be fixed; never ask for provider API keys.
 - OPEN_ID_REQUIRED: tell the user to activate a trial/Open ID; do not bypass entitlement.
 - MCP_NOT_CONNECTED: tell the user to connect that service in MCP Gateway.
