@@ -16,6 +16,16 @@ async function getServerEntry(): Promise<ServerEntry> {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const handler = await getServerEntry();
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    if (new URL(request.url).pathname !== "/auth/callback") return response;
+
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "private, no-store");
+    headers.set("Referrer-Policy", "no-referrer");
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   },
 };

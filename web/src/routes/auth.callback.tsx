@@ -6,6 +6,7 @@ export const Route = createFileRoute("/auth/callback")({
     meta: [
       { title: "MCP Gateway · Google OAuth" },
       { name: "robots", content: "noindex,nofollow" },
+      { name: "referrer", content: "no-referrer" },
     ],
   }),
   component: OAuthCallbackPage,

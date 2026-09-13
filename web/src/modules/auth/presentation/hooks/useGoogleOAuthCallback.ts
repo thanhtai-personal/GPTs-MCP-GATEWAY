@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { completeGoogleOAuth } from "@/modules/auth/infrastructure/google-oauth";
+import { CALLBACK_CHUNK_RETRY_KEY } from "@/shared/components/callback-chunk-recovery";
 
 type OAuthCallbackError = {
   code: string;
@@ -13,6 +14,12 @@ export function useGoogleOAuthCallback() {
 
   useEffect(() => {
     let active = true;
+
+    try {
+      sessionStorage.removeItem(CALLBACK_CHUNK_RETRY_KEY);
+    } catch {
+      // The callback can still complete when storage access is unavailable.
+    }
 
     void completeGoogleOAuth()
       .then(() => navigate({ to: "/app", replace: true }))
