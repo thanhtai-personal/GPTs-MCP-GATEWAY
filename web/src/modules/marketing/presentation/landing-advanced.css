@@ -1,226 +1,300 @@
-/* Advanced public-landing enhancements. Scoped to the v2 marketing surface only. */
+/* MCP Gateway landing rebuild — smooth control-plane narrative, modern CSS first. */
 
 html:has(.landing--supercharged-v2) {
   scroll-behavior: smooth;
-  scroll-padding-top: 86px;
+  scroll-padding-top: 88px;
 }
 
 .landing--supercharged-v2 {
-  --gateway-focus: color-mix(in srgb, var(--live) 68%, transparent);
+  --gateway-focus: color-mix(in srgb, var(--live) 70%, transparent);
+  --gateway-section-space: clamp(78px, 9vw, 136px);
+  --gateway-panel: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  --gateway-panel-strong: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  --gateway-line: color-mix(in srgb, var(--live) 12%, var(--line));
+  --gateway-ease: cubic-bezier(.22, 1, .36, 1);
+  position: relative;
+  overflow: clip;
 }
 
-/* Use :is() to keep keyboard interaction visually consistent across mixed controls. */
-.landing--supercharged-v2 :is(
-  .button,
-  .landing-nav a,
-  .footer-links a,
-  .compact-button,
-  .language-switcher select
-):focus-visible {
+.landing--supercharged-v2 :is(.button, .landing-nav a, .footer-links a, .compact-button, .language-switcher select):focus-visible {
   outline: 2px solid var(--gateway-focus);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--live) 8%, transparent);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--live) 8%, transparent);
 }
 
-.landing--supercharged-v2 :is(#control-plane, #open-id, #mcp-services, #gpt-integration, #walkthrough) {
-  scroll-margin-top: 86px;
+.landing--supercharged-v2 :is(#control-plane, #open-id, #mcp-services, #gpt-integration, #walkthrough) { scroll-margin-top: 88px; }
+
+/* Background becomes atmospheric infrastructure instead of decoration. */
+.landing-v2-bg__grid { opacity: .23; mask-image: linear-gradient(to bottom, #000 0 58%, transparent 95%); }
+.landing-v2-bg__beam { mix-blend-mode: screen; opacity: .42; filter: blur(.2px); }
+.landing-v2-bg__orb { filter: blur(18px); opacity: .62; }
+:root[data-theme="light"] .landing-v2-bg__beam { mix-blend-mode: multiply; opacity: .11; }
+:root[data-theme="light"] .landing-v2-bg__orb { opacity: .28; }
+
+/* Header floats as a soft control strip. */
+.site-header--v2 {
+  top: 14px;
+  margin-top: 14px;
+  padding-inline: clamp(16px, 2vw, 24px);
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-0) 76%, transparent);
+  backdrop-filter: blur(18px) saturate(1.12);
+  box-shadow: 0 18px 50px rgba(0,0,0,.08);
+  transition: border-color .25s ease, box-shadow .25s ease, background .25s ease;
 }
 
-/* A clipped protocol chip fits the control-plane language without turning the UI into neon decoration. */
-.landing-hero-v2__badge,
-.pipeline-protocol {
-  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+.site-header--v2:has(.landing-nav a:hover, .language-switcher select:focus-visible, .button:focus-visible) {
+  border-color: color-mix(in srgb, var(--live) 24%, var(--line));
+  box-shadow: 0 20px 58px color-mix(in srgb, var(--live) 5%, transparent);
 }
 
-/* Explicit grid areas make the request/inspector relationship resilient when the viewport collapses. */
-.live-router-console__body {
-  grid-template-areas: "requests inspector";
+/* Hero: larger breathing room, stronger message, softer entry. */
+.landing-hero-v2 {
+  min-height: clamp(700px, 88svh, 940px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding-block: clamp(148px, 17vh, 204px) clamp(88px, 10vh, 124px);
+  text-align: center;
 }
 
-.live-router-console__requests {
-  grid-area: requests;
+.landing-hero-v2__badge, .pipeline-protocol {
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
 }
 
-.live-router-console__inspector {
-  grid-area: inspector;
+.landing-hero-v2__badge {
+  margin-bottom: 24px;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--live) 5%, var(--surface-1));
+  border-color: color-mix(in srgb, var(--live) 20%, var(--line));
 }
 
-/* Animated gradient borders signal an active secure route, but preserve the existing glass surface. */
+.landing-hero-v2 h1 {
+  max-width: 12.8ch;
+  margin-inline: auto;
+  font-size: clamp(3.15rem, 7.2vw, 7.6rem);
+  line-height: .94;
+  letter-spacing: -.058em;
+  text-wrap: balance;
+}
+
+.landing-hero-v2 > p {
+  max-width: 68ch;
+  margin-top: 28px;
+  font-size: clamp(1rem, .9vw + .72rem, 1.24rem);
+  line-height: 1.75;
+}
+
+.landing-hero-v2__actions { margin-top: 34px; }
+.landing-hero-v2__status { margin-top: 30px; gap: 10px 22px; }
+
+.landing-hero-v2 > :is(.landing-hero-v2__badge, h1, p, .landing-hero-v2__actions, .landing-hero-v2__status) {
+  animation: gateway-rise .82s var(--gateway-ease) both;
+}
+.landing-hero-v2 > h1 { animation-delay: 75ms; }
+.landing-hero-v2 > p { animation-delay: 145ms; }
+.landing-hero-v2 > .landing-hero-v2__actions { animation-delay: 215ms; }
+.landing-hero-v2 > .landing-hero-v2__status { animation-delay: 285ms; }
+
+/* The live stage reads as one system, not two unrelated widgets. */
+.landing-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, .72fr) minmax(0, 1.28fr);
+  grid-template-areas: "identity router";
+  gap: clamp(20px, 3vw, 34px);
+  align-items: stretch;
+  margin-top: -34px;
+  margin-bottom: clamp(40px, 6vw, 72px);
+  perspective: 1400px;
+}
+
+.identity-orbit { grid-area: identity; }
+.live-router-console { grid-area: router; }
+
 :is(.identity-orbit, .live-router-console, .open-id-v2__card) {
   position: relative;
   isolation: isolate;
+  border-color: var(--gateway-line);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--gateway-panel-strong) 96%, transparent), color-mix(in srgb, var(--gateway-panel) 82%, transparent));
+  backdrop-filter: blur(18px) saturate(1.08);
+  box-shadow: 0 28px 90px rgba(0,0,0,.13), inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+  transition: transform .5s var(--gateway-ease), box-shadow .5s ease, border-color .35s ease;
 }
 
 @supports (mask-composite: exclude) {
   :is(.identity-orbit, .live-router-console, .open-id-v2__card)::before {
-    position: absolute;
-    z-index: 3;
-    inset: -1px;
-    padding: 1px;
-    pointer-events: none;
-    content: "";
-    border-radius: inherit;
-    background: linear-gradient(
-      118deg,
-      transparent 8%,
-      color-mix(in srgb, var(--brand) 72%, transparent) 32%,
-      color-mix(in srgb, var(--live) 84%, transparent) 50%,
-      color-mix(in srgb, var(--ok) 58%, transparent) 66%,
-      transparent 90%
-    );
-    background-size: 220% 220%;
+    position: absolute; z-index: 3; inset: -1px; padding: 1px; pointer-events: none; content: ""; border-radius: inherit;
+    background: linear-gradient(118deg, transparent 8%, color-mix(in srgb, var(--brand) 68%, transparent) 32%, color-mix(in srgb, var(--live) 84%, transparent) 50%, color-mix(in srgb, var(--ok) 54%, transparent) 67%, transparent 91%);
+    background-size: 240% 240%;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     mask-composite: exclude;
-    animation: gateway-secure-border 8s ease-in-out infinite alternate;
+    animation: gateway-secure-border 10s ease-in-out infinite alternate;
   }
-}
-
-/* :has() promotes meaningful child state to its parent without adding component state. */
-.site-header--v2:has(.language-switcher select:focus-visible) {
-  border-color: color-mix(in srgb, var(--live) 28%, var(--line));
-}
-
-.open-id-v2__card:has(.button:focus-visible, .compact-button:focus-visible) {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--brand) 32%, transparent),
-    0 0 56px color-mix(in srgb, var(--brand) 10%, transparent);
-}
-
-/* CSS variables act as a tiny visual state machine for the architecture comparison. */
-.control-plane-card {
-  --gateway-card-signal: var(--text-3);
-  --gateway-card-glow: transparent;
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform .34s cubic-bezier(.22, 1, .36, 1),
-    opacity .24s ease,
-    border-color .24s ease,
-    box-shadow .34s ease;
-}
-
-.control-plane-card--bad {
-  --gateway-card-signal: var(--bad);
-  --gateway-card-glow: color-mix(in srgb, var(--bad) 6%, transparent);
-}
-
-.control-plane-card--good {
-  --gateway-card-signal: var(--ok);
-  --gateway-card-glow: color-mix(in srgb, var(--ok) 7%, transparent);
-}
-
-.control-plane-card::after {
-  position: absolute;
-  right: -74px;
-  bottom: -96px;
-  width: 190px;
-  height: 190px;
-  pointer-events: none;
-  content: "";
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--gateway-card-glow), transparent 70%);
-  opacity: .7;
-  transition: transform .4s ease, opacity .4s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .control-plane-compare:has(.control-plane-card:hover) .control-plane-card:not(:hover) {
-    opacity: .68;
-    transform: perspective(1000px) scale(.992);
-  }
-
-  .control-plane-card:hover {
-    transform: perspective(1000px) rotateX(.7deg) translateY(-4px);
-    box-shadow: 0 24px 62px color-mix(in srgb, var(--gateway-card-signal) 8%, transparent);
-  }
-
-  .control-plane-card:hover::after {
-    opacity: 1;
-    transform: translate3d(-16px, -14px, 0) scale(1.1);
-  }
-
-  :is(.stitch-provider-v2, .gpt-kit-v2) {
-    transform-style: preserve-3d;
-    transition: transform .38s cubic-bezier(.22, 1, .36, 1), box-shadow .38s ease;
-  }
-
-  :is(.stitch-provider-v2, .gpt-kit-v2):hover {
-    transform: perspective(1200px) rotateX(.45deg) translateY(-3px);
-    box-shadow: 0 24px 66px color-mix(in srgb, var(--brand) 8%, transparent);
-  }
+  .landing-stage:has(.identity-orbit:hover) .live-router-console,
+  .landing-stage:has(.live-router-console:hover) .identity-orbit { opacity: .78; transform: translateY(3px) scale(.992); }
+  .identity-orbit:hover { transform: rotateY(1deg) translateY(-6px); box-shadow: 0 38px 110px color-mix(in srgb, var(--brand) 8%, transparent); }
+  .live-router-console:hover { transform: rotateY(-.8deg) translateY(-6px); box-shadow: 0 38px 110px color-mix(in srgb, var(--live) 8%, transparent); }
 }
 
-/* Targeted sections get a brief visual locator after anchor navigation. */
-.landing--supercharged-v2 .landing-section:target .landing-section__heading {
+.live-router-console__body { grid-template-areas: "requests inspector"; }
+.live-router-console__requests { grid-area: requests; }
+.live-router-console__inspector { grid-area: inspector; }
+
+/* Long-form sections get editorial spacing and a visual spine. */
+.landing-section {
   position: relative;
+  padding-block: var(--gateway-section-space);
+}
+
+.landing-section::before {
+  position: absolute; top: 0; left: 50%; width: min(680px, 70%); height: 1px; translate: -50% 0; content: ""; pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--live) 18%, var(--line)), transparent);
+}
+
+.landing-section__heading { max-width: 830px; margin-inline: auto; }
+.landing-section__heading h2, .final-cta--supercharged-v2 h2 {
+  font-size: clamp(2.2rem, 4.8vw, 5rem);
+  line-height: 1;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.landing-section__heading p { max-width: 66ch; margin-inline: auto; font-size: clamp(.98rem, .75vw + .76rem, 1.14rem); line-height: 1.75; }
+
+/* Comparison stops feeling like two static boxes; the state is carried by CSS variables. */
+.control-plane-compare {
+  margin-top: clamp(42px, 5vw, 68px);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 26px);
+}
+
+.control-plane-card {
+  --gateway-card-signal: var(--text-3);
+  --gateway-card-glow: transparent;
+  position: relative; overflow: hidden; grid-column: span 6; min-height: 430px;
+  padding: clamp(24px, 3vw, 36px); border-radius: 26px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--gateway-panel-strong) 96%, transparent), color-mix(in srgb, var(--gateway-panel) 80%, transparent));
+  border-color: color-mix(in srgb, var(--gateway-card-signal) 16%, var(--line));
+  transition: transform .46s var(--gateway-ease), opacity .3s ease, border-color .3s ease, box-shadow .46s ease;
+}
+.control-plane-card--bad { --gateway-card-signal: var(--bad); --gateway-card-glow: color-mix(in srgb, var(--bad) 8%, transparent); }
+.control-plane-card--good { --gateway-card-signal: var(--ok); --gateway-card-glow: color-mix(in srgb, var(--ok) 8%, transparent); }
+.control-plane-card::after {
+  position: absolute; right: -100px; bottom: -130px; width: 290px; height: 290px; content: ""; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle, var(--gateway-card-glow), transparent 68%); opacity: .85; transition: transform .5s var(--gateway-ease), opacity .4s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control-plane-compare:has(.control-plane-card:hover) .control-plane-card:not(:hover) { opacity: .55; transform: scale(.986); }
+  .control-plane-card:hover { transform: perspective(1100px) rotateX(.8deg) translateY(-8px); box-shadow: 0 30px 86px color-mix(in srgb, var(--gateway-card-signal) 10%, transparent); }
+  .control-plane-card:hover::after { transform: translate3d(-24px, -24px, 0) scale(1.12); }
+}
+
+/* Pipeline reads as one execution path. */
+.architecture-pipeline {
+  position: relative;
+  margin-top: clamp(42px, 5vw, 66px);
+}
+.architecture-pipeline::before {
+  position: absolute; left: 8%; right: 8%; top: 50%; height: 1px; content: ""; z-index: 0;
+  background: linear-gradient(90deg, transparent, var(--brand), var(--live), var(--ok), transparent); opacity: .28;
+}
+.architecture-pipeline > * { position: relative; z-index: 1; }
+.pipeline-protocol { margin-top: 24px; padding: 14px 18px; background: color-mix(in srgb, var(--surface-code) 90%, transparent); }
+
+/* Open ID section gets a deliberate product-focus moment. */
+.open-id-v2__grid {
+  margin-top: clamp(42px, 5vw, 70px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(270px, .72fr);
+  grid-template-areas: "card notes";
+  gap: clamp(20px, 3vw, 34px);
+  align-items: stretch;
+}
+.open-id-v2__card { grid-area: card; border-radius: 28px; padding: clamp(24px, 3vw, 38px); }
+.open-id-v2__notes { grid-area: notes; }
+.open-id-v2__card:has(.button:focus-visible, .compact-button:focus-visible) { transform: translateY(-4px); box-shadow: 0 32px 96px color-mix(in srgb, var(--brand) 10%, transparent); }
+
+/* Provider/kit surfaces share one tactile motion language. */
+:is(.stitch-provider-v2, .gpt-kit-v2, .walkthrough-video, .final-cta--supercharged-v2) {
+  border-radius: 28px;
+  border-color: var(--gateway-line);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--gateway-panel-strong) 96%, transparent), color-mix(in srgb, var(--gateway-panel) 82%, transparent));
+  box-shadow: 0 28px 88px rgba(0,0,0,.11);
+  transition: transform .5s var(--gateway-ease), box-shadow .5s ease, border-color .35s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.stitch-provider-v2, .gpt-kit-v2, .walkthrough-video):hover { transform: perspective(1200px) rotateX(.55deg) translateY(-6px); border-color: color-mix(in srgb, var(--brand) 22%, var(--line)); box-shadow: 0 38px 110px color-mix(in srgb, var(--brand) 8%, transparent); }
+}
+
+.coming-provider-row { gap: 16px; }
+.coming-provider-row article { border-radius: 18px; background: color-mix(in srgb, var(--gateway-panel) 86%, transparent); }
+
+/* Journey is a horizontal progress narrative rather than equal chips. */
+.journey-row--v2 {
+  position: relative;
+  margin-top: clamp(42px, 5vw, 66px);
+}
+.journey-row--v2::before {
+  position: absolute; left: 5%; right: 5%; top: 50%; height: 1px; content: "";
+  background: linear-gradient(90deg, color-mix(in srgb, var(--text-3) 35%, transparent), var(--brand), var(--live), color-mix(in srgb, var(--ok) 55%, transparent)); opacity: .4;
+}
+.journey-row--v2 > * { position: relative; z-index: 1; }
+
+.final-cta--supercharged-v2 {
+  overflow: hidden;
+  padding: clamp(56px, 7vw, 92px);
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 78% 22%, color-mix(in srgb, var(--live) 10%, transparent), transparent 30%),
+    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 32%),
+    linear-gradient(145deg, color-mix(in srgb, var(--gateway-panel-strong) 98%, transparent), color-mix(in srgb, var(--gateway-panel) 86%, transparent));
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
 }
 
 .landing--supercharged-v2 .landing-section:target .landing-section__heading::after {
-  display: block;
-  width: min(180px, 36%);
-  height: 1px;
-  margin: 18px auto 0;
-  content: "";
-  background: linear-gradient(90deg, transparent, var(--live), var(--brand), transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--live) 26%, transparent);
+  display: block; width: min(200px, 36%); height: 1px; margin: 20px auto 0; content: "";
+  background: linear-gradient(90deg, transparent, var(--live), var(--brand), transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--live) 30%, transparent);
 }
 
-.landing-v2-bg__beam {
-  mix-blend-mode: screen;
-}
-
-:root[data-theme="light"] .landing-v2-bg__beam {
-  mix-blend-mode: multiply;
-  opacity: .14;
-}
-
-.landing--supercharged-v2 :is(
-  .landing-hero-v2 h1,
-  .landing-section__heading h2,
-  .final-cta--supercharged-v2 h2
-) {
-  text-wrap: balance;
-}
-
-@keyframes gateway-secure-border {
-  from { background-position: 0% 50%; opacity: .46; }
-  to { background-position: 100% 50%; opacity: .92; }
-}
+@keyframes gateway-secure-border { from { background-position: 0% 50%; opacity: .38; } to { background-position: 100% 50%; opacity: .9; } }
+@keyframes gateway-rise { from { opacity: 0; transform: translateY(20px); filter: blur(6px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
 @media (max-width: 980px) {
-  .live-router-console__body {
-    grid-template-areas:
-      "requests"
-      "inspector";
-  }
+  .site-header--v2 { top: 8px; margin-top: 8px; }
+  .landing-stage { grid-template-columns: 1fr; grid-template-areas: "identity" "router"; margin-top: 0; }
+  .live-router-console__body { grid-template-areas: "requests" "inspector"; }
+  .control-plane-compare { grid-template-columns: 1fr; }
+  .control-plane-card { grid-column: auto; min-height: 0; }
+  .open-id-v2__grid { grid-template-columns: 1fr; grid-template-areas: "card" "notes"; }
+  .architecture-pipeline::before, .journey-row--v2::before { display: none; }
 }
 
 @media (max-width: 720px) {
-  .landing-hero-v2__badge {
-    max-width: 100%;
-    text-align: left;
-  }
-
-  .pipeline-protocol {
-    clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px);
-  }
+  .landing--supercharged-v2 { --gateway-section-space: 68px; }
+  .site-header--v2 { border-radius: 14px; }
+  .landing-hero-v2 { min-height: auto; padding-block: 132px 76px; text-align: left; justify-items: stretch; }
+  .landing-hero-v2 h1 { max-width: 10.5ch; margin-inline: 0; font-size: clamp(3rem, 14vw, 4.9rem); }
+  .landing-hero-v2 > p { margin-inline: 0; }
+  .landing-hero-v2__badge { width: fit-content; max-width: 100%; text-align: left; }
+  .landing-hero-v2__status { align-items: flex-start; }
+  .pipeline-protocol { clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+  :is(.stitch-provider-v2, .gpt-kit-v2, .walkthrough-video, .final-cta--supercharged-v2) { border-radius: 22px; }
+  .final-cta--supercharged-v2 { padding: 42px 22px; clip-path: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:has(.landing--supercharged-v2) {
-    scroll-behavior: auto;
-  }
-
-  :is(.identity-orbit, .live-router-console, .open-id-v2__card)::before {
-    animation: none;
-  }
-
-  .control-plane-card,
-  .control-plane-card:hover,
-  :is(.stitch-provider-v2, .gpt-kit-v2),
-  :is(.stitch-provider-v2, .gpt-kit-v2):hover {
-    transform: none;
-  }
+  html:has(.landing--supercharged-v2) { scroll-behavior: auto; }
+  .landing-hero-v2 > :is(.landing-hero-v2__badge, h1, p, .landing-hero-v2__actions, .landing-hero-v2__status),
+  :is(.identity-orbit, .live-router-console, .open-id-v2__card)::before { animation: none; }
+  :is(.identity-orbit, .live-router-console, .control-plane-card, .stitch-provider-v2, .gpt-kit-v2, .walkthrough-video),
+  :is(.identity-orbit, .live-router-console, .control-plane-card, .stitch-provider-v2, .gpt-kit-v2, .walkthrough-video):hover { transform: none; transition-duration: .01ms; }
 }
