@@ -1,4 +1,4 @@
-import { Grip, LifeBuoy, MessageCircleQuestion, X } from "lucide-react";
+import { Facebook, Grip, LifeBuoy, MessageCircleQuestion, X, Youtube } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { SUPPORTER_QUESTIONS } from "@/modules/supporter/domain/supporter-content";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
@@ -8,6 +8,11 @@ type Point = { x: number; y: number };
 const STORAGE_KEY = "gpts-mcp-supporter-position";
 const ICON_SIZE = 52;
 const EDGE = 12;
+
+const CONTACT_LINKS = [
+  { href: "https://www.facebook.com/mindinme", label: "Facebook", icon: Facebook },
+  { href: "https://www.youtube.com/@CodeVisualLab", label: "YouTube", icon: Youtube },
+] as const;
 
 export function SupporterWidget() {
   const { language, t } = useUiLanguage();
@@ -45,6 +50,12 @@ export function SupporterWidget() {
       <header><div><span className="eyebrow">SUPPORTER</span><h2>{t("Trợ giúp nhanh", "Quick help")}</h2></div><button className="icon-button" onClick={() => setOpen(false)} type="button" aria-label={t("Đóng Supporter", "Close Supporter")}><X size={17} /></button></header>
       <p className="muted">{t("Chọn câu hỏi thường gặp về kết nối provider và credential.", "Choose a common question about provider connections and credentials.")}</p>
       <div className="supporter-faq">{SUPPORTER_QUESTIONS.map((item) => <details key={item.id}><summary><MessageCircleQuestion size={15} />{language === "vi" ? item.question.vi : item.question.en}</summary><p>{language === "vi" ? item.answer.vi : item.answer.en}</p></details>)}</div>
+      <div className="supporter-contact">
+        <span className="eyebrow">{t("LIÊN HỆ", "CONTACT", "联系", "연락처", "連絡先")}</span>
+        <div className="supporter-contact__links">
+          {CONTACT_LINKS.map(({ href, icon: Icon, label }) => <a href={href} key={href} rel="noreferrer noopener" target="_blank"><Icon size={15} />{label}</a>)}
+        </div>
+      </div>
     </aside> : null}
   </>;
 }
