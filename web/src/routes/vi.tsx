@@ -8,22 +8,22 @@ const siteUrl =
 export const Route = createFileRoute("/vi")({
   head: () => ({
     meta: [
-      { title: "MCP Gateway cho Custom GPT | Kết nối GPT với MCP" },
+      { title: "MCP Gateway điều phối bằng Skill cho Custom GPT" },
       {
         name: "description",
         content:
-          "Kết nối Custom GPT với các MCP service được hỗ trợ qua Open ID Gateway bảo mật. Discovery tool runtime và hỗ trợ Google Stitch.",
+          "Biến mục tiêu của Custom GPT thành MCP execution có kỷ luật với Gateway Skills, runtime tool discovery, provider access bảo mật và workflow theo outcome.",
       },
-      { property: "og:title", content: "MCP Gateway cho Custom GPT" },
+      { property: "og:title", content: "MCP Gateway điều phối bằng Skill cho Custom GPT" },
       {
         property: "og:description",
-        content: "Cho Custom GPT sử dụng MCP qua một Gateway có kiểm soát.",
+        content: "MCP trao capability cho GPT. Gateway Skills dạy GPT cách phối hợp các capability để hoàn thành công việc thực tế.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "MCP Gateway cho Custom GPT" },
+      { name: "twitter:title", content: "MCP Gateway điều phối bằng Skill cho Custom GPT" },
       {
         name: "twitter:description",
-        content: "Cho Custom GPT sử dụng MCP qua một Gateway có kiểm soát.",
+        content: "Từ tool access đến expert execution với Gateway Skills và runtime MCP discovery.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${siteUrl}/vi` },
