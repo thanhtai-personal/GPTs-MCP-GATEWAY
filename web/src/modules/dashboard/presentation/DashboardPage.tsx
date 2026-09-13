@@ -16,12 +16,18 @@ import { AdminSiteSettingsPanel } from "@/modules/site-settings/presentation/Adm
 import "./DashboardPage.mobile.css";
 
 type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration" | "settings";
+type SystemRole = "user" | "admin";
+
 const SCREEN_IDS = new Set<AppScreen>(["overview", "mcp-services", "open-id", "gpt-integration", "settings"]);
 
 function getScreenFromHash(): AppScreen {
   if (typeof window === "undefined") return "overview";
   const value = window.location.hash.replace(/^#/, "") as AppScreen;
   return SCREEN_IDS.has(value) ? value : "overview";
+}
+
+function canAccessScreen(screen: AppScreen, role: SystemRole) {
+  return screen !== "settings" || role === "admin";
 }
 
 export function DashboardPage() {
@@ -37,10 +43,19 @@ export function DashboardPage() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
+  useEffect(() => {
+    const role = account.data?.systemRole;
+    if (!role || canAccessScreen(activeScreen, role)) return;
+    setActiveScreen("overview");
+    window.history.replaceState(null, "", "#overview");
+  }, [account.data?.systemRole, activeScreen]);
+
   if (isLoading) return <main className="app-loading">{t("Đang tải…", "Loading…")}</main>;
   if (!session) return <SignInExperience />;
 
   const setScreen = (screen: AppScreen) => {
+    const role = account.data?.systemRole;
+    if (role && !canAccessScreen(screen, role)) return;
     setActiveScreen(screen);
     window.history.replaceState(null, "", `#${screen}`);
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -61,7 +76,7 @@ export function DashboardPage() {
             <span className="app-nav__item app-nav__item--disabled"><KeyRound size={18} /><span>{t("Gateway Token", "Gateway Tokens", "Gateway 令牌", "Gateway 토큰", "Gateway トークン")}</span><small>—</small></span>
             <span className="app-nav__item app-nav__item--disabled"><Activity size={18} /><span>{t("Mức sử dụng & Telemetry", "Usage & Telemetry", "使用量与遥测", "사용량 및 텔레메트리", "使用量とテレメトリ")}</span><small>—</small></span>
             <span className="app-nav__item app-nav__item--disabled"><CreditCard size={18} /><span>{t("Thanh toán / Hạn mức", "Billing / Quota", "计费 / 配额", "결제 / 할당량", "請求 / クォータ")}</span><small>—</small></span>
-            {account.data?.systemRole === "admin" ? <AppNavItem active={activeScreen === "settings"} icon={<Settings size={18} />} label={t("Cài đặt", "Settings", "设置", "설정", "設定")} onSelect={() => setScreen("settings")} screen="settings" /> : <span className="app-nav__item app-nav__item--disabled"><Settings size={18} /><span>{t("Cài đặt", "Settings", "设置", "설정", "設定")}</span><small>ADMIN</small></span>}
+            {account.data?.systemRole === "admin" ? <AppNavItem active={activeScreen === "settings"} icon={<Settings size={18} />} label={t("Cài đặt", "Settings", "设置", "설정", "設定")} onSelect={() => setScreen("settings")} screen="settings" /> : null}
           </div>
         </nav>
         <div className="sidebar-account">
