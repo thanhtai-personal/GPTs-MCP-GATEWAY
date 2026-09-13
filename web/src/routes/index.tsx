@@ -8,22 +8,22 @@ const siteUrl =
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MCP Gateway for Custom GPTs | Connect GPT to MCP" },
+      { title: "Skill-Orchestrated MCP Gateway for Custom GPTs" },
       {
         name: "description",
         content:
-          "Connect Custom GPTs to supported MCP services through a secure Open ID gateway. Runtime tool discovery, encrypted provider credentials, and Google Stitch support.",
+          "Turn Custom GPT goals into disciplined MCP execution with Gateway Skills, runtime tool discovery, secure provider access, and outcome-based workflows.",
       },
-      { property: "og:title", content: "MCP Gateway for Custom GPTs" },
+      { property: "og:title", content: "Skill-Orchestrated MCP Gateway for Custom GPTs" },
       {
         property: "og:description",
-        content: "Give Custom GPT agent-like MCP access through one secure Gateway.",
+        content: "MCP gives your GPT capabilities. Gateway Skills teach it how to use them together to complete real work.",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "MCP Gateway for Custom GPTs" },
+      { name: "twitter:title", content: "Skill-Orchestrated MCP Gateway for Custom GPTs" },
       {
         name: "twitter:description",
-        content: "Give Custom GPT agent-like MCP access through one secure Gateway.",
+        content: "Move from tool access to expert execution with Gateway Skills and runtime MCP discovery.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${siteUrl}/` },
