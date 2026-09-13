@@ -1,3 +1,5 @@
+@import "./landing-advanced.css";
+
 .workflow-transformation { position: relative; }
 
 .workflow-transformation::before {
