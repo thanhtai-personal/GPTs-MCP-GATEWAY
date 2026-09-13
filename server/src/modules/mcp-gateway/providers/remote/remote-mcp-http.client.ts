@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   McpProtocolShapeError,
   parseMcpToolCallResult,
@@ -57,9 +57,13 @@ export class RemoteMcpHttpClient {
         providerName,
       );
       const tool = tools.find((candidate) => candidate.name === toolName);
-      const requestHeaders = tool
-        ? this.buildToolHeaders(tool, argumentsValue)
-        : {};
+      if (!tool) {
+        throw new NotFoundException({
+          code: 'MCP_TOOL_NOT_FOUND',
+          message: `MCP tool not found: ${toolName}`,
+        });
+      }
+      const requestHeaders = this.buildToolHeaders(tool, argumentsValue);
       const result = await connection.request<unknown>(
         'tools/call',
         {

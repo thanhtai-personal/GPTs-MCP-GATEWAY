@@ -103,6 +103,9 @@ Apply:
 
 ```text
 database/migrations/001_initial_schema.sql
+database/migrations/002_gpt_response_transfers.sql
+database/migrations/003_site_settings.sql
+database/migrations/004_mcp_oauth_transactions.sql
 ```
 
 Sau đó:

@@ -28,6 +28,7 @@ export class AppConfigService {
     .filter(Boolean);
   readonly rateLimitPerMinute = integer('GATEWAY_RATE_LIMIT_PER_MINUTE', 60);
   readonly upstreamTimeoutMs = integer('MCP_UPSTREAM_TIMEOUT_MS', 30_000);
+  readonly upstreamMaxResponseBytes = integer('MCP_UPSTREAM_MAX_RESPONSE_BYTES', 16_777_216);
   readonly mcpOAuthStateTtlSeconds = integer('MCP_OAUTH_STATE_TTL_SECONDS', 600);
   readonly lovableMcpOAuthClientId =
     process.env.LOVABLE_MCP_OAUTH_CLIENT_ID?.trim() || undefined;

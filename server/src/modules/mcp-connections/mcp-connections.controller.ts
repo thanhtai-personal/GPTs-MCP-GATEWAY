@@ -16,6 +16,7 @@ import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/s
 import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
+import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oauth-transaction.service';
 
 @Controller('mcp-connections')
 export class McpConnectionsController {
@@ -23,6 +24,7 @@ export class McpConnectionsController {
     private readonly config: AppConfigService,
     private readonly connections: McpConnectionsService,
     private readonly googleWorkspaceOAuth: GoogleWorkspaceOAuthService,
+    private readonly transactions: OAuthTransactionService,
   ) {}
 
   @Get('providers')
@@ -46,20 +48,29 @@ export class McpConnectionsController {
   }
 
   @Post('google-workspace/oauth/start')
-  startGoogleWorkspaceOAuth(@Req() request: Request) {
-    return this.googleWorkspaceOAuth.start(request);
+  async startGoogleWorkspaceOAuth(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { browserNonce, ...result } = await this.googleWorkspaceOAuth.start(request);
+    response.setHeader('Cache-Control', 'no-store');
+    this.transactions.setBrowserCookie(response, 'google-workspace', browserNonce);
+    return result;
   }
 
   @Get('google-workspace/oauth/callback')
   async googleWorkspaceOAuthCallback(
+    @Req() request: Request,
     @Query('code') code: string | undefined,
     @Query('state') state: string | undefined,
     @Query('error') oauthError: string | undefined,
     @Res() response: Response,
   ) {
+    response.setHeader('Cache-Control', 'no-store');
     const returnTo = '#mcp-services';
 
     if (oauthError || !code || !state) {
+      this.transactions.clearBrowserCookie(response, 'google-workspace');
       response.redirect(
         this.webRedirect(
           'google-workspace',
@@ -72,7 +83,12 @@ export class McpConnectionsController {
     }
 
     try {
-      await this.googleWorkspaceOAuth.complete(code, state);
+      await this.googleWorkspaceOAuth.complete(
+        code,
+        state,
+        this.transactions.readBrowserCookie(request, 'google-workspace'),
+      );
+      this.transactions.clearBrowserCookie(response, 'google-workspace');
       response.redirect(
         this.webRedirect(
           'google-workspace',
@@ -82,6 +98,7 @@ export class McpConnectionsController {
         ),
       );
     } catch (error) {
+      this.transactions.clearBrowserCookie(response, 'google-workspace');
       response.redirect(
         this.webRedirect(
           'google-workspace',
@@ -94,16 +111,21 @@ export class McpConnectionsController {
   }
 
   @Post(':provider/oauth/start')
-  startOAuth(
+  async startOAuth(
     @Req() request: Request,
     @Param('provider') provider: string,
     @Body() dto: StartMcpOAuthDto,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.connections.startOAuth(request, provider, dto);
+    const { browserNonce, ...result } = await this.connections.startOAuth(request, provider, dto);
+    response.setHeader('Cache-Control', 'no-store');
+    this.transactions.setBrowserCookie(response, provider, browserNonce);
+    return result;
   }
 
   @Get(':provider/oauth/callback')
   async oauthCallback(
+    @Req() request: Request,
     @Param('provider') provider: string,
     @Query('code') code: string | undefined,
     @Query('state') state: string | undefined,
@@ -111,11 +133,18 @@ export class McpConnectionsController {
     @Query('error') oauthError: string | undefined,
     @Res() response: Response,
   ) {
-    const returnTo = state
-      ? this.connections.oauthReturnTo(provider, state)
-      : undefined;
+    response.setHeader('Cache-Control', 'no-store');
+    let returnTo: string | undefined;
+    try {
+      returnTo = state
+        ? this.connections.oauthReturnTo(provider, state)
+        : undefined;
+    } catch {
+      returnTo = undefined;
+    }
 
     if (oauthError || !code || !state) {
+      this.transactions.clearBrowserCookie(response, provider);
       response.redirect(
         this.webRedirect(
           provider,
@@ -128,11 +157,19 @@ export class McpConnectionsController {
     }
 
     try {
-      await this.connections.completeOAuth(provider, code, state, issuer);
+      await this.connections.completeOAuth(
+        provider,
+        code,
+        state,
+        issuer,
+        this.transactions.readBrowserCookie(request, provider),
+      );
+      this.transactions.clearBrowserCookie(response, provider);
       response.redirect(
         this.webRedirect(provider, 'connected', undefined, returnTo),
       );
     } catch (error) {
+      this.transactions.clearBrowserCookie(response, provider);
       response.redirect(
         this.webRedirect(
           provider,

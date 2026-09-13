@@ -7,10 +7,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { createHash, randomBytes } from 'node:crypto';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
 import { AuthService } from '@server/root/modules/auth/auth.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
+import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oauth-transaction.service';
 import { isJsonObject } from '@server/root/modules/mcp-gateway/mcp-json';
 import type { McpOAuthCredential } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
@@ -37,6 +39,8 @@ const REQUIRED_EFFECTIVE_SCOPES = [
 type GoogleWorkspaceOAuthState = {
   version: 1;
   userId: string;
+  transactionId: string;
+  codeVerifier: string;
   issuedAt: number;
 };
 
@@ -55,16 +59,24 @@ export class GoogleWorkspaceOAuthService {
     private readonly cipher: SecretCipherService,
     private readonly config: AppConfigService,
     private readonly connections: McpConnectionsService,
+    private readonly transactions: OAuthTransactionService,
   ) {}
 
   async start(request: Request) {
     const user = await this.auth.requireUser(request);
     const clientId = this.requireClientId();
+    const codeVerifier = randomBytes(32).toString('base64url');
+    const codeChallenge = createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
+    const transaction = await this.transactions.begin(user.id, 'google-workspace');
 
     const state = this.cipher.encrypt(
       JSON.stringify({
         version: 1,
         userId: user.id,
+        transactionId: transaction.id,
+        codeVerifier,
         issuedAt: Date.now(),
       } satisfies GoogleWorkspaceOAuthState),
     );
@@ -78,19 +90,28 @@ export class GoogleWorkspaceOAuthService {
     url.searchParams.set('include_granted_scopes', 'true');
     url.searchParams.set('prompt', 'consent');
     url.searchParams.set('state', state);
+    url.searchParams.set('code_challenge', codeChallenge);
+    url.searchParams.set('code_challenge_method', 'S256');
     if (user.email) url.searchParams.set('login_hint', user.email);
 
     return {
       provider: 'google-workspace',
       authorizationUrl: url.toString(),
+      browserNonce: transaction.browserNonce,
     };
   }
 
-  async complete(code: string, stateValue: string) {
+  async complete(code: string, stateValue: string, browserNonce?: string) {
     const state = this.readState(stateValue);
+    await this.transactions.consume(
+      state.transactionId,
+      state.userId,
+      'google-workspace',
+      browserNonce,
+    );
     await this.auth.getUserById(state.userId);
 
-    const credential = await this.exchangeCode(code);
+    const credential = await this.exchangeCode(code, state.codeVerifier);
     const diagnostics = await this.validateFreshToken(credential);
 
     try {
@@ -127,7 +148,7 @@ export class GoogleWorkspaceOAuthService {
     return `${base}/api/v1/mcp-connections/google-workspace/oauth/callback`;
   }
 
-  private async exchangeCode(code: string): Promise<McpOAuthCredential> {
+  private async exchangeCode(code: string, codeVerifier: string): Promise<McpOAuthCredential> {
     let response: Response;
     try {
       response = await fetch(TOKEN_ENDPOINT, {
@@ -138,6 +159,7 @@ export class GoogleWorkspaceOAuthService {
         },
         body: new URLSearchParams({
           code,
+          code_verifier: codeVerifier,
           client_id: this.requireClientId(),
           client_secret: this.requireClientSecret(),
           redirect_uri: this.callbackUri(),
@@ -274,6 +296,8 @@ export class GoogleWorkspaceOAuthService {
       !isJsonObject(parsed) ||
       parsed.version !== 1 ||
       typeof parsed.userId !== 'string' ||
+      typeof parsed.transactionId !== 'string' ||
+      typeof parsed.codeVerifier !== 'string' ||
       typeof parsed.issuedAt !== 'number'
     ) {
       throw this.invalidState();

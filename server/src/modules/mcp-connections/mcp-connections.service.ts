@@ -167,6 +167,7 @@ export class McpConnectionsService {
     code: string,
     state: string,
     issuer?: string,
+    browserNonce?: string,
   ) {
     const provider = this.providers.get(providerId);
     const result = await this.oauth.exchangeAuthorizationCode(
@@ -174,6 +175,7 @@ export class McpConnectionsService {
       code,
       state,
       issuer,
+      browserNonce,
     );
     await this.auth.getUserById(result.userId);
     const startedAt = Date.now();

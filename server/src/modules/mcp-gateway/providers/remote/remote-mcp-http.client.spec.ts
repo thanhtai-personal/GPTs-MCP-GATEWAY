@@ -73,6 +73,32 @@ describe('RemoteMcpHttpClient', () => {
     expect(headers.get('Mcp-Param-owner')).toBe('thanhtai-personal');
     expect(headers.get('Mcp-Param-repo')).toBe('GPTs-MCP-GATEWAY');
   });
+
+  it('does not call a tool omitted from the provider tool list', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(jsonRpcResult({
+        supportedVersions: ['2026-07-28'],
+        capabilities: { tools: {} },
+      }))
+      .mockResolvedValueOnce(jsonRpcResult({
+        tools: [{ name: 'get_file_contents', inputSchema: { type: 'object' } }],
+      }))
+      .mockResolvedValueOnce(jsonRpcResult({ content: [] })) as typeof fetch;
+
+    const client = new RemoteMcpHttpClient(
+      new RemoteMcpHttpTransport({ upstreamTimeoutMs: 30_000 } as AppConfigService),
+    );
+
+    await expect(client.callTool(
+      'https://api.githubcopilot.com/mcp/x/all/readonly',
+      { kind: 'oauth', accessToken: 'token', tokenType: 'Bearer' },
+      'GitHub',
+      'delete_repository',
+      {},
+    )).rejects.toMatchObject({ status: 404 });
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
 });
 
 function jsonRpcResult(result: Record<string, unknown>): Response {

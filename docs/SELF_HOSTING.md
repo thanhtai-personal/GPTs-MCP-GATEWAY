@@ -20,6 +20,9 @@ For a brand-new database:
 
 ```text
 database/migrations/001_initial_schema.sql
+database/migrations/002_gpt_response_transfers.sql
+database/migrations/003_site_settings.sql
+database/migrations/004_mcp_oauth_transactions.sql
 ```
 
 Do not edit an already-applied migration after public deployment. Future schema changes should be new forward migrations.
@@ -70,6 +73,7 @@ Variables:
 | `GATEWAY_PUBLIC_BASE_URL` | recommended | public base URL embedded in GPT OpenAPI |
 | `GATEWAY_RATE_LIMIT_PER_MINUTE` | no | global Nest throttler limit |
 | `MCP_UPSTREAM_TIMEOUT_MS` | no | provider request timeout |
+| `MCP_UPSTREAM_MAX_RESPONSE_BYTES` | no | maximum bytes read from one MCP response (default 16777216) |
 
 Generate the encryption key:
 

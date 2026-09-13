@@ -12,6 +12,7 @@ import type {
   OAuthTokenPayload,
 } from '@server/root/modules/mcp-connections/mcp-oauth-protocol.client';
 import { McpOAuthProtocolClient } from '@server/root/modules/mcp-connections/mcp-oauth-protocol.client';
+import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oauth-transaction.service';
 import { isJsonObject } from '@server/root/modules/mcp-gateway/mcp-json';
 import type {
   McpOAuthCredential,
@@ -24,6 +25,7 @@ type OAuthStatePayload = {
   version: 1;
   provider: string;
   userId: string;
+  transactionId: string;
   codeVerifier: string;
   clientId: string;
   clientSecret?: string;
@@ -49,6 +51,7 @@ export class McpOAuthService {
     private readonly cipher: SecretCipherService,
     private readonly protocol: McpOAuthProtocolClient,
     private readonly registration: McpOAuthClientRegistrationClient,
+    private readonly transactions: OAuthTransactionService,
   ) {}
 
   async createAuthorizationRequest(
@@ -72,10 +75,12 @@ export class McpOAuthService {
     const codeChallenge = createHash('sha256')
       .update(codeVerifier)
       .digest('base64url');
+    const transaction = await this.transactions.begin(userId, provider.id);
     const state = this.encodeState({
       version: 1,
       provider: provider.id,
       userId,
+      transactionId: transaction.id,
       codeVerifier,
       clientId: client.clientId,
       ...(client.clientSecret ? { clientSecret: client.clientSecret } : {}),
@@ -108,6 +113,7 @@ export class McpOAuthService {
     return {
       provider: provider.id,
       authorizationUrl: authorizationUrl.toString(),
+      browserNonce: transaction.browserNonce,
     };
   }
 
@@ -116,6 +122,7 @@ export class McpOAuthService {
     code: string,
     stateValue: string,
     authorizationIssuer?: string,
+    browserNonce?: string,
   ): Promise<{
     userId: string;
     credential: McpOAuthCredential;
@@ -123,6 +130,12 @@ export class McpOAuthService {
   }> {
     const oauth = this.requireOAuth(provider);
     const state = this.readAndValidateState(provider, stateValue);
+    await this.transactions.consume(
+      state.transactionId,
+      state.userId,
+      provider.id,
+      browserNonce,
+    );
 
     if (oauth.clientId && oauth.clientId !== state.clientId) {
       throw new BadRequestException({
@@ -248,6 +261,7 @@ export class McpOAuthService {
       parsed.version !== 1 ||
       typeof parsed.provider !== 'string' ||
       typeof parsed.userId !== 'string' ||
+      typeof parsed.transactionId !== 'string' ||
       typeof parsed.codeVerifier !== 'string' ||
       typeof parsed.clientId !== 'string' ||
       ('clientSecret' in parsed &&

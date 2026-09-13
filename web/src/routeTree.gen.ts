@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as ViRouteImport } from './routes/vi'
-import { Route as TermsRouteImport } from './routes/terms'
+import { Route as JaRouteImport } from './routes/ja'
+import { Route as KoRouteImport } from './routes/ko'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ViRouteImport } from './routes/vi'
+import { Route as ZhRouteImport } from './routes/zh'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -26,9 +29,19 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ViRoute = ViRouteImport.update({
-  id: '/vi',
-  path: '/vi',
+const JaRoute = JaRouteImport.update({
+  id: '/ja',
+  path: '/ja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoRoute = KoRouteImport.update({
+  id: '/ko',
+  path: '/ko',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -36,9 +49,14 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const ViRoute = ViRouteImport.update({
+  id: '/vi',
+  path: '/vi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZhRoute = ZhRouteImport.update({
+  id: '/zh',
+  path: '/zh',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -50,42 +68,82 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
-  '/vi': typeof ViRoute
-  '/terms': typeof TermsRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
   '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/vi': typeof ViRoute
+  '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
-  '/vi': typeof ViRoute
-  '/terms': typeof TermsRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
   '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/vi': typeof ViRoute
+  '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRoute
-  '/vi': typeof ViRoute
-  '/terms': typeof TermsRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
   '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/vi': typeof ViRoute
+  '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/vi' | '/terms' | '/privacy' | '/auth/callback'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/ja'
+    | '/ko'
+    | '/privacy'
+    | '/terms'
+    | '/vi'
+    | '/zh'
+    | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/vi' | '/terms' | '/privacy' | '/auth/callback'
-  id: '__root__' | '/' | '/app' | '/vi' | '/terms' | '/privacy' | '/auth/callback'
+  to:
+    | '/'
+    | '/app'
+    | '/ja'
+    | '/ko'
+    | '/privacy'
+    | '/terms'
+    | '/vi'
+    | '/zh'
+    | '/auth/callback'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/ja'
+    | '/ko'
+    | '/privacy'
+    | '/terms'
+    | '/vi'
+    | '/zh'
+    | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRoute
-  ViRoute: typeof ViRoute
-  TermsRoute: typeof TermsRoute
+  JaRoute: typeof JaRoute
+  KoRoute: typeof KoRoute
   PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
+  ViRoute: typeof ViRoute
+  ZhRoute: typeof ZhRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
@@ -105,11 +163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vi': {
-      id: '/vi'
-      path: '/vi'
-      fullPath: '/vi'
-      preLoaderRoute: typeof ViRouteImport
+    '/ja': {
+      id: '/ja'
+      path: '/ja'
+      fullPath: '/ja'
+      preLoaderRoute: typeof JaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko': {
+      id: '/ko'
+      path: '/ko'
+      fullPath: '/ko'
+      preLoaderRoute: typeof KoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -119,11 +191,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
+    '/vi': {
+      id: '/vi'
+      path: '/vi'
+      fullPath: '/vi'
+      preLoaderRoute: typeof ViRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zh': {
+      id: '/zh'
+      path: '/zh'
+      fullPath: '/zh'
+      preLoaderRoute: typeof ZhRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -139,9 +218,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRoute,
-  ViRoute: ViRoute,
-  TermsRoute: TermsRoute,
+  JaRoute: JaRoute,
+  KoRoute: KoRoute,
   PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
+  ViRoute: ViRoute,
+  ZhRoute: ZhRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport

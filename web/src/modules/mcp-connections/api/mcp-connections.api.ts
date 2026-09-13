@@ -53,6 +53,7 @@ export function startMcpOAuth(
     {
       method: "POST",
       body: JSON.stringify(options),
+      credentials: "include",
     },
   );
 }
@@ -74,5 +75,6 @@ export function startGoogleWorkspaceOAuth(accessToken: string) {
     authorizationUrl: string;
   }>("/mcp-connections/google-workspace/oauth/start", accessToken, {
     method: "POST",
+    credentials: "include",
   });
 }

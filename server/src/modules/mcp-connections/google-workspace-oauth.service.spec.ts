@@ -1,0 +1,50 @@
+import { SecretCipherService } from '@server/root/common/security/secret-cipher.service';
+import { createHash } from 'node:crypto';
+import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
+
+describe('GoogleWorkspaceOAuthService', () => {
+  it('uses PKCE and rejects a callback from another browser before token exchange', async () => {
+    const config = {
+      credentialEncryptionKey: Buffer.alloc(32, 8).toString('base64'),
+      publicBaseUrl: 'https://gateway.example.com',
+      googleWorkspaceOAuthClientId: 'google-client',
+      googleWorkspaceOAuthClientSecret: 'google-secret',
+      mcpOAuthStateTtlSeconds: 600,
+    } as never;
+    const transactions = {
+      begin: jest.fn().mockResolvedValue({ id: 'transaction-1', browserNonce: 'nonce' }),
+      consume: jest.fn().mockRejectedValue(new Error('different browser')),
+    };
+    const cipher = new SecretCipherService(config);
+    const service = new GoogleWorkspaceOAuthService(
+      {
+        requireUser: jest.fn().mockResolvedValue({ id: 'user-1', email: 'user@example.com' }),
+        getUserById: jest.fn().mockResolvedValue({ id: 'user-1' }),
+      } as never,
+      cipher,
+      config,
+      {} as never,
+      transactions as never,
+    );
+    const fetchSpy = jest.spyOn(global, 'fetch');
+    try {
+      const started = await service.start({} as never);
+      const url = new URL(started.authorizationUrl);
+      expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+      expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/u);
+      expect(started.browserNonce).toBe('nonce');
+      const state = url.searchParams.get('state')!;
+      const { codeVerifier } = JSON.parse(cipher.decrypt(state)) as { codeVerifier: string };
+      expect(url.searchParams.get('code_challenge')).toBe(
+        createHash('sha256').update(codeVerifier).digest('base64url'),
+      );
+
+      await expect(
+        service.complete('code', state, 'other-browser'),
+      ).rejects.toThrow('different browser');
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+});

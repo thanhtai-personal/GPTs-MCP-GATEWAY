@@ -18,6 +18,9 @@ const required = [
   "create table public.trial_entitlements",
   "create table public.gpt_response_transfers",
   "create table public.gpt_response_chunks",
+  "create table public.mcp_oauth_transactions",
+  "alter table public.mcp_oauth_transactions enable row level security",
+  "revoke all on table public.mcp_oauth_transactions from anon, authenticated",
   "create or replace function public.claim_gateway_trial",
   "unique (user_id, provider)"
 ];

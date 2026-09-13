@@ -118,7 +118,7 @@ export class RemoteMcpHttpTransport {
       },
     );
 
-    const payload = await parseRemoteMcpResponse<T>(response);
+    const payload = await parseRemoteMcpResponse<T>(response, this.config.upstreamMaxResponseBytes);
     if (payload.error) {
       throw new BadGatewayException({
         code: 'MCP_TOOL_CALL_FAILED',
@@ -198,7 +198,7 @@ export class RemoteMcpHttpTransport {
       throw this.upstreamError(providerName, response.status);
     }
 
-    const payload = await parseRemoteMcpResponse<unknown>(response);
+    const payload = await parseRemoteMcpResponse<unknown>(response, this.config.upstreamMaxResponseBytes);
     if (payload.result !== undefined) return true;
 
     if (
@@ -243,7 +243,7 @@ export class RemoteMcpHttpTransport {
       {},
     );
 
-    const payload = await parseRemoteMcpResponse<unknown>(response);
+    const payload = await parseRemoteMcpResponse<unknown>(response, this.config.upstreamMaxResponseBytes);
     if (payload.error) {
       throw new BadGatewayException({
         code: 'MCP_PROTOCOL_NEGOTIATION_FAILED',

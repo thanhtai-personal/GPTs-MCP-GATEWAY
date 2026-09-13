@@ -24,6 +24,7 @@ import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-
 import { McpOAuthClientRegistrationClient } from '@server/root/modules/mcp-connections/mcp-oauth-client-registration.client';
 import { McpOAuthProtocolClient } from '@server/root/modules/mcp-connections/mcp-oauth-protocol.client';
 import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.service';
+import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oauth-transaction.service';
 
 @Module({
   imports: [AuthModule],
@@ -73,6 +74,7 @@ import { McpOAuthService } from '@server/root/modules/mcp-connections/mcp-oauth.
     McpOAuthClientRegistrationClient,
     McpOAuthProtocolClient,
     McpOAuthService,
+    OAuthTransactionService,
     McpConnectionsService,
     GoogleWorkspaceOAuthService,
   ],
