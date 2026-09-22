@@ -123,7 +123,9 @@ export class LocalAgentService {
       .update({
         status: input.result.isError ? 'failed' : 'completed',
         result: input.result,
-        error_message: input.result.isError ? 'Local MCP tool returned an error' : null,
+        error_message: input.result.isError
+          ? 'Local MCP tool returned an error'
+          : null,
         completed_at: now,
       })
       .eq('id', jobId)
@@ -149,7 +151,12 @@ export class LocalAgentService {
   }
 
   async hasConnectedAgent(userId: string): Promise<boolean> {
-    return Boolean(await this.findActiveAgent(userId));
+    try {
+      return Boolean(await this.findActiveAgent(userId));
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) return false;
+      throw error;
+    }
   }
 
   async listTools(userId: string): Promise<McpToolDefinition[]> {
@@ -282,20 +289,32 @@ export class LocalAgentService {
   private parseRegistration(value: unknown): RegisterLocalAgentInput {
     if (!isJsonObject(value)) throw this.invalidRegistration();
     const name = typeof value.name === 'string' ? value.name.trim() : '';
-    if (!name || name.length > 80 || !Array.isArray(value.tools) || value.tools.length > 250) {
+    if (
+      !name ||
+      name.length > 80 ||
+      !Array.isArray(value.tools) ||
+      value.tools.length > 250
+    ) {
       throw this.invalidRegistration();
     }
     return { name, tools: value.tools.map((tool) => this.parseTool(tool)) };
   }
 
   private parseTool(value: unknown): LocalAgentTool {
-    if (!isJsonObject(value) || typeof value.name !== 'string' || !value.name.trim() || !isJsonObject(value.inputSchema)) {
+    if (
+      !isJsonObject(value) ||
+      typeof value.name !== 'string' ||
+      !value.name.trim() ||
+      !isJsonObject(value.inputSchema)
+    ) {
       throw this.invalidRegistration();
     }
     return {
       name: value.name.trim(),
       inputSchema: value.inputSchema,
-      ...(typeof value.title === 'string' && value.title.trim() ? { title: value.title.trim() } : {}),
+      ...(typeof value.title === 'string' && value.title.trim()
+        ? { title: value.title.trim() }
+        : {}),
       ...(typeof value.description === 'string' && value.description.trim()
         ? { description: value.description.trim() }
         : {}),
@@ -328,7 +347,9 @@ export class LocalAgentService {
     const header = request.headers.authorization;
     if (!header) return null;
     const [scheme, token] = header.split(' ');
-    return scheme?.toLowerCase() === 'bearer' && token?.trim() ? token.trim() : null;
+    return scheme?.toLowerCase() === 'bearer' && token?.trim()
+      ? token.trim()
+      : null;
   }
 
   private hashToken(token: string): string {
