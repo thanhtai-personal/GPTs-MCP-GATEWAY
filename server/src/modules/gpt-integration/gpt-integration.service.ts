@@ -3,6 +3,8 @@ import { AppConfigService } from '@server/root/common/config/app-config.service'
 import {
   buildGptInstructions,
   buildGptKnowledge,
+  buildGptPluginIntegrationGuide,
+  buildGptPluginManifest,
   buildGptSetupGuide,
 } from '@server/root/modules/gpt-integration/gpt-integration-content';
 import { buildGptOpenApiSchema } from '@server/root/modules/gpt-integration/gpt-integration-openapi';
@@ -22,6 +24,14 @@ export class GptIntegrationService {
         content: buildGptKnowledge(language),
       },
       { name: 'openapi.yaml', content: this.openApiSchema() },
+      {
+        name: 'plugin-manifest.json',
+        content: buildGptPluginManifest(language),
+      },
+      {
+        name: 'plugin-integration.md',
+        content: buildGptPluginIntegrationGuide(language),
+      },
       { name: 'setup-guide.md', content: buildGptSetupGuide(language) },
     ];
     return { language, files, zip: buildStoredZip(files) };
@@ -41,8 +51,11 @@ export class GptIntegrationService {
 
     return {
       ...file,
-      contentType:
-        file.name.endsWith('.yaml') ? 'application/yaml' : 'text/markdown',
+      contentType: file.name.endsWith('.yaml')
+        ? 'application/yaml'
+        : file.name.endsWith('.json')
+          ? 'application/json'
+          : 'text/markdown',
     };
   }
 
