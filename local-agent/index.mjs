@@ -27,7 +27,7 @@ class StdioMcpClient {
     });
 
     await this.request('initialize', {
-      protocolVersion: '2025-06-18',
+      protocolVersion: '2025-11-25',
       capabilities: {},
       clientInfo: { name: 'gpts-mcp-gateway-local-agent', version: '0.1.0' },
     });
@@ -142,7 +142,7 @@ async function main() {
     try {
       const { job } = await api(config.gatewayUrl, agentToken, '/local-agent/poll', {});
       if (!job) {
-        await new Promise((resolve) => setTimeout(resolve, 750));
+        await new Promise((resolve) => setTimeout(resolve, 1600));
         continue;
       }
       const splitAt = job.toolName.indexOf('__');
@@ -165,7 +165,7 @@ async function main() {
       await api(config.gatewayUrl, agentToken, `/local-agent/jobs/${encodeURIComponent(job.id)}/complete`, { result });
     } catch (error) {
       process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 }
