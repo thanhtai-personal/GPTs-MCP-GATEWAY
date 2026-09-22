@@ -1,0 +1,10 @@
+{
+  "gatewayUrl": "https://your-gateway.example.com/api/v1",
+  "name": "My PC",
+  "servers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed/folder"]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@gpts-mcp-gateway/local-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "gpts-mcp-local-agent": "./index.mjs"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  }
+}
