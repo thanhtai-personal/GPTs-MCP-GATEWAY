@@ -5,6 +5,7 @@ import { SignInExperience } from "@/modules/auth/presentation/components/SignInE
 import { supabase } from "@/modules/auth/infrastructure/supabase-browser";
 import { useSession } from "@/modules/auth/presentation/hooks/useSession";
 import { GptIntegrationPanel } from "@/modules/gpt-integration/presentation/GptIntegrationPanel";
+import { LocalAgentsPanel } from "@/modules/local-agent/presentation/LocalAgentsPanel";
 import { McpConnectionsPanel } from "@/modules/mcp-connections/presentation/McpConnectionsPanel";
 import { OpenIdPanel } from "@/modules/open-id/presentation/OpenIdPanel";
 import { LanguageSwitcher } from "@/shared/i18n/LanguageSwitcher";
@@ -103,7 +104,17 @@ export function DashboardPage() {
           {account.isLoading ? <p>{t("Đang tải tài khoản…", "Loading account…")}</p> : null}
           {account.error ? <p className="notice error">{account.error.message}</p> : null}
           {activeScreen === "overview" ? <CinematicOverview isMember={account.data?.membershipTier === "member"} onNavigate={setScreen} /> : null}
-          {activeScreen === "mcp-services" ? <ConsoleScreenHeader eyebrow={t("MCP SERVICES", "MCP SERVICES")} title={t("Kết nối provider", "Provider connections", "Provider 连接", "Provider 연결", "Provider 接続")} description={t("Kết nối credential của bạn với các MCP provider được Gateway hỗ trợ. Phase 1 dùng Google Stitch.", "Connect your provider credentials to MCP services supported by Gateway. Phase 1 starts with Google Stitch.", "将你的凭据连接到 Gateway 支持的 MCP Provider。第一阶段从 Google Stitch 开始。", "자격 증명을 Gateway가 지원하는 MCP Provider에 연결합니다. 1단계는 Google Stitch로 시작합니다.", "認証情報を Gateway 対応の MCP Provider に接続します。フェーズ1は Google Stitch から開始します。")} badge={t("Credential đã mã hóa", "Encrypted credentials")}><McpConnectionsPanel accessToken={accessToken} /></ConsoleScreenHeader> : null}
+          {activeScreen === "mcp-services" ? (
+            <ConsoleScreenHeader
+              eyebrow={t("MCP SERVICES", "MCP SERVICES")}
+              title={t("Kết nối MCP", "MCP connections")}
+              description={t("Kết nối provider credentials và MCP server chạy trực tiếp trên máy của bạn qua Local Agent.", "Connect provider credentials and MCP servers running directly on your computer through the Local Agent.")}
+              badge={t("Credential đã mã hóa", "Encrypted credentials")}
+            >
+              <LocalAgentsPanel accessToken={accessToken} />
+              <McpConnectionsPanel accessToken={accessToken} />
+            </ConsoleScreenHeader>
+          ) : null}
           {activeScreen === "open-id" && account.data ? <ConsoleScreenHeader eyebrow={t("OPEN ID HUB", "OPEN ID HUB")} title={t("Quyền truy cập Gateway", "Gateway access")} description={t("Open ID là entitlement kiểm soát mọi MCP execution. Trial chỉ bắt đầu khi bạn chủ động tạo Trial Token.", "Open ID is the entitlement controlling every MCP execution. Trial starts only when you explicitly create a Trial Token.", "Open ID 是控制所有 MCP 执行的 entitlement。只有在你主动创建 Trial Token 时试用才开始。", "Open ID는 모든 MCP 실행을 제어하는 entitlement입니다. Trial Token을 직접 생성할 때만 체험이 시작됩니다.", "Open ID はすべての MCP 実行を制御する entitlement です。Trial Token を明示的に作成した時点でトライアルが始まります。")} badge={account.data.membershipTier === "member" ? t("THÀNH VIÊN", "MEMBER", "会员", "멤버", "メンバー") : t("KHÁCH", "GUEST", "访客", "게스트", "ゲスト")}><OpenIdPanel accessToken={accessToken} account={account.data} /></ConsoleScreenHeader> : null}
           {activeScreen === "gpt-integration" ? <ConsoleScreenHeader eyebrow="CUSTOM GPT" title="GPT Integration" description={t("Cấu hình một Custom GPT dùng Gateway Action, instructions tối giản và Knowledge để tự discovery MCP tools.", "Configure a Custom GPT with the Gateway Action, minimal instructions, and Knowledge for runtime MCP tool discovery.", "配置 Custom GPT，使用 Gateway Action、精简 Instructions 和 Knowledge 在运行时发现 MCP 工具。", "Gateway Action, 최소 Instructions 및 Knowledge를 사용해 런타임에 MCP 도구를 검색하도록 Custom GPT를 구성합니다.", "Gateway Action、最小限の Instructions、Knowledge を使い、実行時に MCP ツールを発見する Custom GPT を設定します。")} badge={t("ACTION SẴN SÀNG", "ACTION READY", "ACTION 就绪", "ACTION 준비됨", "ACTION 準備完了")}><GptIntegrationPanel accessToken={accessToken} isMember={account.data?.membershipTier === "member"} /></ConsoleScreenHeader> : null}
           {activeScreen === "settings" && account.data?.systemRole === "admin" ? <AdminSiteSettingsPanel accessToken={accessToken} /> : null}
