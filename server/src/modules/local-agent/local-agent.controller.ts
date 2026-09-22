@@ -1,12 +1,26 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { GatewayAccessGuard } from '@server/root/modules/mcp-gateway/gateway-access.guard';
 import type { GatewayRequest } from '@server/root/modules/mcp-gateway/gateway-request.types';
+import { LocalAgentManagementService } from '@server/root/modules/local-agent/local-agent-management.service';
 import { LocalAgentService } from '@server/root/modules/local-agent/local-agent.service';
 
 @Controller('local-agent')
 export class LocalAgentController {
-  constructor(private readonly localAgents: LocalAgentService) {}
+  constructor(
+    private readonly localAgents: LocalAgentService,
+    private readonly management: LocalAgentManagementService,
+  ) {}
+
+  @Get()
+  list(@Req() request: Request) {
+    return this.management.listOwn(request);
+  }
+
+  @Delete(':agentId')
+  revoke(@Req() request: Request, @Param('agentId') agentId: string) {
+    return this.management.revokeOwn(request, agentId);
+  }
 
   @Post('register')
   @UseGuards(GatewayAccessGuard)
