@@ -12,11 +12,20 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
+import { AuthService } from '@server/root/modules/auth/auth.service';
+import { CompleteMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/complete-mcp-oauth.dto';
 import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
-import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oauth-transaction.service';
+
+const FORWARDED_PARAMS = [
+  'code',
+  'state',
+  'iss',
+  'error',
+  'error_description',
+] as const;
 
 @Controller('mcp-connections')
 export class McpConnectionsController {
@@ -24,7 +33,7 @@ export class McpConnectionsController {
     private readonly config: AppConfigService,
     private readonly connections: McpConnectionsService,
     private readonly googleWorkspaceOAuth: GoogleWorkspaceOAuthService,
-    private readonly transactions: OAuthTransactionService,
+    private readonly auth: AuthService,
   ) {}
 
   @Get('providers')
@@ -48,137 +57,90 @@ export class McpConnectionsController {
   }
 
   @Post('google-workspace/oauth/start')
-  async startGoogleWorkspaceOAuth(
+  startGoogleWorkspaceOAuth(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { browserNonce, ...result } = await this.googleWorkspaceOAuth.start(request);
     response.setHeader('Cache-Control', 'no-store');
-    this.transactions.setBrowserCookie(response, 'google-workspace', browserNonce);
-    return result;
+    return this.googleWorkspaceOAuth.start(request);
   }
 
   @Get('google-workspace/oauth/callback')
-  async googleWorkspaceOAuthCallback(
-    @Req() request: Request,
-    @Query('code') code: string | undefined,
-    @Query('state') state: string | undefined,
-    @Query('error') oauthError: string | undefined,
+  googleWorkspaceOAuthCallback(
+    @Query() query: Record<string, unknown>,
     @Res() response: Response,
   ) {
+    this.forwardToWeb(response, 'google-workspace', query);
+  }
+
+  @Post('google-workspace/oauth/complete')
+  async completeGoogleWorkspaceOAuth(
+    @Req() request: Request,
+    @Body() dto: CompleteMcpOAuthDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     response.setHeader('Cache-Control', 'no-store');
-    const returnTo = '#mcp-services';
-
-    if (oauthError || !code || !state) {
-      this.transactions.clearBrowserCookie(response, 'google-workspace');
-      response.redirect(
-        this.webRedirect(
-          'google-workspace',
-          'error',
-          oauthError || 'MCP_OAUTH_CALLBACK_INVALID',
-          returnTo,
-        ),
-      );
-      return;
-    }
-
-    try {
-      await this.googleWorkspaceOAuth.complete(
-        code,
-        state,
-        this.transactions.readBrowserCookie(request, 'google-workspace'),
-      );
-      this.transactions.clearBrowserCookie(response, 'google-workspace');
-      response.redirect(
-        this.webRedirect(
-          'google-workspace',
-          'connected',
-          undefined,
-          returnTo,
-        ),
-      );
-    } catch (error) {
-      this.transactions.clearBrowserCookie(response, 'google-workspace');
-      response.redirect(
-        this.webRedirect(
-          'google-workspace',
-          'error',
-          this.errorCode(error),
-          returnTo,
-        ),
-      );
-    }
+    const user = await this.auth.requireUser(request);
+    await this.googleWorkspaceOAuth.complete(
+      dto.code,
+      dto.state,
+      dto.browserNonce,
+      user.id,
+    );
+    return {
+      provider: 'google-workspace',
+      status: 'connected' as const,
+      returnTo: '#mcp-services',
+    };
   }
 
   @Post(':provider/oauth/start')
-  async startOAuth(
+  startOAuth(
     @Req() request: Request,
     @Param('provider') provider: string,
     @Body() dto: StartMcpOAuthDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { browserNonce, ...result } = await this.connections.startOAuth(request, provider, dto);
     response.setHeader('Cache-Control', 'no-store');
-    this.transactions.setBrowserCookie(response, provider, browserNonce);
-    return result;
+    return this.connections.startOAuth(request, provider, dto);
   }
 
+  /**
+   * Provider redirect target (registered redirect_uri). It does not complete
+   * the flow: it forwards code/state to the web app, which completes it with
+   * the signed-in user's token and the browser nonce it kept at start.
+   */
   @Get(':provider/oauth/callback')
-  async oauthCallback(
-    @Req() request: Request,
+  oauthCallback(
     @Param('provider') provider: string,
-    @Query('code') code: string | undefined,
-    @Query('state') state: string | undefined,
-    @Query('iss') issuer: string | undefined,
-    @Query('error') oauthError: string | undefined,
+    @Query() query: Record<string, unknown>,
     @Res() response: Response,
   ) {
+    this.forwardToWeb(response, provider, query);
+  }
+
+  @Post(':provider/oauth/complete')
+  async completeOAuth(
+    @Req() request: Request,
+    @Param('provider') provider: string,
+    @Body() dto: CompleteMcpOAuthDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     response.setHeader('Cache-Control', 'no-store');
-    let returnTo: string | undefined;
-    try {
-      returnTo = state
-        ? this.connections.oauthReturnTo(provider, state)
-        : undefined;
-    } catch {
-      returnTo = undefined;
-    }
-
-    if (oauthError || !code || !state) {
-      this.transactions.clearBrowserCookie(response, provider);
-      response.redirect(
-        this.webRedirect(
-          provider,
-          'error',
-          oauthError || 'MCP_OAUTH_CALLBACK_INVALID',
-          returnTo,
-        ),
-      );
-      return;
-    }
-
-    try {
-      await this.connections.completeOAuth(
-        provider,
-        code,
-        state,
-        issuer,
-        this.transactions.readBrowserCookie(request, provider),
-      );
-      this.transactions.clearBrowserCookie(response, provider);
-      response.redirect(
-        this.webRedirect(provider, 'connected', undefined, returnTo),
-      );
-    } catch (error) {
-      this.transactions.clearBrowserCookie(response, provider);
-      response.redirect(
-        this.webRedirect(
-          provider,
-          'error',
-          this.errorCode(error),
-          returnTo,
-        ),
-      );
-    }
+    const user = await this.auth.requireUser(request);
+    const result = await this.connections.completeOAuth(
+      provider,
+      dto.code,
+      dto.state,
+      dto.iss,
+      dto.browserNonce,
+      user.id,
+    );
+    return {
+      provider,
+      status: 'connected' as const,
+      returnTo: result.returnTo ?? '#mcp-services',
+    };
   }
 
   @Delete(':provider')
@@ -186,41 +148,22 @@ export class McpConnectionsController {
     return this.connections.removeOwn(request, provider);
   }
 
-  private webRedirect(
+  private forwardToWeb(
+    response: Response,
     provider: string,
-    status: 'connected' | 'error',
-    code?: string,
-    returnTo?: string,
-  ): string {
+    query: Record<string, unknown>,
+  ): void {
     const base = this.config.webBaseUrl.replace(/\/+$/u, '');
-    const url = new URL(`${base}/app`);
-    url.searchParams.set('mcpOAuth', provider);
-    url.searchParams.set('status', status);
-    if (code) url.searchParams.set('code', code);
-    url.hash = (returnTo ?? '#mcp-services').replace(/^#/u, '');
-    return url.toString();
-  }
-
-  private errorCode(error: unknown): string {
-    if (
-      typeof error !== 'object' ||
-      error === null ||
-      !('getResponse' in error) ||
-      typeof error.getResponse !== 'function'
-    ) {
-      return 'MCP_OAUTH_FAILED';
+    const url = new URL(`${base}/oauth/complete`);
+    url.searchParams.set('provider', provider);
+    for (const key of FORWARDED_PARAMS) {
+      const value = query[key];
+      if (typeof value === 'string' && value.length <= 8192) {
+        url.searchParams.set(key, value);
+      }
     }
-
-    const response: unknown = error.getResponse();
-    if (
-      typeof response === 'object' &&
-      response !== null &&
-      'code' in response &&
-      typeof response.code === 'string'
-    ) {
-      return response.code;
-    }
-
-    return 'MCP_OAUTH_FAILED';
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Referrer-Policy', 'no-referrer');
+    response.redirect(303, url.toString());
   }
 }

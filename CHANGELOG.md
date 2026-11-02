@@ -24,6 +24,9 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
 
 ### Changed
 
+- Provider OAuth no longer relies on a cross-site cookie. The Gateway callback forwards to the web page `/oauth/complete`, which completes the flow with the signed-in user's token and a per-tab browser nonce (`POST /mcp-connections/:provider/oauth/complete`). Fixes connections never saving when web and API are on different sites (e.g. two `*.vercel.app` domains). Registered provider redirect URIs are unchanged.
+- The MCP services page now shows the OAuth result (connected or the error code) instead of failing silently.
+
 - Connecting Google Workspace now verifies Drive only; Docs and Sheets MCP are verified when called, so accounts outside the Developer Preview can connect.
 
 ### Removed

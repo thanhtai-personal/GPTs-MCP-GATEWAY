@@ -166,8 +166,9 @@ export class McpConnectionsService {
     providerId: string,
     code: string,
     state: string,
-    issuer?: string,
-    browserNonce?: string,
+    issuer: string | undefined,
+    browserNonce: string | undefined,
+    authenticatedUserId: string,
   ) {
     const provider = this.providers.get(providerId);
     const result = await this.oauth.exchangeAuthorizationCode(
@@ -176,6 +177,7 @@ export class McpConnectionsService {
       state,
       issuer,
       browserNonce,
+      authenticatedUserId,
     );
     await this.auth.getUserById(result.userId);
     const startedAt = Date.now();
@@ -193,7 +195,7 @@ export class McpConnectionsService {
         success: true,
         durationMs: Date.now() - startedAt,
       });
-      return connection;
+      return { connection, returnTo: result.returnTo };
     } catch (error) {
       await this.audit.write({
         userId: result.userId,

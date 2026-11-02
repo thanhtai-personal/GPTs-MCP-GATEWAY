@@ -103,9 +103,11 @@ Application throttling is enabled globally through Nest Throttler.
 
 ### MCP OAuth account binding
 
-Provider OAuth starts create a short-lived database transaction. The server stores only a hash of a random browser nonce and places the nonce in an `HttpOnly`, host-only cookie (`Secure` on HTTPS). The callback must present that cookie and atomically consume the matching transaction before exchanging the authorization code. A copied authorization URL cannot connect another browser's provider account. Google Workspace and generic MCP OAuth flows both use PKCE with `S256`.
+Provider OAuth starts create a short-lived database transaction. The server stores only a hash of a random browser nonce and returns the nonce to the signed-in web app, which keeps it in `sessionStorage` on the web origin, keyed by the OAuth `state`. Google Workspace and generic MCP OAuth flows both use PKCE with `S256`.
 
-The web app must send credentials on OAuth start requests, and the public web and Gateway origins should be on the same site so browsers accept the `SameSite=Lax` cookie. Apply migration `004_mcp_oauth_transactions.sql` before enabling OAuth connections.
+The provider redirects to the Gateway callback (`/api/v1/mcp-connections/:provider/oauth/callback`), which does not complete anything: it forwards `code`, `state`, `iss` and `error` to the web page `/oauth/complete` with `303` and `Referrer-Policy: no-referrer`. That page calls `POST /api/v1/mcp-connections/:provider/oauth/complete` with the user's Supabase bearer token and the stored nonce. The server completes only when the authenticated user equals the user encoded in the encrypted `state`, and the nonce hash matches and is atomically consumed before the code is exchanged. A copied authorization URL or callback URL therefore cannot connect a provider account to another user or another browser tab.
+
+This design needs no cross-site cookie, so it works when the web app and the Gateway API run on different sites (for example two `*.vercel.app` domains, which are separate sites because `vercel.app` is a public suffix). Apply migration `004_mcp_oauth_transactions.sql` before enabling OAuth connections.
 
 Remote MCP tool calls must name a tool returned by the provider's current `tools/list` response. Each MCP response is read with a configurable byte limit (`MCP_UPSTREAM_MAX_RESPONSE_BYTES`, default 16 MiB).
 

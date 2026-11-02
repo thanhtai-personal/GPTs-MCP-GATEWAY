@@ -101,8 +101,19 @@ export class GoogleWorkspaceOAuthService {
     };
   }
 
-  async complete(code: string, stateValue: string, browserNonce?: string) {
+  async complete(
+    code: string,
+    stateValue: string,
+    browserNonce: string | undefined,
+    authenticatedUserId: string,
+  ) {
     const state = this.readState(stateValue);
+    if (state.userId !== authenticatedUserId) {
+      throw new BadRequestException({
+        code: 'MCP_OAUTH_STATE_INVALID',
+        message: 'OAuth authorization was started by a different account',
+      });
+    }
     await this.transactions.consume(
       state.transactionId,
       state.userId,

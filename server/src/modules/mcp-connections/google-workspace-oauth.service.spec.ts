@@ -40,8 +40,12 @@ describe('GoogleWorkspaceOAuthService', () => {
       );
 
       await expect(
-        service.complete('code', state, 'other-browser'),
+        service.complete('code', state, 'other-browser', 'user-1'),
       ).rejects.toThrow('different browser');
+      await expect(
+        service.complete('code', state, 'nonce', 'user-2'),
+      ).rejects.toMatchObject({ response: { code: 'MCP_OAUTH_STATE_INVALID' } });
+      expect(transactions.consume).toHaveBeenCalledTimes(1);
       expect(fetchSpy).not.toHaveBeenCalled();
     } finally {
       fetchSpy.mockRestore();

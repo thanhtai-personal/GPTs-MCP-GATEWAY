@@ -8,6 +8,7 @@ import {
   startMcpOAuth,
   testMcpConnection,
 } from "@/modules/mcp-connections/api/mcp-connections.api";
+import { redirectToOAuth } from "@/modules/mcp-connections/infrastructure/oauth-handoff";
 
 export const mcpConnectionKeys = {
   all: ["mcp-connections"] as const,
@@ -68,8 +69,8 @@ export function useStartMcpOAuth(accessToken: string) {
       accessMode?: McpProviderAccessMode;
       returnTo?: string;
     }) => startMcpOAuth(accessToken, provider, { accessMode, returnTo }),
-    onSuccess: ({ authorizationUrl }) => {
-      window.location.assign(authorizationUrl);
+    onSuccess: (result) => {
+      redirectToOAuth(result);
     },
   });
 }
