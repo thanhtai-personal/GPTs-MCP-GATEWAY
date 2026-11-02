@@ -36,7 +36,8 @@ pkg.devDependencies = {
   ...pkg.devDependencies,
   "@nestjs/cli": "11.0.24",
   "@nestjs/testing": "11.2.3",
-  "ts-jest": "29.4.12",
+  jest: "^30.0.0",
+  "ts-jest": "29.4.15",
 };
 
 pkg.engines = {
