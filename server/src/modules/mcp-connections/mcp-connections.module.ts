@@ -3,7 +3,8 @@ import { AuthModule } from '@server/root/modules/auth/auth.module';
 import { FigmaMcpAdapter } from '@server/root/modules/mcp-gateway/providers/figma/figma-mcp.adapter';
 import { GithubMcpAdapter } from '@server/root/modules/mcp-gateway/providers/github/github-mcp.adapter';
 import { GoogleDocsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-docs-mcp.adapter';
-import { GoogleDriveMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google-drive/google-drive-mcp.adapter';
+import { GoogleDriveApiClient } from '@server/root/modules/mcp-gateway/providers/google-drive/google-drive-api.client';
+import { GoogleDriveAdapter } from '@server/root/modules/mcp-gateway/providers/google-drive/google-drive.adapter';
 import { GoogleSheetsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-sheets-mcp.adapter';
 import { GoogleWorkspaceTokenService } from '@server/root/modules/mcp-gateway/providers/google/google-workspace-token.service';
 import { LovableMcpAdapter } from '@server/root/modules/mcp-gateway/providers/lovable/lovable-mcp.adapter';
@@ -38,10 +39,11 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
     FigmaMcpAdapter,
     GithubMcpAdapter,
     GoogleWorkspaceTokenService,
+    GoogleDriveApiClient,
+    GoogleDriveAdapter,
     GoogleDocsMcpAdapter,
     GoogleSheetsMcpAdapter,
     NotionMcpAdapter,
-    GoogleDriveMcpAdapter,
     {
       provide: MCP_PROVIDER_ADAPTERS,
       inject: [
@@ -49,29 +51,29 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
         LovableMcpAdapter,
         FigmaMcpAdapter,
         GithubMcpAdapter,
+        GoogleDriveAdapter,
         GoogleDocsMcpAdapter,
         GoogleSheetsMcpAdapter,
         NotionMcpAdapter,
-        GoogleDriveMcpAdapter,
       ],
       useFactory: (
         stitch: StitchMcpAdapter,
         lovable: LovableMcpAdapter,
         figma: FigmaMcpAdapter,
         github: GithubMcpAdapter,
+        googleDrive: GoogleDriveAdapter,
         googleDocs: GoogleDocsMcpAdapter,
         googleSheets: GoogleSheetsMcpAdapter,
         notion: NotionMcpAdapter,
-        googleDrive: GoogleDriveMcpAdapter,
       ): McpProviderAdapter[] => [
         stitch,
         lovable,
         figma,
         github,
+        googleDrive,
         googleDocs,
         googleSheets,
         notion,
-        googleDrive,
       ],
     },
     McpProviderRegistry,

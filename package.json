@@ -5,10 +5,8 @@
   "scripts": {
     "dev:web": "npm --prefix web run dev",
     "dev:server": "npm --prefix server run start:dev",
-    "dev:gdrive": "npm --prefix gdrive-mcp run dev",
     "build:web": "npm --prefix web run build",
     "build:server": "npm --prefix server run build",
-    "build:gdrive": "npm --prefix gdrive-mcp run build",
     "typecheck:web": "npm --prefix web run typecheck",
     "test:server": "npm --prefix server run test",
     "check:source": "node scripts/check-source.mjs",
