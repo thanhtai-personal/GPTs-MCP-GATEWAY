@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ViRouteImport } from './routes/vi'
 import { Route as ZhRouteImport } from './routes/zh'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as OauthCompleteRouteImport } from './routes/oauth.complete'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
@@ -60,6 +61,11 @@ const ZhRoute = ZhRouteImport.update({
   path: '/zh',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthCompleteRoute = OauthCompleteRouteImport.update({
   id: '/oauth/complete',
   path: '/oauth/complete',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/oauth/complete': typeof OauthCompleteRoute
+  '/oauth/consent': typeof OauthConsentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/oauth/complete': typeof OauthCompleteRoute
+  '/oauth/consent': typeof OauthConsentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/zh': typeof ZhRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/oauth/complete': typeof OauthCompleteRoute
+  '/oauth/consent': typeof OauthConsentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/zh'
     | '/auth/callback'
     | '/oauth/complete'
+    | '/oauth/consent'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/zh'
     | '/auth/callback'
     | '/oauth/complete'
+    | '/oauth/consent'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/zh'
     | '/auth/callback'
     | '/oauth/complete'
+    | '/oauth/consent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   ZhRoute: typeof ZhRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   OauthCompleteRoute: typeof OauthCompleteRoute
+  OauthConsentRoute: typeof OauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OauthCompleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ZhRoute: ZhRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   OauthCompleteRoute: OauthCompleteRoute,
+  OauthConsentRoute: OauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -57,6 +57,7 @@ The GPT never receives the user's Stitch API key.
 | GPT Integration Kit | Instructions + Knowledge + OpenAPI + Setup Guide ZIP |
 | MCP tool discovery | Runtime `tools/list` |
 | MCP tool execution | Runtime `tools/call` |
+| MCP server for ChatGPT / Claude connectors | `/api/v1/mcp` with Supabase OAuth 2.1 ([setup](./docs/MCP_SERVER_SETUP.md)) |
 | Google Stitch | Implemented adapter |
 | Arbitrary MCP URLs | Intentionally not supported |
 | Payment / checkout | Not implemented |

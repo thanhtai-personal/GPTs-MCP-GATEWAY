@@ -8,7 +8,7 @@ import type {
   McpToolArguments,
   McpToolDefinition,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
-import type { GatewayPrincipal } from '@server/root/modules/open-id/gateway-credential.service';
+import type { ExecutionPrincipal } from '@server/root/modules/open-id/gateway-credential.service';
 
 @Injectable()
 export class McpGatewayService {
@@ -19,7 +19,7 @@ export class McpGatewayService {
     private readonly localAgents: LocalAgentService,
   ) {}
 
-  async profile(principal: GatewayPrincipal) {
+  async profile(principal: ExecutionPrincipal) {
     const [connected, localConnected] = await Promise.all([
       this.connections.listConnectedProviderIds(principal.user.id),
       this.localAgents.hasConnectedAgent(principal.user.id),
@@ -43,11 +43,11 @@ export class McpGatewayService {
     };
   }
 
-  async listServices(principal: GatewayPrincipal) {
+  async listServices(principal: ExecutionPrincipal) {
     return (await this.profile(principal)).services;
   }
 
-  async listTools(principal: GatewayPrincipal, providerId: string) {
+  async listTools(principal: ExecutionPrincipal, providerId: string) {
     if (providerId === LOCAL_PC_SERVICE_ID) {
       return this.listLocalTools(principal);
     }
@@ -85,7 +85,7 @@ export class McpGatewayService {
   }
 
   async getToolSchema(
-    principal: GatewayPrincipal,
+    principal: ExecutionPrincipal,
     providerId: string,
     toolName: string,
   ) {
@@ -154,7 +154,7 @@ export class McpGatewayService {
   }
 
   async callTool(
-    principal: GatewayPrincipal,
+    principal: ExecutionPrincipal,
     providerId: string,
     toolName: string,
     argumentsValue: McpToolArguments,
@@ -227,7 +227,7 @@ export class McpGatewayService {
     }
   }
 
-  private async listLocalTools(principal: GatewayPrincipal) {
+  private async listLocalTools(principal: ExecutionPrincipal) {
     const startedAt = Date.now();
     try {
       const tools = await this.localAgents.listTools(principal.user.id);

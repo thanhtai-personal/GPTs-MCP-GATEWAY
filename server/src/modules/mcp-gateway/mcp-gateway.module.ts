@@ -12,5 +12,6 @@ import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
   imports: [OpenIdModule, McpConnectionsModule, LocalAgentModule],
   controllers: [McpGatewayController],
   providers: [GatewayAccessGuard, McpGatewayService, GptResponseService, GptResponseInterceptor],
+  exports: [McpGatewayService],
 })
 export class McpGatewayModule {}

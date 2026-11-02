@@ -36,7 +36,8 @@ Direction/requirements documents describe target behavior. They are not evidence
 4. [Google Drive + Docs + Sheets setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
 5. [Notion MCP setup](./NOTION_MCP_SETUP.md)
 6. [Figma MCP setup](./FIGMA_MCP_SETUP.md)
-7. [Troubleshooting](./TROUBLESHOOTING.md)
+7. [MCP server for ChatGPT / Claude connectors](./MCP_SERVER_SETUP.md)
+8. [Troubleshooting](./TROUBLESHOOTING.md)
 
 ### I want to contribute
 

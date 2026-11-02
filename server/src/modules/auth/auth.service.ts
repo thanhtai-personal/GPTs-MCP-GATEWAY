@@ -6,6 +6,7 @@ import {
 import type { Request } from 'express';
 import { SupabaseService } from '@server/root/common/supabase/supabase.service';
 import type { AppUser } from '@server/root/modules/auth/auth.types';
+import { isOAuthClientToken } from '@server/root/modules/auth/oauth-token-claims';
 
 type AppUserRow = {
   id: string;
@@ -20,8 +21,28 @@ type AppUserRow = {
 export class AuthService {
   constructor(private readonly supabase: SupabaseService) {}
 
+  /**
+   * Dashboard/REST authentication. OAuth access tokens issued to MCP clients
+   * are rejected here so a connector cannot call account APIs (for example
+   * create Gateway tokens); they are only valid on /api/v1/mcp.
+   */
   async requireUser(request: Request): Promise<AppUser> {
     const token = this.readBearerToken(request);
+    if (token && isOAuthClientToken(token)) {
+      throw new UnauthorizedException({
+        code: 'OAUTH_CLIENT_TOKEN_NOT_ALLOWED',
+        message: 'MCP OAuth tokens can only be used with the MCP endpoint',
+      });
+    }
+    return this.userFromToken(token);
+  }
+
+  /** Authenticates an MCP OAuth access token (claims checked by the caller). */
+  requireMcpOAuthUser(token: string): Promise<AppUser> {
+    return this.userFromToken(token);
+  }
+
+  private async userFromToken(token: string | null): Promise<AppUser> {
     if (!token) {
       throw new UnauthorizedException({
         code: 'UNAUTHORIZED',
