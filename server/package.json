@@ -61,12 +61,17 @@
     "npm": ">=11"
   },
   "overrides": {
-    "multer": "2.3.0"
+    "multer": "^2.4.1"
   },
   "exports": {
     "./*": {
       "types": "./src/*.ts",
       "default": "./dist/*.js"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thanhtai-personal/GPTs-MCP-GATEWAY.git",
+    "directory": "server"
   }
 }

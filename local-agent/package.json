@@ -1,6 +1,7 @@
 {
   "name": "@gpts-mcp-gateway/local-agent",
   "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "type": "module",
   "bin": {
@@ -8,5 +9,10 @@
   },
   "engines": {
     "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thanhtai-personal/GPTs-MCP-GATEWAY.git",
+    "directory": "local-agent"
   }
 }

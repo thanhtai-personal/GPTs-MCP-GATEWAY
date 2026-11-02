@@ -14,6 +14,7 @@ const requiredFiles = [
   "SUPPORT.md",
   "CHANGELOG.md",
   "LICENSE",
+  "NOTICE",
   "OPEN_SOURCE_POLICY.md",
   "COMMERCIAL.md",
   "docs/README.md",

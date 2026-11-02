@@ -41,20 +41,52 @@ Nest 12 is a deliberate framework migration and must be handled as a separate ch
 ## Multer advisory override
 
 NestJS 11's Express adapter can transitively pin Multer older than the latest patched 2.x release.
+Multer 2.0.0 - 2.4.0 is affected by GHSA-3pph-fpjx-jg34 and GHSA-q7qp-rjg7-q26m
+(denial of service on aborted uploads / pending `fileFilter`).
 
 The server package uses:
 
 ```json
 {
   "overrides": {
-    "multer": "2.3.0"
+    "multer": "^2.4.1"
   }
 }
 ```
 
-The project does not currently expose a file-upload feature, so this is a transitive Express-adapter dependency rather than an application upload API. The override still removes known vulnerable Multer 2.2.0 code from the installed tree.
+`npm run check:deps` rejects an override or a resolved lockfile version below 2.4.1.
+
+The project does not currently expose a file-upload feature, so this is a transitive Express-adapter dependency rather than an application upload API. The override still removes known vulnerable Multer code from the installed tree.
 
 When Nest updates its own dependency to a safe Multer release, re-evaluate and remove the override if it is no longer necessary.
+
+## Audit triage (2026-11-02)
+
+CI runs `npm --prefix server audit --audit-level=high`. The report on the
+`main` lockfile at that date contained:
+
+| Package | Severity | Path | Resolution |
+| --- | --- | --- | --- |
+| `proxy-addr` <= 2.0.7 | critical | express (runtime) | in-range update via lockfile refresh |
+| `handlebars` <= 4.7.9 | critical | tooling (dev) | in-range update via lockfile refresh |
+| `body-parser` 2.0.0 - 2.3.0 | high | express (runtime) | in-range update via lockfile refresh |
+| `brace-expansion` | high | glob/minimatch (dev) | in-range update via lockfile refresh |
+| `multer` 2.0.0 - 2.4.0 | high | @nestjs/platform-express (runtime) | override `^2.4.1` |
+| `qs`, `fast-uri` | moderate | runtime | in-range update via lockfile refresh |
+| `js-yaml` 5.0.0 - 5.4.0 | moderate | @nestjs/swagger | accepted until a Swagger 11.x release ships the fix; npm only offers Swagger 12 (Nest 12 migration) |
+| `glob`, `minimatch`, `deepmerge`, jest chain | moderate/low | @nestjs/cli, jest (dev only) | accepted; fixes require `@nestjs/cli` 12 (Nest 12 migration). Build/test tooling only, never shipped to production |
+
+Refresh the lockfile without crossing majors:
+
+```bash
+cd server
+npm install          # applies the multer override
+npm audit fix        # in-range fixes only, never --force
+npm audit --audit-level=high
+npm run typecheck && npm run build && npm test -- --runInBand
+```
+
+The web app is audited with `npm run audit:web`.
 
 ## Required remediation workflow
 

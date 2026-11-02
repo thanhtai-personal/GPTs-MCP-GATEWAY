@@ -2,9 +2,22 @@
 
 > **Trạng thái: experimental MVP.** Source hiện tại là baseline phát triển; chưa nên tuyên bố production-ready trước khi hoàn tất các bước trong [VALIDATION.md](./VALIDATION.md) và [Open-source Release Checklist](./docs/OPEN_SOURCE_RELEASE.md).
 
-MCP Gateway giúp **Custom GPT discovery và gọi MCP service thông qua GPT Actions**, trong khi API key của MCP provider vẫn được giữ ở backend.
+MCP Gateway giúp **Custom GPT discovery và gọi MCP service thông qua GPT Actions**, trong khi API key/OAuth token của provider vẫn được giữ ở backend.
 
-Provider đầu tiên hiện có là **Google Stitch**.
+Provider hiện hỗ trợ:
+
+| Provider | Kết nối | Trạng thái |
+| --- | --- | --- |
+| Google Stitch | API key | dùng được |
+| GitHub | OAuth (GitHub OAuth App) | dùng được |
+| Notion | OAuth + PKCE + dynamic client registration | dùng được |
+| Google Drive | Google OAuth (`drive.readonly` + `drive.file`), adapter Drive REST gốc | dùng được |
+| Google Docs / Google Sheets | cùng Google OAuth, remote MCP của Google | chỉ khi tham gia Workspace Developer Preview |
+| Figma | OAuth | chờ Figma duyệt client của Gateway |
+| Lovable | OAuth | Lovable chỉ cho client được duyệt |
+| Local PC (`local-agent/`) | agent ghép cặp trên máy | thử nghiệm |
+
+Ngoài Custom GPT, Gateway còn là **MCP server** (`/api/v1/mcp`, OAuth 2.1 qua Supabase) để thêm làm plugin/connector trong ChatGPT hoặc Claude. Xem [MCP server setup](./docs/MCP_SERVER_SETUP.md).
 
 > **Lưu ý tên gọi:** `Open ID` trong project là entitlement identifier riêng của MCP Gateway, **không phải OpenID Connect/OIDC**.
 
@@ -21,16 +34,16 @@ User
        -> Open ID / entitlement
        -> MCP credential của đúng user
        -> tools/list hoặc tools/call
-  -> MCP Provider (Stitch)
+  -> Provider (Stitch, GitHub, Notion, Google Drive/Docs/Sheets, ...)
 ```
 
 Ba khái niệm được tách riêng:
 
 - **Gateway token**: secret dùng để authenticate GPT Action.
 - **Open ID**: entitlement cho phép Gateway thực thi MCP.
-- **Provider credential**: API key của Stitch/MCP provider, được mã hóa và chỉ backend sử dụng.
+- **Provider credential**: API key hoặc OAuth token của provider, được mã hóa và chỉ backend sử dụng.
 
-GPT không nhận Stitch API key.
+GPT không nhận API key hay OAuth token của provider.
 
 ## Guest và trial
 
@@ -81,7 +94,7 @@ Intent
  -> đọc kết quả
 ```
 
-Không hardcode danh sách Stitch tools trong Knowledge vì tool catalog runtime mới là nguồn đúng.
+Không hardcode danh sách tool của provider trong Knowledge vì tool catalog runtime mới là nguồn đúng.
 
 ## Chạy local
 
@@ -90,7 +103,7 @@ Yêu cầu:
 - Node.js 24;
 - npm;
 - Supabase project;
-- Stitch API key nếu muốn test provider thật.
+- credential của ít nhất một provider (ví dụ Stitch API key, hoặc Google OAuth client cho Drive).
 
 ```bash
 cp server/.env.example server/.env
@@ -99,13 +112,14 @@ cp web/.env.example web/.env
 openssl rand -base64 32
 ```
 
-Apply:
+Apply theo thứ tự:
 
 ```text
 database/migrations/001_initial_schema.sql
 database/migrations/002_gpt_response_transfers.sql
 database/migrations/003_site_settings.sql
 database/migrations/004_mcp_oauth_transactions.sql
+database/migrations/005_local_agents.sql
 ```
 
 Sau đó:
@@ -145,7 +159,11 @@ Hướng dẫn đầy đủ: [Self-hosting](./docs/SELF_HOSTING.md).
 
 ## Open source và mô hình thương mại
 
-MCP Gateway sử dụng **AGPL-3.0-or-later**. Xem [LICENSE](./LICENSE).
+Copyright (C) 2026 thanhtai-personal và các contributor của MCP Gateway.
+
+MCP Gateway sử dụng **AGPL-3.0-or-later**. Xem [LICENSE](./LICENSE) và [NOTICE](./NOTICE).
+
+Nếu bạn chạy bản đã sửa đổi như một dịch vụ mạng, AGPL mục 13 yêu cầu cung cấp source của bản sửa đổi đó cho người dùng.
 
 Source được phép self-host và sử dụng thương mại theo điều khoản AGPL. Dịch vụ Gateway/Open ID chính thức vẫn có thể thu phí vì đây là dịch vụ được vận hành riêng, không phải “phí để được xem source”.
 
@@ -158,4 +176,4 @@ Phân biệt rõ:
 
 ## Disclaimer
 
-Đây là project độc lập. Việc nhắc tới GPT/OpenAI, Google Stitch, Supabase, MCP hoặc sản phẩm bên thứ ba chỉ nhằm mô tả khả năng tích hợp, không hàm ý được tài trợ/chứng nhận.
+Đây là project độc lập. Việc nhắc tới GPT/OpenAI, Google (Stitch, Drive, Docs, Sheets), GitHub, Notion, Figma, Lovable, Supabase, MCP hoặc sản phẩm bên thứ ba chỉ nhằm mô tả khả năng tích hợp, không hàm ý được tài trợ/chứng nhận.

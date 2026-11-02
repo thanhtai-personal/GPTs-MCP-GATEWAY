@@ -144,7 +144,7 @@ Expected framework line after this patch:
 @nestjs/platform-express  11.2.3
 @nestjs/testing           11.2.3
 @nestjs/swagger           11.4.7
-multer                    2.3.0 (root override)
+multer                    >= 2.4.1 (root override)
 ```
 
 If audit still reports a high/critical issue, copy the **audit report**, not the forced fix result, and triage the affected package explicitly.

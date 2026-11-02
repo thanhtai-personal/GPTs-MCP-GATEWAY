@@ -4,6 +4,7 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 const serverPackagePath = path.join(root, "server", "package.json");
 const webPackagePath = path.join(root, "web", "package.json");
+const localAgentPackagePath = path.join(root, "local-agent", "package.json");
 const rootPackagePath = path.join(root, "package.json");
 const serverLockPath = path.join(root, "server", "package-lock.json");
 
@@ -13,11 +14,13 @@ const problems = [];
 const rootPackage = readJson(rootPackagePath);
 const serverPackage = readJson(serverPackagePath);
 const webPackage = readJson(webPackagePath);
+const localAgentPackage = readJson(localAgentPackagePath);
 
 for (const [name, pkg] of [
   ["root", rootPackage],
   ["server", serverPackage],
   ["web", webPackage],
+  ["local-agent", localAgentPackage],
 ]) {
   if (pkg.license !== "AGPL-3.0-or-later") {
     problems.push(`${name} package license must be AGPL-3.0-or-later`);
@@ -46,8 +49,25 @@ for (const [dependency, expected] of Object.entries(expectedNestVersions)) {
   }
 }
 
-if (serverPackage.overrides?.multer !== "2.3.0") {
-  problems.push("server package must override multer to 2.3.0");
+// Multer 2.0.0 - 2.4.0 is affected by GHSA-3pph-fpjx-jg34 and GHSA-q7qp-rjg7-q26m.
+const MULTER_MIN = [2, 4, 1];
+const MULTER_MIN_TEXT = MULTER_MIN.join(".");
+
+const parseVersion = (value) => {
+  const match = String(value ?? "").match(/^[\^~]?(\d+)\.(\d+)\.(\d+)$/u);
+  return match ? match.slice(1, 4).map(Number) : null;
+};
+
+const atLeast = (version, minimum) => {
+  for (let index = 0; index < minimum.length; index += 1) {
+    if (version[index] !== minimum[index]) return version[index] > minimum[index];
+  }
+  return true;
+};
+
+const multerOverride = parseVersion(serverPackage.overrides?.multer);
+if (!multerOverride || multerOverride[0] !== 2 || !atLeast(multerOverride, MULTER_MIN)) {
+  problems.push(`server package must override multer to a 2.x release >= ${MULTER_MIN_TEXT}`);
 }
 
 const invalidInstallFlags = [
@@ -93,19 +113,10 @@ if (fs.existsSync(serverLockPath)) {
   if (!multer) {
     problems.push("lockfile is missing multer");
   } else {
-    const [major, minor] = String(multer.version)
-      .split(".")
-      .slice(0, 2)
-      .map(Number);
-
-    if (
-      !Number.isInteger(major) ||
-      !Number.isInteger(minor) ||
-      major < 2 ||
-      (major === 2 && minor < 3)
-    ) {
+    const resolved = parseVersion(multer.version);
+    if (!resolved || !atLeast(resolved, MULTER_MIN)) {
       problems.push(
-        `lockfile resolves vulnerable/unsupported multer ${multer.version}; require >=2.3.x`,
+        `lockfile resolves vulnerable/unsupported multer ${multer.version}; require >=${MULTER_MIN_TEXT} (run npm --prefix server install)`,
       );
     }
   }
@@ -117,7 +128,7 @@ if (problems.length) {
 }
 
 console.log(
-  `dependency policy ok: Nest 11 pinned, Multer override 2.3.0${
+  `dependency policy ok: Nest 11 pinned, Multer >= ${MULTER_MIN_TEXT}${
     fs.existsSync(serverLockPath) ? ", lockfile checked" : ", no lockfile yet"
   }`,
 );

@@ -112,3 +112,15 @@ Validation:
 - post-repair `check-dependency-policy` — pass.
 
 This verifies patch applicability and deterministic manifest recovery. It does **not** replace the required network-backed clean install/audit/build/test on the user's machine.
+
+## Open-source readiness patch — 2026-11-02
+
+Executed in the authoring environment (no npm registry access, Node.js 22):
+
+- `npm run check`: source, schema and docs checks pass (185 source files, 36 Markdown files, 25 required documents). `check:deps` **fails by design** until `server/package-lock.json` is refreshed to Multer >= 2.4.1.
+- Secret-pattern scan over the full Git history (125 commits): no JWT, Google API key, OAuth client secret, GitHub/OpenAI/Slack token, Supabase key or private key found; only `.env.example` files were ever committed.
+- Dependency license review of both lockfiles: all licenses AGPL-compatible (see `docs/LICENSING.md`).
+- Server audit findings taken from CI run 41380931330 on `main` and triaged in `docs/DEPENDENCY_SECURITY.md`.
+
+Not executed here: `npm install`, `npm audit`, web typecheck/build, server typecheck/build/tests. CI on the pull request is the source of truth for those.
+

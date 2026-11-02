@@ -23,6 +23,7 @@ database/migrations/001_initial_schema.sql
 database/migrations/002_gpt_response_transfers.sql
 database/migrations/003_site_settings.sql
 database/migrations/004_mcp_oauth_transactions.sql
+database/migrations/005_local_agents.sql
 ```
 
 Do not edit an already-applied migration after public deployment. Future schema changes should be new forward migrations.
