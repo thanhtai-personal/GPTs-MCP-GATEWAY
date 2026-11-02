@@ -85,7 +85,7 @@ function McpProviderCard({ accessToken, connection, expanded, onHelp, onToggle, 
     <section className={`card provider-card ${expanded ? "is-expanded" : "is-collapsed"}`}>
       <div className="provider-card__header">
         <div className="provider-card__identity">
-          <span className="provider-logo">{provider.id === "stitch" ? "S" : provider.id === "github" ? <Github size={20} /> : provider.id === "notion" ? <BookOpenText size={20} /> : provider.id === "google-workspace" ? "G" : <PlugZap size={20} />}</span>
+          <span className="provider-logo">{provider.id === "stitch" ? "S" : provider.id === "github" ? <Github size={20} /> : provider.id === "notion" ? <BookOpenText size={20} /> : provider.id === "google-workspace" || provider.id === "google-drive" ? "G" : <PlugZap size={20} />}</span>
           <div><span className="eyebrow">MCP PROVIDER</span><h2>{provider.name}</h2></div>
         </div>
         <div className="provider-card__header-actions">

@@ -78,6 +78,22 @@ npx @modelcontextprotocol/inspector
 # Transport: Streamable HTTP, URL: http://localhost:3000/api/mcp?key=<MCP_API_KEY>
 ```
 
+## Kết nối với MCP Gateway (Custom GPT)
+
+Gateway có sẵn provider `google-drive` gọi tới server này.
+
+1. Deploy `gdrive-mcp` (bước 1–4 ở trên).
+2. Trong `server/.env` của Gateway, đặt:
+
+   ```env
+   GOOGLE_DRIVE_MCP_URL=https://<domain-gdrive-mcp>/api/mcp
+   ```
+
+3. Khởi động lại Gateway. Trong giao diện web → MCP connections → **Google Drive**, dán `MCP_API_KEY` của server `gdrive-mcp` rồi bấm lưu. Gateway sẽ thử `tools/list` để xác nhận và lưu key đã mã hoá AES-256-GCM.
+4. Custom GPT gọi các tool Drive qua Gateway như các provider khác.
+
+> Server này chỉ gắn với **một** tài khoản Google Drive. Mọi user Gateway có `MCP_API_KEY` đều dùng chung Drive đó — chỉ đưa key cho người bạn tin tưởng.
+
 ## Lưu ý bảo mật
 
 - Ai có URL kèm `key` là toàn quyền với Drive của bạn — giữ kín, đổi key nếu lộ.

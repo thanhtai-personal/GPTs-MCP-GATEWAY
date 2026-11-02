@@ -45,6 +45,8 @@ export class AppConfigService {
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_ID?.trim() || undefined;
   readonly googleWorkspaceOAuthClientSecret =
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET?.trim() || undefined;
+  /** Self-hosted gdrive-mcp endpoint, e.g. https://drive-mcp.example.com/api/mcp */
+  readonly googleDriveMcpUrl = process.env.GOOGLE_DRIVE_MCP_URL?.trim() || undefined;
   readonly gptActionResponseMaxChars = integer(
     'GPT_ACTION_RESPONSE_MAX_CHARS',
     80_000,
