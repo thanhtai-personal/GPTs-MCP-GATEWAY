@@ -46,7 +46,7 @@ pkg.engines = {
 
 pkg.overrides = {
   ...pkg.overrides,
-  multer: "2.3.0",
+  multer: "^2.4.1",
 };
 
 delete pkg.config?.["legacy-peer-deps"];

@@ -8,6 +8,7 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
 
 ### Added
 
+- `NOTICE` with copyright, AGPL section 13 reminder and third-party/trademark notes; license and repository metadata in every package manifest; dependency license review.
 - Open-source documentation set:
   - architecture and API reference;
   - self-hosting guide;
@@ -20,11 +21,20 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
   - GitHub repository rules, CI and Dependabot configuration;
   - release checklist.
 - Native `google-drive` provider: search, list, read (Docs/Slides as text, Sheets as CSV), create, update, trash and share Drive files through the existing Google Workspace connection, without the Workspace Developer Preview.
-- NestJS dependency policy pins the supported server framework line and overrides transitive Multer to the patched 2.3.0 release.
+- NestJS dependency policy pins the supported server framework line and overrides transitive Multer to a patched release (now `^2.4.1`, see GHSA-3pph-fpjx-jg34 / GHSA-q7qp-rjg7-q26m).
 
 ### Changed
 
 - Connecting Google Workspace now verifies Drive only; Docs and Sheets MCP are verified when called, so accounts outside the Developer Preview can connect.
+
+### Fixed
+
+- Web typecheck: landing-page links pass the anchor through TanStack Router's `hash` prop instead of `to="/app#..."`.
+
+### Security
+
+- Require patched TanStack Start (`@tanstack/react-start` ^1.168.60, `start-server-core` >= 1.169.39; CVE-2026-102989).
+- Raise the Multer override to `^2.4.1` and document the 2026-11-02 dependency audit triage.
 
 ### Removed
 

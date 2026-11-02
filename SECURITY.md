@@ -12,8 +12,8 @@ Security fixes should target the current default development branch until formal
 
 Preferred workflow on GitHub:
 
-1. Open the repository **Security** tab.
-2. Use **Report a vulnerability** / private vulnerability reporting if enabled.
+1. Open <https://github.com/thanhtai-personal/GPTs-MCP-GATEWAY/security/advisories/new> (repository **Security** tab → **Report a vulnerability**).
+2. Submit the report privately there. Maintainers must keep private vulnerability reporting enabled in repository settings.
 3. Include affected component, impact, reproduction details, and suggested mitigation if known.
 
 If private vulnerability reporting is not available, open a minimal public issue asking maintainers for a private contact channel **without** posting exploit details, credentials, personal data, or a working secret.

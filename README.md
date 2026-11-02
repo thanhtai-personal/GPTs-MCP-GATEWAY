@@ -6,13 +6,24 @@
 
 MCP Gateway is a self-hostable gateway that lets **Custom GPTs discover and call supported MCP services through GPT Actions** while keeping provider credentials on the server.
 
-The first provider adapter is **Google Stitch**.
+Supported providers:
+
+| Provider | Connection | Status |
+| --- | --- | --- |
+| Google Stitch | API key | available |
+| GitHub | OAuth (GitHub OAuth App) | available |
+| Notion | OAuth + PKCE + dynamic client registration | available |
+| Google Drive | Google OAuth (`drive.readonly` + `drive.file`), native Drive REST adapter | available |
+| Google Docs / Google Sheets | same Google OAuth, Google remote MCP | Google Workspace Developer Preview only |
+| Figma | OAuth | pending Figma approval of the Gateway client |
+| Lovable | OAuth | restricted by Lovable to approved clients |
+| Local PC (`local-agent/`) | paired local agent | experimental |
 
 The product model separates authentication from entitlement:
 
 - **Gateway token** authenticates a GPT Action request.
 - **Open ID** authorizes MCP execution.
-- **Provider credential** (for example a Stitch API key) stays encrypted on the Gateway server and is never copied into the GPT.
+- **Provider credential** (an API key or OAuth token) stays encrypted on the Gateway server and is never copied into the GPT.
 - **GPT Integration Kit** teaches the GPT how to discover services/tools and call the Gateway without hardcoding a provider's tool catalog.
 
 > **Naming note:** “Open ID” is this project's entitlement identifier. It is **not OpenID Connect (OIDC)**.
@@ -34,10 +45,10 @@ MCP Gateway
    │  runtime tools/list / tools/call
    ▼
 Supported MCP provider
-   └── Google Stitch (MVP)
+   └── Stitch, GitHub, Notion, Google Drive/Docs/Sheets, ...
 ```
 
-The GPT never receives the user's Stitch API key.
+The GPT never receives the user's provider API keys or OAuth tokens.
 
 ## What is implemented
 
@@ -57,11 +68,11 @@ The GPT never receives the user's Stitch API key.
 | GPT Integration Kit | Instructions + Knowledge + OpenAPI + Setup Guide ZIP |
 | MCP tool discovery | Runtime `tools/list` |
 | MCP tool execution | Runtime `tools/call` |
-| Google Stitch | Implemented adapter |
+| Provider adapters | Stitch, GitHub, Notion, Google Drive, Google Docs/Sheets (preview), Figma, Lovable |
 | Arbitrary MCP URLs | Intentionally not supported |
 | Payment / checkout | Not implemented |
 | Admin UI | Not implemented |
-| Provider OAuth | Not implemented |
+| Provider OAuth | Implemented (PKCE, dynamic client registration, encrypted refresh tokens) |
 
 For a precise implemented-vs-planned list, read [Project Status](./docs/PROJECT_STATUS.md).
 
@@ -72,6 +83,7 @@ For a precise implemented-vs-planned list, read [Project Status](./docs/PROJECT_
 ├── database/
 │   └── migrations/          # Supabase/PostgreSQL schema
 ├── docs/                    # architecture, protocol, security, operations
+├── local-agent/             # optional agent exposing local PC tools to the Gateway
 ├── scripts/                 # dependency-free source/schema checks
 ├── server/                  # NestJS Gateway API
 └── web/                     # TanStack Start / React application
@@ -86,17 +98,18 @@ Architecture follows pragmatic module boundaries: NestJS modules on the backend,
 - Node.js **24** (`.nvmrc`)
 - npm
 - a Supabase project
-- a Google Stitch API key if you want to exercise the current MCP provider
+- credentials for at least one provider (for example a Google Stitch API key, or a Google OAuth client for Drive)
 
 ### 1. Configure Supabase
 
-Apply:
+Apply, in order:
 
 ```text
 database/migrations/001_initial_schema.sql
 database/migrations/002_gpt_response_transfers.sql
 database/migrations/003_site_settings.sql
 database/migrations/004_mcp_oauth_transactions.sql
+database/migrations/005_local_agents.sql
 ```
 
 to a **development** Supabase project.
@@ -147,7 +160,7 @@ See [Self-hosting](./docs/SELF_HOSTING.md) for production topology, reverse prox
 
 ## GPT integration flow
 
-An authenticated user can connect Stitch and download the GPT Integration Kit before purchasing a paid Open ID.
+An authenticated user can connect providers and download the GPT Integration Kit before purchasing a paid Open ID.
 
 The generated ZIP contains:
 
@@ -288,7 +301,11 @@ Community files:
 
 ## Open-source license and hosted commercial service
 
-MCP Gateway is licensed under **AGPL-3.0-or-later**. See [LICENSE](./LICENSE).
+Copyright (C) 2026 thanhtai-personal and MCP Gateway contributors.
+
+MCP Gateway is licensed under **AGPL-3.0-or-later**. See [LICENSE](./LICENSE) and [NOTICE](./NOTICE).
+
+If you run a modified version as a network service, AGPL section 13 requires you to offer your users the corresponding source of your modified version.
 
 The official hosted Gateway/Open ID service may still be commercial. The software license and a hosted Open ID are separate:
 
@@ -301,4 +318,4 @@ Read [Open-source Policy](./OPEN_SOURCE_POLICY.md), [Commercial Model](./COMMERC
 
 ## Project / trademark disclaimer
 
-This is an independent project. References to GPT/OpenAI, Google Stitch, Supabase, MCP, and other third-party products identify interoperability targets; they do not imply sponsorship or endorsement.
+This is an independent project. References to GPT/OpenAI, Google (Stitch, Drive, Docs, Sheets), GitHub, Notion, Figma, Lovable, Supabase, MCP, and other third-party products identify interoperability targets; they do not imply sponsorship or endorsement.

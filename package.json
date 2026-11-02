@@ -16,7 +16,12 @@
     "check": "npm run check:source && npm run check:schema && npm run check:docs && npm run check:deps",
     "repair:server-deps": "node scripts/repair-server-dependencies.mjs",
     "audit:server": "npm --prefix server audit --audit-level=high",
-    "audit:server:prod": "npm --prefix server audit --omit=dev --audit-level=high"
+    "audit:server:prod": "npm --prefix server audit --omit=dev --audit-level=high",
+    "audit:web": "npm --prefix web audit --audit-level=high"
   },
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thanhtai-personal/GPTs-MCP-GATEWAY.git"
+  }
 }

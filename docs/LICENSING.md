@@ -59,6 +59,36 @@ Before a release:
 - retain attribution/notices required by dependencies;
 - avoid dependencies with incompatible terms.
 
+### Dependency license review (2026-11-02)
+
+Reviewed from the committed `server/package-lock.json` (630 packages) and
+`web/package-lock.json` (174 packages). `local-agent/` has no npm
+dependencies.
+
+| License | server | web | AGPL-3.0 compatible |
+| --- | ---: | ---: | --- |
+| MIT | 533 | 145 | yes |
+| ISC | 38 | 7 | yes |
+| BSD-3-Clause / BSD-2-Clause | 26 | 3 | yes |
+| Apache-2.0 | 15 | 3 | yes (GPLv3-compatible) |
+| BlueOak-1.0.0 | 9 | 0 | yes |
+| MPL-2.0 | 0 | 12 | yes (file-level copyleft; keep MPL notices) |
+| Unlicense, 0BSD, CC0-1.0 / MIT dual | 5 | 2 | yes |
+| CC-BY-4.0 (caniuse-lite data) | 1 | 1 | yes (attribution kept in package) |
+| Python-2.0 (argparse) | 1 | 1 | yes |
+| no SPDX field: `busboy`, `streamsearch` | 2 | 0 | yes (both ship an MIT license file) |
+
+No GPL-incompatible, proprietary, non-commercial or SSPL-style licenses were
+found. Repeat this review whenever lockfiles change materially, for example
+with `npx license-checker --summary` inside `server/` and `web/`.
+
+## Copyright and notices
+
+Copyright is held by the project author and contributors; see [../NOTICE](../NOTICE).
+Contributors keep copyright in their contributions and license them under
+AGPL-3.0-or-later (see [../OPEN_SOURCE_POLICY.md](../OPEN_SOURCE_POLICY.md)).
+Keep `LICENSE` and `NOTICE` in every redistribution.
+
 ## Branding
 
 The software license does not imply endorsement of forks or grant rights to third-party marks.
