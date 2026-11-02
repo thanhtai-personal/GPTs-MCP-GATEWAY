@@ -36,7 +36,8 @@ Direction/requirements documents describe target behavior. They are not evidence
 4. [Google Docs + Sheets MCP setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
 5. [Notion MCP setup](./NOTION_MCP_SETUP.md)
 6. [Figma MCP setup](./FIGMA_MCP_SETUP.md)
-7. [Troubleshooting](./TROUBLESHOOTING.md)
+7. [Standalone Google Drive MCP (Next.js)](../gdrive-mcp/README.md) — self-hosted alternative that does not need the Workspace Developer Preview
+8. [Troubleshooting](./TROUBLESHOOTING.md)
 
 ### I want to contribute
 
