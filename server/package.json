@@ -15,11 +15,11 @@
     "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
-    "@nestjs/common": "11.2.3",
-    "@nestjs/core": "11.2.3",
-    "@nestjs/platform-express": "11.2.3",
+    "@nestjs/common": "11.2.8",
+    "@nestjs/core": "11.2.8",
+    "@nestjs/platform-express": "11.2.8",
     "@nestjs/swagger": "11.4.7",
-    "@nestjs/throttler": "6.5.0",
+    "@nestjs/throttler": "6.7.1",
     "@supabase/supabase-js": "^2.115.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.24",
-    "@nestjs/testing": "11.2.3",
+    "@nestjs/testing": "11.2.8",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
