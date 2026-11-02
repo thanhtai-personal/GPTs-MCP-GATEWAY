@@ -24,7 +24,7 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
 
 ### Added (MCP server)
 
-- Remote MCP endpoint `/api/v1/mcp` for ChatGPT, Claude and other MCP clients, authenticated with the Supabase OAuth 2.1 server (PKCE, dynamic client registration), protected resource metadata at `/.well-known/oauth-protected-resource`, consent page `/oauth/consent`. Tools: `gateway_profile`, `list_tools`, `get_tool_schema`, `call_tool`; Open ID entitlement checked on every call.
+- Remote MCP endpoint `/api/v1/mcp` for ChatGPT, Claude and other MCP clients, authenticated with the Supabase OAuth 2.1 server (PKCE, dynamic client registration), protected resource metadata at `/.well-known/oauth-protected-resource`, consent page `/oauth/consent`. Tools: `gateway_profile`, `list_tools`, `get_tool_schema`, `call_tool`. Access is checked per call on the account (member, or guest with an active trial); Open IDs remain specific to the Custom GPT Action flow.
 
 ### Changed
 

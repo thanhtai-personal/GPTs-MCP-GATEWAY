@@ -26,7 +26,7 @@ sequenceDiagram
   W->>S: consent (via Gateway /account/oauth/authorizations/:id/approve)
   S-->>C: code -> access token (client_id claim)
   C->>M: tools/call + Bearer token
-  M->>M: issuer, audience, exp/nbf, Supabase user, Open ID entitlement
+  M->>M: issuer, audience, exp/nbf, Supabase user, account entitlement
 ```
 
 ## Tools
@@ -40,8 +40,10 @@ sequenceDiagram
 
 Provider catalogs differ per user and change at runtime, so the endpoint uses
 the same discovery protocol as the GPT Action rather than a fixed tool list.
-Every `tools/call` re-checks the user's **Open ID** (active trial, or paid
-Open ID for members); without one, the tool returns `OPEN_ID_REQUIRED`.
+Every `tools/call` re-checks the **account entitlement**: members are always
+allowed; guests are allowed while their one-time 7-day trial is active.
+Otherwise the tool returns `MEMBERSHIP_REQUIRED`. Open IDs and Gateway tokens
+are only used by the Custom GPT Action flow; the plugin does not need one.
 
 ## Security boundaries
 

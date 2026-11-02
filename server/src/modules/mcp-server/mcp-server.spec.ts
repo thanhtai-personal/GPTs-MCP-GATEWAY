@@ -22,7 +22,7 @@ const oauthToken = jwt({
   client_id: 'chatgpt-client',
 });
 const user = { id: 'user-1', membershipTier: 'guest' } as never;
-const principal = { credentialId: null, openIdId: 'o1', openId: 'OID', user, kind: 'trial' };
+const principal = { credentialId: null, openIdId: null, openId: null, user, kind: 'member' };
 
 function service(overrides: { principalForUser?: jest.Mock } = {}) {
   const gateway = {
@@ -141,7 +141,7 @@ describe('McpServerService', () => {
   it('returns entitlement problems as tool errors the model can explain', async () => {
     const { mcp, gateway } = service({
       principalForUser: jest.fn().mockRejectedValue(
-        new ForbiddenException({ code: 'OPEN_ID_REQUIRED', message: 'Start the trial' }),
+        new ForbiddenException({ code: 'MEMBERSHIP_REQUIRED', message: 'Start the trial' }),
       ),
     });
     const reply = await mcp.handleMessage(session, {
@@ -153,7 +153,7 @@ describe('McpServerService', () => {
     expect(reply).toMatchObject({
       result: {
         isError: true,
-        structuredContent: { error: { code: 'OPEN_ID_REQUIRED' } },
+        structuredContent: { error: { code: 'MEMBERSHIP_REQUIRED' } },
       },
     });
     expect(gateway.profile).not.toHaveBeenCalled();

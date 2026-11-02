@@ -47,7 +47,8 @@ class RpcError extends Error {
 /**
  * Stateless MCP (Streamable HTTP, JSON responses) for the Gateway. Handles
  * initialize, ping, tools/list and tools/call; notifications are accepted
- * and ignored. Every tools/call re-checks the user's Open ID entitlement.
+ * and ignored. Every tools/call re-checks the account entitlement
+ * (member, or guest with an active trial).
  */
 @Injectable()
 export class McpServerService {
