@@ -37,6 +37,8 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
 
 ### Security
 
+- Revert the forced audit fix that moved `@nestjs/swagger` to 12.x (Nest 12 peer) and `ts-jest` to 25.x; `check:deps` now rejects Swagger != 11 in the lockfile and a ts-jest/jest mismatch.
+
 - Require patched TanStack Start (`@tanstack/react-start` ^1.168.60, `start-server-core` >= 1.169.39; CVE-2026-102989).
 - Raise the Multer override to `^2.4.1` and document the 2026-11-02 dependency audit triage.
 

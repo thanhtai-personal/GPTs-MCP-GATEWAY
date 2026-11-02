@@ -49,6 +49,17 @@ for (const [dependency, expected] of Object.entries(expectedNestVersions)) {
   }
 }
 
+// Test tooling must stay on a matching pair: ts-jest 29.x supports jest 30.
+// A forced audit fix once downgraded ts-jest to 25.x, which breaks tests.
+const tsJest = serverPackage.devDependencies?.["ts-jest"];
+if (!/^[\^~]?29\./u.test(String(tsJest ?? ""))) {
+  problems.push(`ts-jest must stay on 29.x for jest 30; found ${JSON.stringify(tsJest)}`);
+}
+const jestVersion = serverPackage.devDependencies?.jest;
+if (!/^[\^~]?30\./u.test(String(jestVersion ?? ""))) {
+  problems.push(`jest must stay on 30.x; found ${JSON.stringify(jestVersion)}`);
+}
+
 // Multer 2.0.0 - 2.4.0 is affected by GHSA-3pph-fpjx-jg34 and GHSA-q7qp-rjg7-q26m.
 const MULTER_MIN = [2, 4, 1];
 const MULTER_MIN_TEXT = MULTER_MIN.join(".");
@@ -94,6 +105,13 @@ if (fs.existsSync(serverLockPath)) {
     "@nestjs/platform-express",
     "@nestjs/testing",
   ];
+
+  const swagger = packages["node_modules/@nestjs/swagger"];
+  if (swagger && parseMajor(swagger.version) !== 11) {
+    problems.push(
+      `lockfile resolves @nestjs/swagger ${swagger.version}; Swagger 11.x is required with Nest 11 (run npm run repair:server-deps)`,
+    );
+  }
 
   for (const dependency of resolvedNestPackages) {
     const entry = packages[`node_modules/${dependency}`];
