@@ -33,11 +33,10 @@ Direction/requirements documents describe target behavior. They are not evidence
 1. [Self-hosting](./SELF_HOSTING.md)
 2. [API Reference](./API_REFERENCE.md)
 3. [GitHub MCP setup](./GITHUB_MCP_SETUP.md)
-4. [Google Docs + Sheets MCP setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
+4. [Google Drive + Docs + Sheets setup](./GOOGLE_WORKSPACE_MCP_SETUP.md)
 5. [Notion MCP setup](./NOTION_MCP_SETUP.md)
 6. [Figma MCP setup](./FIGMA_MCP_SETUP.md)
-7. [Google Drive MCP (self-hosted, Next.js)](../gdrive-mcp/README.md) — `google-drive` provider; no Workspace Developer Preview needed
-8. [Troubleshooting](./TROUBLESHOOTING.md)
+7. [Troubleshooting](./TROUBLESHOOTING.md)
 
 ### I want to contribute
 

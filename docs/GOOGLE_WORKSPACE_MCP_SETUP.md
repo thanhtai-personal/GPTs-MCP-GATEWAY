@@ -1,5 +1,23 @@
-# Google Docs + Sheets MCP setup
+# Google Drive + Docs + Sheets setup
 
+## Google Drive (no Developer Preview)
+
+`google-drive` is a native Gateway provider. It does not proxy a Google MCP
+server: Gateway publishes its own tool catalog and calls the Drive REST API
+(`www.googleapis.com/drive/v3`) with the user's Google Workspace OAuth token.
+
+- Enable `drive.googleapis.com` on the Cloud project that owns the OAuth client.
+- No extra environment variables: it reuses
+  `GOOGLE_WORKSPACE_OAUTH_CLIENT_ID/SECRET` and the same connection.
+- Scopes: `drive.readonly` (search/read every file the user can access) and
+  `drive.file` (create files; edit, share or trash only files created through
+  Gateway). Both are already in the consent request below.
+- Tools: `search_files`, `list_files`, `get_file_metadata`,
+  `read_file_content`, `create_file`, `update_file`, `trash_file`,
+  `share_file`.
+
+Connecting Google verifies Drive only. Docs and Sheets are checked when they
+are called, so accounts outside the Developer Preview can still use Drive.
 
 
 ## Developer Preview access is required
@@ -87,15 +105,16 @@ A single consent action creates one encrypted connection config:
 google-workspace
 ```
 
-That one credential powers two runtime MCP service IDs:
+That one credential powers three runtime service IDs:
 
 ```text
+google-drive
 google-docs
 google-sheets
 ```
 
 The MCP Services UI therefore shows one **Google Workspace** card while GPT
-runtime discovery still exposes separate Docs and Sheets services and skills.
+runtime discovery still exposes separate Drive, Docs and Sheets services and skills.
 
 ## Developer Preview
 

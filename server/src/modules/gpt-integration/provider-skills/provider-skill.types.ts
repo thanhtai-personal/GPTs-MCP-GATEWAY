@@ -3,6 +3,7 @@ export const PROVIDER_SKILL_IDS = [
   'stitch',
   'figma',
   'lovable',
+  'google-drive',
   'google-docs',
   'google-sheets',
 ] as const;
