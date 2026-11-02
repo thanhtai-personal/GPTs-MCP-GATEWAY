@@ -32,7 +32,7 @@
     "@nestjs/testing": "11.2.3",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.6",
     "jest": "^30.0.0",
     "ts-jest": "29.4.12",
     "ts-loader": "^9.5.2",
