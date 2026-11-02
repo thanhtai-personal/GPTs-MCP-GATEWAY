@@ -120,13 +120,14 @@ server/src/modules/
 └── ...
 ```
 
-The provider registry currently includes adapters for:
+The provider registry currently includes adapters for (`google-drive` calls the Drive REST API directly; the others proxy remote MCP servers):
 
 ```text
 stitch
 lovable
 figma
 github
+google-drive
 google-docs
 google-sheets
 notion

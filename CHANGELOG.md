@@ -19,7 +19,16 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
   - dependency security policy;
   - GitHub repository rules, CI and Dependabot configuration;
   - release checklist.
+- Native `google-drive` provider: search, list, read (Docs/Slides as text, Sheets as CSV), create, update, trash and share Drive files through the existing Google Workspace connection, without the Workspace Developer Preview.
 - NestJS dependency policy pins the supported server framework line and overrides transitive Multer to the patched 2.3.0 release.
+
+### Changed
+
+- Connecting Google Workspace now verifies Drive only; Docs and Sheets MCP are verified when called, so accounts outside the Developer Preview can connect.
+
+### Removed
+
+- Standalone `gdrive-mcp/` Next.js server and `GOOGLE_DRIVE_MCP_URL` (replaced by the native `google-drive` provider).
 
 ## [0.1.0] - 2026-09-11
 

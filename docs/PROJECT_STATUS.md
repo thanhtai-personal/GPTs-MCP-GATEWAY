@@ -42,7 +42,7 @@ Developer-oriented workflows remain valid use cases, but they are not the produc
 ### MCP connections
 
 - explicit provider registry.
-- provider adapters currently registered for `stitch`, `lovable`, `figma`, `github`, `google-docs`, `google-sheets`, and `notion`.
+- provider adapters currently registered for `stitch`, `lovable`, `figma`, `github`, `google-drive`, `google-docs`, `google-sheets`, and `notion` (`google-drive` is a native Drive REST adapter sharing the Google Workspace connection).
 - connection test before save where supported by the provider flow.
 - encrypted provider credential storage.
 - no saved provider credential returned to the client after persistence.

@@ -15,7 +15,7 @@ import {
   groupProviderConnectionRows,
 } from '@server/root/modules/mcp-connections/mcp-connection-grouping';
 import {
-  GOOGLE_WORKSPACE_PROVIDER_IDS,
+  GOOGLE_WORKSPACE_REQUIRED_PROVIDER_ID,
 } from '@server/root/modules/mcp-connections/google-workspace-connection';
 import type { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import type { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
@@ -210,13 +210,9 @@ export class McpConnectionsService {
     userId: string,
     credential: McpOAuthCredential,
   ) {
-    const providers = GOOGLE_WORKSPACE_PROVIDER_IDS.map((id) =>
-      this.providers.get(id),
-    );
-    await Promise.all(
-      providers.map((provider) => provider.testConnection(credential)),
-    );
-    return this.saveCredential(userId, providers[0], credential);
+    const provider = this.providers.get(GOOGLE_WORKSPACE_REQUIRED_PROVIDER_ID);
+    await provider.testConnection(credential);
+    return this.saveCredential(userId, provider, credential);
   }
 
   async removeOwn(request: Request, providerId: string) {
