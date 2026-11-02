@@ -50,7 +50,7 @@ Developer-oriented workflows remain valid use cases, but they are not the produc
 
 ### MCP server
 
-- remote MCP endpoint `/api/v1/mcp` (Streamable HTTP, stateless JSON) with Supabase OAuth 2.1 authentication, consent page and Open ID enforcement; see [MCP server setup](./MCP_SERVER_SETUP.md).
+- remote MCP endpoint `/api/v1/mcp` (Streamable HTTP, stateless JSON) with Supabase OAuth 2.1 authentication, consent page and account entitlement (member, or guest with an active trial; no Open ID needed); see [MCP server setup](./MCP_SERVER_SETUP.md).
 
 ### GPT runtime
 

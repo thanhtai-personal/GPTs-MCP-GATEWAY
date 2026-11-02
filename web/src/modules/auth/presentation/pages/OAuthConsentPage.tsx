@@ -123,8 +123,8 @@ export function OAuthConsentPage() {
               <p className="notice">
                 <ShieldCheck size={14} aria-hidden="true" />{" "}
                 {t(
-                  "Chỉ cho phép nếu bạn nhận ra ứng dụng và địa chỉ chuyển hướng ở trên. Việc gọi tool vẫn cần Open ID (trial hoặc member) còn hiệu lực.",
-                  "Only allow this if you recognize the app and redirect address above. Tool calls still require an active Open ID (trial or member).",
+                  "Chỉ cho phép nếu bạn nhận ra ứng dụng và địa chỉ chuyển hướng ở trên. Dùng tool cần tài khoản member hoặc trial còn hạn.",
+                  "Only allow this if you recognize the app and redirect address above. Using tools requires a member account or an active trial.",
                 )}
               </p>
               <div className="row provider-actions">
