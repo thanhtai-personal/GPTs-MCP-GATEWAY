@@ -104,7 +104,7 @@ describe('McpServerService', () => {
     expect(fallback).toMatchObject({ result: { protocolVersion: '2025-11-25' } });
 
     const list = await mcp.handleMessage(session, { jsonrpc: '2.0', id: 3, method: 'tools/list' });
-    const names = ((list as { result: { tools: Array<{ name: string }> } }).result.tools).map(
+    const names = ((list as unknown as { result: { tools: Array<{ name: string }> } }).result.tools).map(
       (tool) => tool.name,
     );
     expect(names).toEqual(['gateway_profile', 'list_tools', 'get_tool_schema', 'call_tool']);
