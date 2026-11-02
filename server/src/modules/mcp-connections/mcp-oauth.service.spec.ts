@@ -45,8 +45,12 @@ describe('McpOAuthService browser binding', () => {
     const state = new URL(started.authorizationUrl).searchParams.get('state')!;
 
     await expect(
-      service.exchangeAuthorizationCode(provider, 'code', state, undefined, 'other-browser'),
+      service.exchangeAuthorizationCode(provider, 'code', state, undefined, 'other-browser', 'user-1'),
     ).rejects.toThrow('different browser');
+    await expect(
+      service.exchangeAuthorizationCode(provider, 'code', state, undefined, 'nonce', 'user-2'),
+    ).rejects.toMatchObject({ response: { code: 'MCP_OAUTH_STATE_INVALID' } });
+    expect(transactions.consume).toHaveBeenCalledTimes(1);
     expect(started.browserNonce).toBe('nonce');
     expect(protocol.exchangeAuthorizationCode).not.toHaveBeenCalled();
   });

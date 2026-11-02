@@ -60,6 +60,40 @@ Uses the same body as `test`.
 
 The server validates the credential first, encrypts it, then upserts the connection.
 
+### MCP endpoint
+
+`POST /api/v1/mcp` — remote MCP (Streamable HTTP, stateless JSON). OAuth bearer token from the Supabase OAuth 2.1 server; without it: `401` + `WWW-Authenticate`. Metadata: `GET /.well-known/oauth-protected-resource`. Tools: `gateway_profile`, `list_tools`, `get_tool_schema`, `call_tool`. See [MCP server setup](./MCP_SERVER_SETUP.md).
+
+### MCP client consent
+
+Supabase user bearer token (web session, not an OAuth client token).
+
+- `GET /api/v1/account/oauth/authorizations/:authorizationId` — pending authorization details.
+- `POST /api/v1/account/oauth/authorizations/:authorizationId/approve` — returns `{ redirect_url }`.
+- `POST /api/v1/account/oauth/authorizations/:authorizationId/deny` — returns `{ redirect_url }`.
+
+Clients whose redirect URI is not HTTPS on `MCP_OAUTH_ALLOWED_REDIRECT_HOSTS` are refused (`OAUTH_CLIENT_REDIRECT_NOT_ALLOWED`).
+
+### OAuth connection flow
+
+All three steps use the same `:provider` value; Google Workspace uses `google-workspace`.
+
+#### `POST /api/v1/mcp-connections/:provider/oauth/start`
+
+Supabase bearer token required. Body (generic providers): `{ "accessMode"?: "read" | "write", "returnTo"?: "#mcp-services" }`.
+
+Returns `{ provider, authorizationUrl, browserNonce }`. The web app stores `browserNonce` in `sessionStorage` keyed by the `state` in `authorizationUrl`, then navigates to `authorizationUrl`.
+
+#### `GET /api/v1/mcp-connections/:provider/oauth/callback`
+
+Registered provider `redirect_uri`. Forwards `code`, `state`, `iss`, `error`, `error_description` to `<WEB_BASE_URL>/oauth/complete?provider=:provider&...` with `303`. It never completes the flow itself.
+
+#### `POST /api/v1/mcp-connections/:provider/oauth/complete`
+
+Supabase bearer token required. Body: `{ "code", "state", "browserNonce", "iss"? }`.
+
+Completes only for the signed-in user who started the flow and with the matching single-use nonce. Returns `{ provider, status: "connected", returnTo }`. Errors use the normal error envelope, for example `MCP_OAUTH_STATE_INVALID`.
+
 ### `DELETE /api/v1/mcp-connections/:provider`
 
 Deletes the authenticated user's saved provider connection.

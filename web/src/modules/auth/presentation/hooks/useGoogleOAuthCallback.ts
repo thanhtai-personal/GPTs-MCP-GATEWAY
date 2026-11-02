@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { completeGoogleOAuth } from "@/modules/auth/infrastructure/google-oauth";
+import { completeGoogleOAuth, takeSignInReturnTo } from "@/modules/auth/infrastructure/google-oauth";
 import { CALLBACK_CHUNK_RETRY_KEY } from "@/shared/components/callback-chunk-recovery";
 
 type OAuthCallbackError = {
@@ -22,7 +22,14 @@ export function useGoogleOAuthCallback() {
     }
 
     void completeGoogleOAuth()
-      .then(() => navigate({ to: "/app", replace: true }))
+      .then(() => {
+        const returnTo = takeSignInReturnTo();
+        if (returnTo) {
+          window.location.replace(returnTo);
+          return;
+        }
+        return navigate({ to: "/app", replace: true });
+      })
       .catch((caught: unknown) => {
         if (!active) return;
         setError({

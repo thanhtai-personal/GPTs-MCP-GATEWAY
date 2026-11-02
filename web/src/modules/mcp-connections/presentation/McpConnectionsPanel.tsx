@@ -1,9 +1,10 @@
-import { BookOpenText, ChevronDown, CircleHelp, FileText, Github, KeyRound, Link2, PlugZap, ShieldCheck, Table2 } from "lucide-react";
+import { BookOpenText, ChevronDown, CircleHelp, FileText, Github, HardDrive, KeyRound, Link2, PlugZap, ShieldCheck, Table2 } from "lucide-react";
 import { useState } from "react";
 import type { McpConnection, McpProvider } from "@/modules/mcp-connections/domain/mcp-connection.types";
 import { useMcpConnections, useMcpProviders, useRemoveMcpConnection, useSaveMcpConnection, useTestMcpConnection } from "@/modules/mcp-connections/queries/mcp-connections.queries";
 import { useUiLanguage } from "@/shared/i18n/ui-language";
 import { OAuthConnectionForm } from "@/modules/mcp-connections/presentation/OAuthConnectionForm";
+import { OAuthResultNotice } from "@/modules/mcp-connections/presentation/OAuthResultNotice";
 import { AnimatedCollapse } from "@/shared/components/AnimatedCollapse";
 import { ProviderViewToolbar, type ProviderViewMode } from "@/modules/mcp-connections/presentation/ProviderViewToolbar";
 import { ProviderHelpDrawer } from "@/modules/supporter/presentation/ProviderHelpDrawer";
@@ -49,6 +50,7 @@ export function McpConnectionsPanel({ accessToken }: { accessToken: string }) {
 
   return (
     <div className="provider-list cinematic-connectors">
+      <OAuthResultNotice />
       <div className="provider-summary">
         <div><span className="provider-summary__value">{runtimeServiceCount}</span><span>{t("MCP services", "MCP services")}</span></div>
         <div><span className="provider-summary__value">{connectionList.length}</span><span>{t("Credential connections", "Credential connections")}</span></div>
@@ -98,7 +100,7 @@ function McpProviderCard({ accessToken, connection, expanded, onHelp, onToggle, 
       <div className="provider-card__meta">
         <span><ShieldCheck size={14} /> {t("Credential mã hóa server-side", "Server-side encrypted credential")}</span>
         <span>{provider.credential.kind === "api_key" ? <KeyRound size={14} /> : <Link2 size={14} />}{provider.credential.kind === "api_key" ? "API KEY" : "OAUTH"}</span>
-        {provider.id === "google-workspace" ? <span className="provider-card__services"><FileText size={14} /> DOCS <Table2 size={14} /> SHEETS</span> : null}
+        {provider.id === "google-workspace" ? <span className="provider-card__services"><HardDrive size={14} /> DRIVE <FileText size={14} /> DOCS <Table2 size={14} /> SHEETS</span> : null}
         {connection?.lastVerifiedAt ? <span className="provider-card__verified-compact">{t("Xác minh", "Verified")} <code>{connection.lastVerifiedAt}</code></span> : null}
       </div>
 

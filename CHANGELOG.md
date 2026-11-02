@@ -20,11 +20,15 @@ The format is inspired by Keep a Changelog, with semantic-version-style release 
   - dependency security policy;
   - GitHub repository rules, CI and Dependabot configuration;
   - release checklist.
+- Remote MCP endpoint `/api/v1/mcp` for ChatGPT, Claude and other MCP clients, authenticated with the Supabase OAuth 2.1 server (PKCE, dynamic client registration), protected resource metadata at `/.well-known/oauth-protected-resource`, consent page `/oauth/consent`. Tools: `gateway_profile`, `list_tools`, `get_tool_schema`, `call_tool`. Access is checked per call on the account (member, or guest with an active trial); Open IDs remain specific to the Custom GPT Action flow.
 - Native `google-drive` provider: search, list, read (Docs/Slides as text, Sheets as CSV), create, update, trash and share Drive files through the existing Google Workspace connection, without the Workspace Developer Preview.
 - NestJS dependency policy pins the supported server framework line and overrides transitive Multer to a patched release (now `^2.4.1`, see GHSA-3pph-fpjx-jg34 / GHSA-q7qp-rjg7-q26m).
 
 ### Changed
 
+- OAuth client tokens are rejected on dashboard/REST APIs (`OAUTH_CLIENT_TOKEN_NOT_ALLOWED`).
+- Provider OAuth no longer relies on a cross-site cookie. The Gateway callback forwards to the web page `/oauth/complete`, which completes the flow with the signed-in user's token and a per-tab browser nonce (`POST /mcp-connections/:provider/oauth/complete`). Fixes connections never saving when web and API are on different sites (e.g. two `*.vercel.app` domains). Registered provider redirect URIs are unchanged.
+- The MCP services page now shows the OAuth result (connected or the error code) instead of failing silently.
 - Connecting Google Workspace now verifies Drive only; Docs and Sheets MCP are verified when called, so accounts outside the Developer Preview can connect.
 
 ### Fixed

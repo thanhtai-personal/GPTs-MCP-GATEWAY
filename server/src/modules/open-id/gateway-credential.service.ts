@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -38,6 +39,18 @@ export type GatewayPrincipal = {
   openId: string;
   user: AppUser;
   kind: 'trial' | 'paid';
+};
+
+/**
+ * Principal allowed to execute MCP tools: a Gateway token (Custom GPT, always
+ * bound to an Open ID) or an MCP plugin OAuth session (account entitlement).
+ */
+export type ExecutionPrincipal = {
+  credentialId: string | null;
+  openIdId: string | null;
+  openId: string | null;
+  user: AppUser;
+  kind: 'trial' | 'paid' | 'member';
 };
 
 @Injectable()
@@ -138,6 +151,44 @@ export class GatewayCredentialService {
       user,
       kind: openId.kind,
     };
+  }
+
+  /**
+   * Entitlement for an MCP plugin (OAuth) session. Open IDs belong to the
+   * Custom GPT Action flow; plugin access is decided by the account itself:
+   * members are always allowed, guests while their one-time trial is active.
+   */
+  async principalForUser(user: AppUser): Promise<ExecutionPrincipal> {
+    if (user.membershipTier === 'member') {
+      return { credentialId: null, openIdId: null, openId: null, user, kind: 'member' };
+    }
+
+    const now = new Date().toISOString();
+    const client = this.supabase.createServiceRoleClient();
+    const { data, error } = await client
+      .from('open_ids')
+      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
+      .eq('user_id', user.id)
+      .eq('kind', 'trial')
+      .eq('status', 'active')
+      .is('revoked_at', null)
+      .gt('expires_at', now)
+      .limit(1)
+      .maybeSingle<OpenIdRow>();
+    if (error) {
+      throw new ServiceUnavailableException({
+        code: 'ENTITLEMENT_STORAGE_UNAVAILABLE',
+        message: 'Account entitlement storage is unavailable',
+      });
+    }
+    if (!data) {
+      throw new ForbiddenException({
+        code: 'MEMBERSHIP_REQUIRED',
+        message:
+          'This MCP Gateway account needs member access or an active trial. Upgrade to member or start the 7-day trial in the Gateway web app.',
+      });
+    }
+    return { credentialId: null, openIdId: data.id, openId: data.open_id, user, kind: 'trial' };
   }
 
   hashToken(rawToken: string): string {

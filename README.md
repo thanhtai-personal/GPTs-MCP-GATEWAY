@@ -68,6 +68,7 @@ The GPT never receives the user's provider API keys or OAuth tokens.
 | GPT Integration Kit | Instructions + Knowledge + OpenAPI + Setup Guide ZIP |
 | MCP tool discovery | Runtime `tools/list` |
 | MCP tool execution | Runtime `tools/call` |
+| MCP server for ChatGPT / Claude connectors | `/api/v1/mcp` with Supabase OAuth 2.1 ([setup](./docs/MCP_SERVER_SETUP.md)) |
 | Provider adapters | Stitch, GitHub, Notion, Google Drive, Google Docs/Sheets (preview), Figma, Lovable |
 | Arbitrary MCP URLs | Intentionally not supported |
 | Payment / checkout | Not implemented |

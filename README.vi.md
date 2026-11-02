@@ -17,6 +17,8 @@ Provider hiện hỗ trợ:
 | Lovable | OAuth | Lovable chỉ cho client được duyệt |
 | Local PC (`local-agent/`) | agent ghép cặp trên máy | thử nghiệm |
 
+Ngoài Custom GPT, Gateway còn là **MCP server** (`/api/v1/mcp`, OAuth 2.1 qua Supabase) để thêm làm plugin/connector trong ChatGPT hoặc Claude. Xem [MCP server setup](./docs/MCP_SERVER_SETUP.md).
+
 > **Lưu ý tên gọi:** `Open ID` trong project là entitlement identifier riêng của MCP Gateway, **không phải OpenID Connect/OIDC**.
 
 [English README](./README.md)
