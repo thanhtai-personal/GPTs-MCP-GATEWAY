@@ -45,6 +45,17 @@ export class AppConfigService {
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_ID?.trim() || undefined;
   readonly googleWorkspaceOAuthClientSecret =
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET?.trim() || undefined;
+  /** Audience required in OAuth access tokens presented to /api/v1/mcp. */
+  readonly mcpOAuthAudience =
+    process.env.MCP_OAUTH_AUDIENCE?.trim() || 'authenticated';
+  /** Hosts allowed as OAuth client redirect targets on the consent page. */
+  readonly mcpOAuthAllowedRedirectHosts = (
+    process.env.MCP_OAUTH_ALLOWED_REDIRECT_HOSTS ??
+    'chatgpt.com,openai.com,claude.ai,claude.com,grok.com,console.x.ai'
+  )
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
   readonly gptActionResponseMaxChars = integer(
     'GPT_ACTION_RESPONSE_MAX_CHARS',
     80_000,
@@ -57,6 +68,20 @@ export class AppConfigService {
     'GPT_RESPONSE_MAX_STORED_CHARS',
     5_000_000,
   );
+
+  /** Public URL of the MCP endpoint (OAuth protected resource). */
+  get mcpResourceUrl(): string {
+    return `${this.publicBaseUrl.replace(/\/+$/u, '')}/api/v1/mcp`;
+  }
+
+  get mcpProtectedResourceMetadataUrl(): string {
+    return `${this.publicBaseUrl.replace(/\/+$/u, '')}/.well-known/oauth-protected-resource`;
+  }
+
+  /** Supabase OAuth 2.1 server (issuer of MCP access tokens). */
+  get supabaseOAuthIssuerUrl(): string {
+    return `${this.supabaseUrl.replace(/\/+$/u, '')}/auth/v1`;
+  }
 
   get supabaseUrl(): string {
     return required('SUPABASE_URL');

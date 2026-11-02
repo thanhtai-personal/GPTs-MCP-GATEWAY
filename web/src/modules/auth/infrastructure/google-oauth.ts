@@ -4,6 +4,23 @@ import {
 } from "@/modules/auth/infrastructure/supabase-browser";
 
 const OAUTH_CALLBACK_PATH = "/auth/callback";
+const RETURN_TO_KEY = "mcp-gateway:auth-return-to";
+
+/** Only the MCP consent page may be resumed after sign-in. */
+function isAllowedReturnTo(value: string): boolean {
+  return /^\/oauth\/consent\?authorization_id=[A-Za-z0-9_-]{1,128}$/u.test(value);
+}
+
+/** Returns (and clears) the page to resume after Google sign-in, if any. */
+export function takeSignInReturnTo(): string | null {
+  try {
+    const value = window.sessionStorage.getItem(RETURN_TO_KEY);
+    window.sessionStorage.removeItem(RETURN_TO_KEY);
+    return value && isAllowedReturnTo(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 function requireBrowser(): Window {
   if (typeof window === "undefined") {
@@ -12,12 +29,19 @@ function requireBrowser(): Window {
   return window;
 }
 
-export async function startGoogleOAuth(): Promise<void> {
+export async function startGoogleOAuth(returnTo?: string): Promise<void> {
   if (!isSupabaseBrowserConfigured) {
     throw new Error("SUPABASE_AUTH_NOT_CONFIGURED");
   }
 
   const browser = requireBrowser();
+  if (returnTo && isAllowedReturnTo(returnTo)) {
+    try {
+      browser.sessionStorage.setItem(RETURN_TO_KEY, returnTo);
+    } catch {
+      // Sign-in still works; the user just lands on /app afterwards.
+    }
+  }
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {

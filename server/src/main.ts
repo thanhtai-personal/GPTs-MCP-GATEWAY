@@ -3,7 +3,9 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from '@server/root/app.module';
+import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
+import { mcpProtectedResourceMetadata } from '@server/root/modules/mcp-server/mcp-server.oauth';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +20,21 @@ async function bootstrap() {
           : false,
     }),
   );
+
+  // OAuth protected resource metadata for the MCP endpoint (outside /api).
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .get(
+      [
+        '/.well-known/oauth-protected-resource',
+        '/.well-known/oauth-protected-resource/api/v1/mcp',
+      ],
+      (_request: Request, response: Response) => {
+        response.setHeader('Access-Control-Allow-Origin', '*');
+        response.json(mcpProtectedResourceMetadata(config));
+      },
+    );
 
   app.setGlobalPrefix('api');
   app.enableVersioning({
@@ -45,7 +62,8 @@ async function bootstrap() {
       callback(new Error('CORS_ORIGIN_DENIED'));
     },
     credentials: true,
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Mcp-Protocol-Version', 'Mcp-Session-Id'],
+    exposedHeaders: ['WWW-Authenticate', 'Mcp-Session-Id'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 

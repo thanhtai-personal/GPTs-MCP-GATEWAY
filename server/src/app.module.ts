@@ -10,6 +10,7 @@ import { GptIntegrationModule } from '@server/root/modules/gpt-integration/gpt-i
 import { HealthModule } from '@server/root/modules/health/health.module';
 import { McpConnectionsModule } from '@server/root/modules/mcp-connections/mcp-connections.module';
 import { McpGatewayModule } from '@server/root/modules/mcp-gateway/mcp-gateway.module';
+import { McpServerModule } from '@server/root/modules/mcp-server/mcp-server.module';
 import { OpenIdModule } from '@server/root/modules/open-id/open-id.module';
 import { SiteSettingsModule } from '@server/root/modules/site-settings/site-settings.module';
 
@@ -34,6 +35,7 @@ import { SiteSettingsModule } from '@server/root/modules/site-settings/site-sett
     GptIntegrationModule,
     SiteSettingsModule,
     McpGatewayModule,
+    McpServerModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

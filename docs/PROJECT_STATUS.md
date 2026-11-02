@@ -48,6 +48,10 @@ Developer-oriented workflows remain valid use cases, but they are not the produc
 - no saved provider credential returned to the client after persistence.
 - provider OAuth support exists for supported OAuth-backed connection flows.
 
+### MCP server
+
+- remote MCP endpoint `/api/v1/mcp` (Streamable HTTP, stateless JSON) with Supabase OAuth 2.1 authentication, consent page and Open ID enforcement; see [MCP server setup](./MCP_SERVER_SETUP.md).
+
 ### GPT runtime
 
 - Gateway bearer authentication.

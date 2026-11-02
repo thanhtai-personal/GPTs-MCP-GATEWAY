@@ -60,6 +60,20 @@ Uses the same body as `test`.
 
 The server validates the credential first, encrypts it, then upserts the connection.
 
+### MCP endpoint
+
+`POST /api/v1/mcp` — remote MCP (Streamable HTTP, stateless JSON). OAuth bearer token from the Supabase OAuth 2.1 server; without it: `401` + `WWW-Authenticate`. Metadata: `GET /.well-known/oauth-protected-resource`. Tools: `gateway_profile`, `list_tools`, `get_tool_schema`, `call_tool`. See [MCP server setup](./MCP_SERVER_SETUP.md).
+
+### MCP client consent
+
+Supabase user bearer token (web session, not an OAuth client token).
+
+- `GET /api/v1/account/oauth/authorizations/:authorizationId` — pending authorization details.
+- `POST /api/v1/account/oauth/authorizations/:authorizationId/approve` — returns `{ redirect_url }`.
+- `POST /api/v1/account/oauth/authorizations/:authorizationId/deny` — returns `{ redirect_url }`.
+
+Clients whose redirect URI is not HTTPS on `MCP_OAUTH_ALLOWED_REDIRECT_HOSTS` are refused (`OAUTH_CLIENT_REDIRECT_NOT_ALLOWED`).
+
 ### OAuth connection flow
 
 All three steps use the same `:provider` value; Google Workspace uses `google-workspace`.

@@ -7145,3 +7145,10 @@ label { color: var(--text-2); }
     font-size: 2.2rem;
   }
 }
+
+/* MCP OAuth consent */
+.consent-details { display: grid; gap: 0; margin: 1rem 0; border: 1px solid var(--border); border-radius: 8px; font-size: .86rem; }
+.consent-details > div { display: grid; grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr); gap: .75rem; padding: .6rem .9rem; border-top: 1px solid var(--border); }
+.consent-details > div:first-child { border-top: 0; }
+.consent-details dt { color: var(--muted, inherit); opacity: .75; }
+.consent-details dd { margin: 0; overflow-wrap: anywhere; }

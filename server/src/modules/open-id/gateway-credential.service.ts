@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -38,6 +39,11 @@ export type GatewayPrincipal = {
   openId: string;
   user: AppUser;
   kind: 'trial' | 'paid';
+};
+
+/** Principal allowed to execute MCP tools: Gateway token or MCP OAuth session. */
+export type ExecutionPrincipal = Omit<GatewayPrincipal, 'credentialId'> & {
+  credentialId: string | null;
 };
 
 @Injectable()
@@ -133,6 +139,52 @@ export class GatewayCredentialService {
 
     return {
       credentialId: credential.id,
+      openIdId: openId.id,
+      openId: openId.open_id,
+      user,
+      kind: openId.kind,
+    };
+  }
+
+  /**
+   * Entitlement for an MCP OAuth session (no Gateway token involved): the
+   * user's active Open ID, preferring a paid one for members, else an
+   * unexpired trial. Same rules as `authenticate`.
+   */
+  async principalForUser(user: AppUser): Promise<ExecutionPrincipal> {
+    const now = new Date().toISOString();
+    const client = this.supabase.createServiceRoleClient();
+    const { data, error } = await client
+      .from('open_ids')
+      .select('id,user_id,open_id,kind,is_exportable,status,expires_at,revoked_at,created_at')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .is('revoked_at', null)
+      .order('created_at', { ascending: false })
+      .returns<OpenIdRow[]>();
+    if (error) {
+      throw new ServiceUnavailableException({
+        code: 'OPEN_ID_STORAGE_UNAVAILABLE',
+        message: 'Open ID storage is unavailable',
+      });
+    }
+    const usable = (data ?? []).filter(
+      (row) =>
+        (!row.expires_at || row.expires_at > now) &&
+        (row.kind === 'trial' || user.membershipTier === 'member'),
+    );
+    const openId =
+      usable.find((row) => row.kind === 'paid') ??
+      usable.find((row) => row.kind === 'trial');
+    if (!openId) {
+      throw new ForbiddenException({
+        code: 'OPEN_ID_REQUIRED',
+        message:
+          'An active Open ID is required. Start the trial or activate membership in the Gateway web app.',
+      });
+    }
+    return {
+      credentialId: null,
       openIdId: openId.id,
       openId: openId.open_id,
       user,
