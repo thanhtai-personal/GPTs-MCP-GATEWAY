@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Nest 12 is a deliberate migration (docs/DEPENDENCY_SECURITY.md); do not
+    # open semver-major Nest PRs automatically.
+    ignore:
+      - dependency-name: "@nestjs/*"
+        update-types: ["version-update:semver-major"]
     groups:
       nestjs-11:
         patterns:
