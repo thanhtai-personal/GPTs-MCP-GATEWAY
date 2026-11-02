@@ -121,8 +121,9 @@ export class McpOAuthService {
     provider: McpProviderAdapter,
     code: string,
     stateValue: string,
-    authorizationIssuer?: string,
-    browserNonce?: string,
+    authorizationIssuer: string | undefined,
+    browserNonce: string | undefined,
+    authenticatedUserId: string,
   ): Promise<{
     userId: string;
     credential: McpOAuthCredential;
@@ -130,6 +131,7 @@ export class McpOAuthService {
   }> {
     const oauth = this.requireOAuth(provider);
     const state = this.readAndValidateState(provider, stateValue);
+    if (state.userId !== authenticatedUserId) throw this.invalidState();
     await this.transactions.consume(
       state.transactionId,
       state.userId,

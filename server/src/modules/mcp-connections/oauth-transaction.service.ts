@@ -4,10 +4,15 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import type { Request, Response } from 'express';
 import { AppConfigService } from '@server/root/common/config/app-config.service';
 import { SupabaseService } from '@server/root/common/supabase/supabase.service';
 
+/**
+ * Short-lived OAuth transactions. The browser nonce returned by `begin` is
+ * kept by the web app (sessionStorage on the web origin) and sent back with
+ * the authenticated completion request, so the flow works when the web app
+ * and the Gateway API are on different sites.
+ */
 @Injectable()
 export class OAuthTransactionService {
   constructor(
@@ -59,45 +64,6 @@ export class OAuthTransactionService {
       .maybeSingle<{ id: string }>();
     if (error) throw this.storageUnavailable();
     if (!data) throw this.invalidState();
-  }
-
-  setBrowserCookie(response: Response, provider: string, nonce: string): void {
-    response.cookie(this.cookieName(provider), nonce, {
-      httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: this.config.mcpOAuthStateTtlSeconds * 1_000,
-    });
-  }
-
-  readBrowserCookie(request: Request, provider: string): string | undefined {
-    const name = this.cookieName(provider);
-    const values = (request.headers.cookie ?? '')
-      .split(';')
-      .map((part) => part.trim())
-      .filter((part) => part.startsWith(`${name}=`))
-      .map((part) => part.slice(name.length + 1));
-    return values.length === 1 ? values[0] : undefined;
-  }
-
-  clearBrowserCookie(response: Response, provider: string): void {
-    response.clearCookie(this.cookieName(provider), {
-      httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'lax',
-      path: '/',
-    });
-  }
-
-  private get secureCookie(): boolean {
-    return new URL(this.config.publicBaseUrl).protocol === 'https:';
-  }
-
-  private cookieName(provider: string): string {
-    if (!/^[a-z0-9-]+$/u.test(provider)) throw this.invalidState();
-    const prefix = this.secureCookie ? '__Host-' : '';
-    return `${prefix}mcp-oauth-${provider}`;
   }
 
   private hash(value: string): string {

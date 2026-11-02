@@ -37,34 +37,6 @@ describe('OAuthTransactionService', () => {
       service.consume(transaction.id, 'user-1', 'github', transaction.browserNonce),
     ).rejects.toMatchObject({ status: 400 });
   });
-
-  it('uses a host-only secure browser cookie and rejects duplicate cookie values', () => {
-    const service = new OAuthTransactionService({} as never, {
-      publicBaseUrl: 'https://gateway.example.com',
-      mcpOAuthStateTtlSeconds: 600,
-    } as never);
-    const response = { cookie: jest.fn(), clearCookie: jest.fn() };
-
-    service.setBrowserCookie(response as never, 'github', 'nonce');
-    expect(response.cookie).toHaveBeenCalledWith(
-      '__Host-mcp-oauth-github',
-      'nonce',
-      expect.objectContaining({
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-      }),
-    );
-    expect(service.readBrowserCookie({ headers: {
-      cookie: '__Host-mcp-oauth-github=first; __Host-mcp-oauth-github=second',
-    } } as never, 'github')).toBeUndefined();
-    service.clearBrowserCookie(response as never, 'github');
-    expect(response.clearCookie).toHaveBeenCalledWith(
-      '__Host-mcp-oauth-github',
-      expect.objectContaining({ httpOnly: true, secure: true, path: '/' }),
-    );
-  });
 });
 
 function fakeClient(rows: Map<string, Record<string, string>>) {

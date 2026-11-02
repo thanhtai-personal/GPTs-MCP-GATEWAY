@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/api/mcp-connections.api";
+import { redirectToOAuth } from "@/modules/mcp-connections/infrastructure/oauth-handoff";
 import type {
   McpConnection,
   McpProvider,
@@ -129,8 +130,8 @@ export function OAuthConnectionForm({
               setGooglePending(true);
               setGoogleError(null);
               void startGoogleWorkspaceOAuth(accessToken)
-                .then(({ authorizationUrl }) => {
-                  window.location.assign(authorizationUrl);
+                .then((result) => {
+                  redirectToOAuth(result);
                 })
                 .catch((error: unknown) => {
                   setGooglePending(false);

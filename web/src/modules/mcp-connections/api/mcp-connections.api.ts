@@ -5,6 +5,12 @@ import type {
 } from "@/modules/mcp-connections/domain/mcp-connection.types";
 import { gatewayRequest } from "@/shared/api/gateway-api";
 
+export type McpOAuthStart = {
+  provider: string;
+  authorizationUrl: string;
+  browserNonce: string;
+};
+
 export function listMcpProviders(accessToken: string) {
   return gatewayRequest<McpProvider[]>("/mcp-connections/providers", accessToken);
 }
@@ -47,13 +53,12 @@ export function startMcpOAuth(
     returnTo?: string;
   },
 ) {
-  return gatewayRequest<{ provider: string; authorizationUrl: string }>(
+  return gatewayRequest<McpOAuthStart>(
     `/mcp-connections/${encodeURIComponent(provider)}/oauth/start`,
     accessToken,
     {
       method: "POST",
       body: JSON.stringify(options),
-      credentials: "include",
     },
   );
 }
@@ -70,11 +75,25 @@ export function removeMcpConnection(accessToken: string, provider: string) {
 
 
 export function startGoogleWorkspaceOAuth(accessToken: string) {
+  return gatewayRequest<McpOAuthStart>(
+    "/mcp-connections/google-workspace/oauth/start",
+    accessToken,
+    { method: "POST" },
+  );
+}
+
+export function completeMcpOAuth(
+  accessToken: string,
+  provider: string,
+  body: { code: string; state: string; browserNonce: string; iss?: string },
+) {
   return gatewayRequest<{
-    provider: "google-workspace";
-    authorizationUrl: string;
-  }>("/mcp-connections/google-workspace/oauth/start", accessToken, {
-    method: "POST",
-    credentials: "include",
-  });
+    provider: string;
+    status: "connected";
+    returnTo: string;
+  }>(
+    `/mcp-connections/${encodeURIComponent(provider)}/oauth/complete`,
+    accessToken,
+    { method: "POST", body: JSON.stringify(body) },
+  );
 }
