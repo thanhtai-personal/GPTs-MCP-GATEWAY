@@ -13,7 +13,6 @@ import type {
 const LIST_FIELDS = `nextPageToken,files(${DRIVE_FILE_FIELDS})`;
 const ALL_DRIVES = { supportsAllDrives: true } as const;
 
-/** Google-native formats -> export mime type used when reading content. */
 const EXPORT_AS: Record<string, string> = {
   'application/vnd.google-apps.document': 'text/plain',
   'application/vnd.google-apps.spreadsheet': 'text/csv',
@@ -42,8 +41,6 @@ type Handler = (
   token: string,
   args: McpToolArguments,
 ) => Promise<JsonValue>;
-
-// ---------- argument helpers ----------
 
 function invalid(message: string): BadRequestException {
   return new BadRequestException({ code: 'MCP_TOOL_ARGUMENTS_INVALID', message });
@@ -98,7 +95,6 @@ function escapeQ(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-/** Accepts plain keywords or a raw Drive query (q) string. */
 export function buildDriveQuery(query: string): string {
   const looksRaw = /\b(contains|in parents|has\s*\{)|[=<>]/i.test(query);
   const q = looksRaw
@@ -110,8 +106,6 @@ export function buildDriveQuery(query: string): string {
 function isTextLike(mimeType: string): boolean {
   return mimeType.startsWith('text/') || TEXT_LIKE.has(mimeType);
 }
-
-// ---------- handlers ----------
 
 const searchFiles: Handler = (api, token, args) =>
   api.getJson(token, '/files', {
@@ -160,10 +154,7 @@ const readFileContent: Handler = async (api, token, args) => {
       mimeType: EXPORT_AS[mimeType],
     });
   } else if (isTextLike(mimeType)) {
-    text = await api.getText(token, `/files/${id(fileId)}`, {
-      alt: 'media',
-      ...ALL_DRIVES,
-    });
+    text = await api.getText(token, `/files/${id(fileId)}`, { alt: 'media', ...ALL_DRIVES });
   } else {
     return {
       file: meta,
@@ -173,13 +164,8 @@ const readFileContent: Handler = async (api, token, args) => {
   }
 
   const truncated = text.length > maxChars;
-  const result: JsonObject = {
-    file: meta,
-    content: truncated ? text.slice(0, maxChars) : text,
-  };
-  if (truncated) {
-    result.note = `Truncated to ${maxChars} of ${text.length} characters. Call again with a larger maxChars if needed.`;
-  }
+  const result: JsonObject = { file: meta, content: truncated ? text.slice(0, maxChars) : text };
+  if (truncated) result.note = `Truncated to ${maxChars} of ${text.length} characters. Call again with a larger maxChars if needed.`;
   return result;
 };
 
@@ -188,13 +174,11 @@ const createFile: Handler = (api, token, args) => {
   const content = str(args, 'content');
   const folderId = str(args, 'folderId');
   const sourceMime = str(args, 'mimeType') ?? 'text/plain';
-
   const metadata: JsonObject = {
     name: str(args, 'name', true),
     mimeType: googleType ? GOOGLE_TYPES[googleType] : sourceMime,
   };
   if (folderId) metadata.parents = [folderId];
-
   const query = { fields: DRIVE_FILE_FIELDS, ...ALL_DRIVES };
   if (googleType === 'folder' || content === undefined) {
     return api.sendJson(token, 'POST', '/files', metadata, query);
@@ -209,13 +193,24 @@ const createFile: Handler = (api, token, args) => {
   );
 };
 
+const copyFile: Handler = (api, token, args) => {
+  const fileId = str(args, 'fileId', true);
+  const name = str(args, 'name');
+  const folderId = str(args, 'folderId');
+  const metadata: JsonObject = {};
+  if (name) metadata.name = name;
+  if (folderId) metadata.parents = [folderId];
+  return api.sendJson(token, 'POST', `/files/${id(fileId)}/copy`, metadata, {
+    fields: DRIVE_FILE_FIELDS,
+    ...ALL_DRIVES,
+  });
+};
+
 const updateFile: Handler = (api, token, args) => {
   const fileId = str(args, 'fileId', true);
   const name = str(args, 'name');
   const content = str(args, 'content');
-  if (name === undefined && content === undefined) {
-    throw invalid('Provide name and/or content');
-  }
+  if (name === undefined && content === undefined) throw invalid('Provide name and/or content');
   const metadata: JsonObject = name === undefined ? {} : { name };
   const query = { fields: DRIVE_FILE_FIELDS, ...ALL_DRIVES };
   if (content === undefined) {
@@ -245,9 +240,7 @@ const shareFile: Handler = (api, token, args) => {
   const role = oneOf(args, 'role', ['reader', 'commenter', 'writer'] as const, 'reader');
   const anyoneWithLink = bool(args, 'anyoneWithLink', false);
   const email = str(args, 'email');
-  if (!anyoneWithLink && !email) {
-    throw invalid('Provide email or set anyoneWithLink=true');
-  }
+  if (!anyoneWithLink && !email) throw invalid('Provide email or set anyoneWithLink=true');
   const permission: JsonObject = anyoneWithLink
     ? { type: 'anyone', role: role ?? 'reader' }
     : { type: 'user', role: role ?? 'reader', emailAddress: email ?? '' };
@@ -264,6 +257,7 @@ export const GOOGLE_DRIVE_HANDLERS: Record<string, Handler> = {
   get_file_metadata: getFileMetadata,
   read_file_content: readFileContent,
   create_file: createFile,
+  copy_file: copyFile,
   update_file: updateFile,
   trash_file: trashFile,
   share_file: shareFile,

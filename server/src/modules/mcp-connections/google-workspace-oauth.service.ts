@@ -21,17 +21,13 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const TOKEN_INFO_ENDPOINT = 'https://oauth2.googleapis.com/tokeninfo';
 
 const REQUESTED_SCOPES = [
-  'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/documents.readonly',
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/documents',
-  'https://www.googleapis.com/auth/spreadsheets.readonly',
   'https://www.googleapis.com/auth/spreadsheets',
 ] as const;
 
 const REQUIRED_EFFECTIVE_SCOPES = [
-  'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/documents',
   'https://www.googleapis.com/auth/spreadsheets',
 ] as const;
@@ -123,35 +119,15 @@ export class GoogleWorkspaceOAuthService {
     await this.auth.getUserById(state.userId);
 
     const credential = await this.exchangeCode(code, state.codeVerifier);
-    const diagnostics = await this.validateFreshToken(credential);
+    await this.validateFreshToken(credential);
 
-    try {
-      const connection =
-        await this.connections.connectGoogleWorkspaceCredential(
-          state.userId,
-          credential,
-        );
+    const connection =
+      await this.connections.connectGoogleWorkspaceCredential(
+        state.userId,
+        credential,
+      );
 
-      return { connection };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        const response = error.getResponse();
-        const codeValue =
-          isJsonObject(response) && typeof response.code === 'string'
-            ? response.code
-            : undefined;
-
-        if (codeValue === 'MCP_OAUTH_RECONNECT_REQUIRED') {
-          throw new ForbiddenException({
-            code: 'GOOGLE_WORKSPACE_MCP_ACCESS_REJECTED',
-            message:
-              'Google issued a fresh OAuth token with the required scopes, but the Google Workspace MCP server rejected it. Verify Developer Preview enrollment for both the Workspace account and Google Cloud project, then verify the Docs/Sheets MCP APIs are enabled.',
-            details: diagnostics,
-          });
-        }
-      }
-      throw error;
-    }
+    return { connection };
   }
 
   callbackUri(): string {
@@ -273,7 +249,7 @@ export class GoogleWorkspaceOAuthService {
       throw new ForbiddenException({
         code: 'GOOGLE_WORKSPACE_SCOPES_MISSING',
         message:
-          'Google OAuth did not grant all scopes required by the Docs and Sheets MCP servers',
+          'Google OAuth did not grant all scopes required for Drive, Docs, and Sheets access',
         details: { missingScopes },
       });
     }
