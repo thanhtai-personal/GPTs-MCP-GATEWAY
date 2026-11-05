@@ -9,7 +9,7 @@ import type {
   McpProviderCredentialDefinition,
   McpToolArguments,
   McpToolCallResult,
-  MccpToolDefinition,
+  McpToolDefinition,
 } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 
 const SHEETS_API = 'sheets';
