@@ -23,8 +23,8 @@ import type {
 /**
  * Native Google Drive provider. Unlike Docs/Sheets it does not proxy a remote
  * MCP server: Gateway exposes its own tool catalog and calls the Drive REST
- * API directly with the user's Google Workspace OAuth token (drive.readonly +
- * drive.file), so it works without the Workspace Developer Preview.
+ * API directly with the user's Google Workspace OAuth token (full drive scope),
+ * so Drive, Docs, and Sheets operations do not depend on Workspace MCP Preview.
  */
 @Injectable()
 export class GoogleDriveAdapter implements McpProviderAdapter {
@@ -50,8 +50,8 @@ export class GoogleDriveAdapter implements McpProviderAdapter {
       configured: tokens.configured,
       note: tokens.configured
         ? {
-            en: 'Google Drive works with any Google account: search and read every file you can access; create files, and edit, share or trash only files created through Gateway. Google Docs and Sheets MCP are Developer Preview and only work if your account and the Cloud project are enrolled.',
-            vi: 'Google Drive dùng được với mọi tài khoản Google: tìm và đọc mọi file bạn có quyền; tạo file mới, còn sửa/chia sẻ/xoá chỉ áp dụng cho file do Gateway tạo. Google Docs và Sheets MCP đang Developer Preview, chỉ chạy khi tài khoản và Cloud project đã được enroll.',
+            en: 'Google Drive, Docs, and Sheets use official Google APIs. The full Drive scope allows access to files the signed-in user can access; the user must still have edit permission on each file. Google may require OAuth app verification for restricted Drive scope.',
+            vi: 'Google Drive, Docs và Sheets dùng API chính thức. Scope Drive đầy đủ cho phép truy cập file mà người dùng đăng nhập có quyền truy cập; người dùng vẫn phải có quyền chỉnh sửa trên từng file. Google có thể yêu cầu xác minh ứng dụng OAuth đối với scope Drive hạn chế.',
           }
         : {
             en: 'Configure GOOGLE_WORKSPACE_OAUTH_CLIENT_ID/SECRET with the same Google OAuth client used by Supabase Auth.',
@@ -115,7 +115,7 @@ export class GoogleDriveAdapter implements McpProviderAdapter {
 
   private explain(error: GoogleDriveApiError): string {
     if (error.status === 403) {
-      return `Google Drive denied this operation (${error.message}). Gateway can only modify files it created; reading is allowed for all files the user can access.`;
+      return `Google Drive denied this operation (${error.message}). the OAuth grant or the signed-in user does not permit this operation.`;
     }
     if (error.status === 404) {
       return `File not found or not accessible (${error.message}).`;

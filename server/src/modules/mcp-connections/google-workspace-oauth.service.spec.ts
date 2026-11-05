@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 
 describe('GoogleWorkspaceOAuthService', () => {
-  it('uses PKCE and rejects a callback from another browser before token exchange', async () => {
+  it('requests full Drive, Docs, and Sheets scopes while using PKCE', async () => {
     const config = {
       credentialEncryptionKey: Buffer.alloc(32, 8).toString('base64'),
       publicBaseUrl: 'https://gateway.example.com',
@@ -33,6 +33,12 @@ describe('GoogleWorkspaceOAuthService', () => {
       expect(url.searchParams.get('code_challenge_method')).toBe('S256');
       expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/u);
       expect(started.browserNonce).toBe('nonce');
+      const scopes = new Set(url.searchParams.get('scope')?.split(' '));
+      expect(scopes).toEqual(new Set([
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/documents',
+        'https://www.googleapis.com/auth/spreadsheets',
+      ]));
       const state = url.searchParams.get('state')!;
       const { codeVerifier } = JSON.parse(cipher.decrypt(state)) as { codeVerifier: string };
       expect(url.searchParams.get('code_challenge')).toBe(

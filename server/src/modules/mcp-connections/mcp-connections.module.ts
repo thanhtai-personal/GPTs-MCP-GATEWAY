@@ -3,6 +3,7 @@ import { AuthModule } from '@server/root/modules/auth/auth.module';
 import { FigmaMcpAdapter } from '@server/root/modules/mcp-gateway/providers/figma/figma-mcp.adapter';
 import { GithubMcpAdapter } from '@server/root/modules/mcp-gateway/providers/github/github-mcp.adapter';
 import { GoogleDocsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-docs-mcp.adapter';
+import { GoogleWorkspaceApiClient } from '@server/root/modules/mcp-gateway/providers/google/google-workspace-api.client';
 import { GoogleDriveApiClient } from '@server/root/modules/mcp-gateway/providers/google-drive/google-drive-api.client';
 import { GoogleDriveAdapter } from '@server/root/modules/mcp-gateway/providers/google-drive/google-drive.adapter';
 import { GoogleSheetsMcpAdapter } from '@server/root/modules/mcp-gateway/providers/google/google-sheets-mcp.adapter';
@@ -10,12 +11,8 @@ import { GoogleWorkspaceTokenService } from '@server/root/modules/mcp-gateway/pr
 import { LovableMcpAdapter } from '@server/root/modules/mcp-gateway/providers/lovable/lovable-mcp.adapter';
 import { NotionMcpAdapter } from '@server/root/modules/mcp-gateway/providers/notion/notion-mcp.adapter';
 import { McpProviderRegistry } from '@server/root/modules/mcp-gateway/providers/mcp-provider.registry';
-import {
-  MCP_PROVIDER_ADAPTERS,
-} from '@server/root/modules/mcp-gateway/providers/mcp-provider.tokens';
-import type {
-  McpProviderAdapter,
-} from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
+import { MCP_PROVIDER_ADAPTERS } from '@server/root/modules/mcp-gateway/providers/mcp-provider.tokens';
+import type { McpProviderAdapter } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
 import { RemoteMcpHttpClient } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.client';
 import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
 import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
@@ -39,6 +36,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
     FigmaMcpAdapter,
     GithubMcpAdapter,
     GoogleWorkspaceTokenService,
+    GoogleWorkspaceApiClient,
     GoogleDriveApiClient,
     GoogleDriveAdapter,
     GoogleDocsMcpAdapter,
