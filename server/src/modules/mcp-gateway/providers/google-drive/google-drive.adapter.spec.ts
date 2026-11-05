@@ -51,6 +51,7 @@ describe('GoogleDriveAdapter', () => {
       'get_file_metadata',
       'read_file_content',
       'create_file',
+      'copy_file',
       'update_file',
       'trash_file',
       'share_file',
@@ -112,6 +113,26 @@ describe('GoogleDriveAdapter', () => {
     expect(value.note).toContain('Truncated to 100 of 150');
   });
 
+  it('copies a Drive file without modifying the source', async () => {
+    const { adapter, fetchMock } = setup();
+    fetchMock.mockResolvedValue(jsonResponse({ id: 'copy-1', name: 'Copy' }));
+
+    const result = await adapter.callTool(credential, 'copy_file', {
+      fileId: 'source-1',
+      name: 'Copy',
+    });
+
+    const url = calledUrl(fetchMock);
+    expect(url.pathname).toBe('/drive/v3/files/source-1/copy');
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: 'POST',
+      body: JSON.stringify({ name: 'Copy' }),
+    });
+    expect(result.structuredContent).toEqual({
+      result: { id: 'copy-1', name: 'Copy' },
+    });
+  });
+
   it('creates a Google Doc with a multipart upload', async () => {
     const { adapter, fetchMock } = setup();
     fetchMock.mockResolvedValue(jsonResponse({ id: 'new', webViewLink: 'https://docs/new' }));
@@ -135,7 +156,7 @@ describe('GoogleDriveAdapter', () => {
     expect(String(init.body)).toContain('# Hello');
   });
 
-  it('returns a tool error explaining drive.file limits on 403', async () => {
+  it('returns a tool error explaining Drive permission limits on 403', async () => {
     const { adapter, fetchMock } = setup();
     fetchMock.mockResolvedValue(
       jsonResponse({ error: { message: 'Insufficient permissions' } }, 403),
@@ -144,7 +165,7 @@ describe('GoogleDriveAdapter', () => {
     const result = await adapter.callTool(credential, 'trash_file', { fileId: 'f1' });
 
     expect(result.isError).toBe(true);
-    expect(JSON.stringify(result.content)).toContain('only modify files it created');
+    expect(JSON.stringify(result.content)).toContain('full Google Drive scope is required');
   });
 
   it('asks for reconnection on 401', async () => {
