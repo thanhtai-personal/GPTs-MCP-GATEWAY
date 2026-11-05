@@ -165,7 +165,7 @@ describe('GoogleDriveAdapter', () => {
     const result = await adapter.callTool(credential, 'trash_file', { fileId: 'f1' });
 
     expect(result.isError).toBe(true);
-    expect(JSON.stringify(result.content)).toContain('full Google Drive scope is required');
+    expect(JSON.stringify(result.content)).toContain('the OAuth grant or the signed-in user does not permit this operation');
   });
 
   it('asks for reconnection on 401', async () => {
