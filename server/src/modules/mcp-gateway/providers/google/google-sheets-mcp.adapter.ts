@@ -36,7 +36,7 @@ export const GOOGLE_SHEETS_TOOLS: McpToolDefinition[] = [
       properties: {
         spreadsheetId: SPREADSHEET_ID,
         includeGridData: { type: 'boolean' },
-        ranges: { type: 'array', items: { type: 'string' } },
+        range: { type: 'string', description: 'Optional A1 notation range to limit returned grid data.' },
       },
       required: ['spreadsheetId'],
       additionalProperties: false,
@@ -196,13 +196,9 @@ export class GoogleSheetsMcpAdapter implements McpProviderAdapter {
     const range = typeof args.range === 'string' ? args.range : undefined;
     switch (toolName) {
       case 'get_spreadsheet': {
-        const ranges = args.ranges;
-        if (ranges !== undefined && (!Array.isArray(ranges) || ranges.some((item) => typeof item !== 'string'))) {
-          throw new BadRequestException({ code: 'MCP_TOOL_ARGUMENTS_INVALID', message: 'ranges must be an array of strings' });
-        }
         return this.api.getJson(SHEETS_API, token, `/spreadsheets/${spreadsheetId}`, {
           ...(typeof args.includeGridData === 'boolean' ? { includeGridData: args.includeGridData } : {}),
-          ...(Array.isArray(ranges) ? { ranges: ranges.join(',') } : {}),
+          ...(typeof args.range === 'string' ? { ranges: args.range } : {}),
         });
       }
       case 'get_values':
