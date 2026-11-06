@@ -18,7 +18,7 @@
     "@tanstack/react-router": "^1.168.25",
     "@tanstack/react-start": "^1.168.60",
     "@tanstack/router-plugin": "^1.167.28",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "^1.67.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
