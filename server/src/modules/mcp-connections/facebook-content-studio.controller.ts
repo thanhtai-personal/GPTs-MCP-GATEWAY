@@ -32,9 +32,9 @@ export class FacebookContentStudioController {
   @Post('drafts')
   async createDraft(@Req() request: Request, @Body() body: Record<string, unknown>) {
     const args: McpToolArguments = {
-      pageId: body.pageId,
-      message: body.message,
-      mediaType: body.mediaType,
+      pageId: typeof body.pageId === 'string' ? body.pageId : '',
+      message: typeof body.message === 'string' ? body.message : '',
+      mediaType: body.mediaType === 'image' || body.mediaType === 'video' ? body.mediaType : 'text',
       ...(typeof body.mediaUrl === 'string' && body.mediaUrl ? { mediaUrl: body.mediaUrl } : {}),
     };
     return this.call(request, 'facebook_create_page_post_draft', args);
@@ -58,6 +58,10 @@ export class FacebookContentStudioController {
     if (result.isError) {
       throw new UnauthorizedException({ code: 'FACEBOOK_TOOL_FAILED', message: 'Facebook operation failed' });
     }
-    return result.structuredContent?.result ?? { content: result.content };
+    const structured = result.structuredContent;
+    if (typeof structured === 'object' && structured !== null && !Array.isArray(structured)) {
+      return (structured as Record<string, unknown>).result ?? structured;
+    }
+    return { content: result.content };
   }
 }
