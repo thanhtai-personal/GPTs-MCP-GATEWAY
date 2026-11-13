@@ -1,23 +1,24 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
+import { BadGatewayException, BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { FacebookGraphApiClient } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-graph-api.client';
 import type { FacebookPagePostRow } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-post.repository';
 type ManagedPage={id:string;name:string;tasks:string[];accessToken:string};
 @Injectable()
 export class FacebookPagePublishingService {
- constructor(private readonly connections:McpConnectionsService,private readonly api:FacebookGraphApiClient){}
+ constructor(private readonly api:FacebookGraphApiClient){}
  async validatePageAccess(userAccessToken:string,pageId:string):Promise<void>{await this.resolveManagedPage(userAccessToken,pageId);}
- async publish(userId:string,post:FacebookPagePostRow):Promise<string>{
-  const credential=await this.connections.getProviderCredential(userId,'facebook');
-  if(credential.kind!=='oauth') throw new UnauthorizedException({code:'MCP_INVALID_CREDENTIAL',message:'Facebook requires an OAuth credential'});
+ validateMediaUrl(mediaType:'text'|'image'|'video',mediaUrl?:string):void{
+  if(mediaType==='text'&&mediaUrl) throw new BadRequestException({code:'FACEBOOK_MEDIA_URL_INVALID',message:'Text posts do not use mediaUrl'});
+  if(mediaType!=='text') this.requirePublicHttpsUrl(mediaUrl??null);
+ }
+ async publish(userAccessToken:string,post:FacebookPagePostRow):Promise<string>{
   const mediaUrl=post.media_type==='text'?null:this.requirePublicHttpsUrl(post.media_url);
-  const page=await this.resolveManagedPage(credential.accessToken,post.page_id);
+  const page=await this.resolveManagedPage(userAccessToken,post.page_id);
   const path=encodeURIComponent(post.page_id);let result;
   if(post.media_type==='text') result=await this.api.post(page.accessToken,path+'/feed',{message:post.message});
   else if(post.media_type==='image') result=await this.api.post(page.accessToken,path+'/photos',{url:mediaUrl!,caption:post.message,published:'true'});
   else result=await this.api.post(page.accessToken,path+'/videos',{file_url:mediaUrl!,description:post.message,published:'true'});
   const postId=(typeof result.post_id==='string'&&result.post_id)||(typeof result.id==='string'&&result.id);
-  if(!postId) throw new BadRequestException({code:'FACEBOOK_PUBLISH_RESULT_MISSING_ID',message:'Meta accepted a publish request without returning a post identifier'});
+  if(!postId) throw new BadGatewayException({code:'FACEBOOK_PUBLISH_RESULT_MISSING_ID',message:'Meta may have accepted the publish request but did not return a post identifier'});
   return postId;
  }
  private async resolveManagedPage(userToken:string,pageId:string):Promise<ManagedPage>{

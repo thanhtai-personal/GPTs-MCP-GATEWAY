@@ -15,7 +15,7 @@ describe('FacebookMcpAdapter', () => {
   });
   it('returns identity using the connected user token', async () => {
     const api = { get: jest.fn().mockResolvedValue({ id: 'app-scoped-id', name: 'Test User' }) };
-    const adapter = new FacebookMcpAdapter(api as never, config);
+    const adapter = new FacebookMcpAdapter(api as never, { createDraft: jest.fn(), approveDraft: jest.fn(), listPosts: jest.fn() } as never, { validatePageAccess: jest.fn(), validateMediaUrl: jest.fn(), publish: jest.fn() } as never, config);
     const result = await adapter.callTool({ kind: 'oauth', accessToken: 'user-token', tokenType: 'Bearer' }, 'facebook_get_identity', {});
     expect(api.get).toHaveBeenCalledWith('user-token', '/me', { fields: 'id,name' });
     expect(JSON.stringify(result)).toContain('app-scoped-id');

@@ -1,11 +1,12 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { FacebookPagePublishingService } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-publishing.service';
+import type { FacebookPagePostRow } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-post.repository';
 describe('FacebookPagePublishingService',()=>{
- const post={id:'draft-1',user_id:'user-1',page_id:'page-1',media_type:'text',message:'Hello Page',media_url:null} as never;
- const make=(api:Record<string,unknown>)=>new FacebookPagePublishingService({getProviderCredential:jest.fn().mockResolvedValue({kind:'oauth',accessToken:'user-token',tokenType:'Bearer'})} as never,api as never);
+ const post={id:'draft-1',user_id:'user-1',page_id:'page-1',media_type:'text',message:'Hello Page',media_url:null} as unknown as FacebookPagePostRow;
+ const make=(api:Record<string,unknown>)=>new FacebookPagePublishingService(api as never);
  it('publishes text to a managed Page using its Page token',async()=>{
   const api={get:jest.fn().mockResolvedValue({data:[{id:'page-1',tasks:['CREATE_CONTENT'],access_token:'page-secret'}]}),post:jest.fn().mockResolvedValue({id:'page-1_123'})};
-  const result=await make(api).publish('user-1',post);
+  const result=await make(api).publish('user-token',post);
   expect(api.post).toHaveBeenCalledWith('page-secret','page-1/feed',{message:'Hello Page'});expect(result).toBe('page-1_123');
  });
  it('rejects a Page the user does not manage',async()=>{
@@ -18,12 +19,12 @@ describe('FacebookPagePublishingService',()=>{
  });
  it('publishes an image through the Page photos edge',async()=>{
   const api={get:jest.fn().mockResolvedValue({data:[{id:'page-1',tasks:['MANAGE'],access_token:'page-secret'}]}),post:jest.fn().mockResolvedValue({post_id:'photo-post'})};
-  await make(api).publish('user-1',{...post,media_type:'image',media_url:'https://cdn.example.com/image.jpg'} as never);
+  await make(api).publish('user-1',{...post,media_type:'image',media_url:'https://cdn.example.com/image.jpg'} as unknown as FacebookPagePostRow);
   expect(api.post).toHaveBeenCalledWith('page-secret','page-1/photos',{url:'https://cdn.example.com/image.jpg',caption:'Hello Page',published:'true'});
  });
  it('publishes a video through the Page videos edge',async()=>{
   const api={get:jest.fn().mockResolvedValue({data:[{id:'page-1',tasks:['CREATE_CONTENT'],access_token:'page-secret'}]}),post:jest.fn().mockResolvedValue({id:'video-post'})};
-  await make(api).publish('user-1',{...post,media_type:'video',media_url:'https://cdn.example.com/video.mp4'} as never);
+  await make(api).publish('user-1',{...post,media_type:'video',media_url:'https://cdn.example.com/video.mp4'} as unknown as FacebookPagePostRow);
   expect(api.post).toHaveBeenCalledWith('page-secret','page-1/videos',{file_url:'https://cdn.example.com/video.mp4',description:'Hello Page',published:'true'});
  });
  it('rejects non-HTTPS media URLs before contacting Meta',async()=>{

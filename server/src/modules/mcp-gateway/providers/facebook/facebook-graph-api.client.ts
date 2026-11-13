@@ -19,7 +19,7 @@ export class FacebookGraphApiClient {
    const message=typeof graphError.message==='string'?graphError.message:'Meta Graph API request failed';
    if(response.status===401||graphCode===190)throw new UnauthorizedException({code:'FACEBOOK_RECONNECT_REQUIRED',message:'Facebook authorization must be reconnected'});
    if(response.status===403)throw new ForbiddenException({code:'FACEBOOK_PERMISSION_DENIED',message:'The connected Facebook account lacks permission for this operation'});
-   if(response.status===400)throw new BadRequestException({code:'FACEBOOK_REQUEST_INVALID',message:'Meta Graph API rejected the request',details:{upstreamMessage:message.slice(0,240)}});
+   if(response.status===400)throw new BadRequestException({code:'FACEBOOK_REQUEST_INVALID',message:'Meta Graph API rejected the request',details:{status:response.status}});
    throw new BadGatewayException({code:'FACEBOOK_GRAPH_API_FAILED',message:'Meta Graph API request failed',details:{status:response.status}});
   }
   if(!isJsonObject(payload))throw new BadGatewayException({code:'FACEBOOK_GRAPH_API_INVALID_RESPONSE',message:'Meta Graph API returned an unexpected response'});
