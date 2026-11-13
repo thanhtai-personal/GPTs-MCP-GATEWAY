@@ -45,6 +45,10 @@ export class AppConfigService {
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_ID?.trim() || undefined;
   readonly googleWorkspaceOAuthClientSecret =
     process.env.GOOGLE_WORKSPACE_OAUTH_CLIENT_SECRET?.trim() || undefined;
+  readonly metaAppId = process.env.META_APP_ID?.trim() || undefined;
+  readonly metaAppSecret = process.env.META_APP_SECRET?.trim() || undefined;
+  readonly metaFacebookLoginConfigId = process.env.META_FACEBOOK_LOGIN_CONFIG_ID?.trim() || undefined;
+  readonly metaGraphApiVersion = process.env.META_GRAPH_API_VERSION?.trim() || 'v27.0';
   /** Audience required in OAuth access tokens presented to /api/v1/mcp. */
   readonly mcpOAuthAudience =
     process.env.MCP_OAUTH_AUDIENCE?.trim() || 'authenticated';

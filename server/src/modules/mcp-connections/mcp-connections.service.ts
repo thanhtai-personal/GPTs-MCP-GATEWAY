@@ -217,6 +217,12 @@ export class McpConnectionsService {
     return this.saveCredential(userId, provider, credential);
   }
 
+  async connectFacebookCredential(userId: string, credential: McpOAuthCredential) {
+    const provider = this.providers.get('facebook');
+    await provider.testConnection(credential);
+    return this.saveCredential(userId, provider, credential);
+  }
+
   async removeOwn(request: Request, providerId: string) {
     const user = await this.auth.requireUser(request);
     const provider = this.providers.getCredentialProvider(providerId);

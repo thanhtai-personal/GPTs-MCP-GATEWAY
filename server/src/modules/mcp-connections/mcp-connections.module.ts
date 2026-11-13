@@ -18,6 +18,9 @@ import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/provide
 import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
 import { McpConnectionsController } from '@server/root/modules/mcp-connections/mcp-connections.controller';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
+import { FacebookOAuthService } from '@server/root/modules/mcp-connections/facebook-oauth.service';
+import { FacebookGraphApiClient } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-graph-api.client';
+import { FacebookMcpAdapter } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-mcp.adapter';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { McpOAuthClientRegistrationClient } from '@server/root/modules/mcp-connections/mcp-oauth-client-registration.client';
@@ -42,6 +45,8 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
     GoogleDocsMcpAdapter,
     GoogleSheetsMcpAdapter,
     NotionMcpAdapter,
+    FacebookGraphApiClient,
+    FacebookMcpAdapter,
     {
       provide: MCP_PROVIDER_ADAPTERS,
       inject: [
@@ -53,6 +58,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
         GoogleDocsMcpAdapter,
         GoogleSheetsMcpAdapter,
         NotionMcpAdapter,
+        FacebookMcpAdapter,
       ],
       useFactory: (
         stitch: StitchMcpAdapter,
@@ -63,6 +69,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
         googleDocs: GoogleDocsMcpAdapter,
         googleSheets: GoogleSheetsMcpAdapter,
         notion: NotionMcpAdapter,
+        facebook: FacebookMcpAdapter,
       ): McpProviderAdapter[] => [
         stitch,
         lovable,
@@ -72,6 +79,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
         googleDocs,
         googleSheets,
         notion,
+        facebook,
       ],
     },
     McpProviderRegistry,
@@ -82,6 +90,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
     OAuthTransactionService,
     McpConnectionsService,
     GoogleWorkspaceOAuthService,
+    FacebookOAuthService,
   ],
   exports: [McpConnectionsService, McpProviderRegistry],
 })
