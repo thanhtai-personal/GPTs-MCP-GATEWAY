@@ -5,7 +5,7 @@
 > **Ngày lập:** 2026-11-13  
 > **Định hướng:** Meta Graph API chính thức là tích hợp nền tảng; MCP Gateway chuẩn hóa capability, bảo vệ thông tin xác thực và điều phối AI có kiểm soát.
 
-Tài liệu này là kế hoạch sản phẩm và kỹ thuật để triển khai Facebook trong GPTs-MCP-GATEWAY. Nội dung mô tả mục tiêu và tiêu chí nghiệm thu, **không khẳng định các tính năng đã tồn tại trong source hiện tại**.
+Tài liệu này là kế hoạch sản phẩm và kỹ thuật để triển khai Facebook trong GPTs-MCP-GATEWAY. Nội dung mô tả mục tiêu và tiêu chí nghiệm thu, **không khẳng định các tính năng đã tồn tại trong source hiện tại**. Kết quả khảo sát source, quyết định OAuth/adapter và permission matrix chi tiết tại [Facebook Phase 0 Discovery](./FACEBOOK_PHASE_0_DISCOVERY.md) là tài liệu bổ sung có thẩm quyền khi có điểm cần làm rõ.
 
 ---
 
@@ -212,6 +212,8 @@ Không giả định mọi Page đều có cùng chỉ số. Insights có điề
 Danh sách này là ma trận khởi điểm; permission tối thiểu chính xác phải được xác nhận lại theo từng endpoint, loại token, Page task, loại ứng dụng và quy trình App Review tại thời điểm triển khai.
 
 ### 6.2 Quy trình OAuth dự kiến
+
+Facebook sẽ dùng Facebook Login for Business và một OAuth service chuyên biệt; không dùng nguyên generic MCP OAuth discovery flow. Chi tiết kiến trúc và token model được chốt trong [Phase 0 Discovery](./FACEBOOK_PHASE_0_DISCOVERY.md).
 
 1. Người dùng đăng nhập Dashboard bằng Supabase như hiện tại.
 2. Dashboard yêu cầu bắt đầu kết nối Facebook.
