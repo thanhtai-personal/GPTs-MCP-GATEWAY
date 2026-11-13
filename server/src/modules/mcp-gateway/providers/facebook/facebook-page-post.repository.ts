@@ -19,8 +19,8 @@ export class FacebookPagePostRepository {
  async listPosts(userId:string,options:{status?:FacebookPagePostStatus;limit:number}):Promise<FacebookPagePostRow[]>{
   let query=this.supabase.createServiceRoleClient().from('facebook_page_posts').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(options.limit);
   if(options.status) query=query.eq('status',options.status);
-  const {data,error}=await query.returns<FacebookPagePostRow[]>();
-  if(error) throw new ServiceUnavailableException({code:'FACEBOOK_POST_STORAGE_UNAVAILABLE',message:'Could not list Facebook Page posts'});return data??[];
+  const {data,error}=await query;
+  if(error) throw new ServiceUnavailableException({code:'FACEBOOK_POST_STORAGE_UNAVAILABLE',message:'Could not list Facebook Page posts'});return (data??[]) as unknown as FacebookPagePostRow[];
  }
  async claimDuePosts(limit:number):Promise<FacebookPagePostRow[]>{
   const {data,error}=await this.supabase.createServiceRoleClient().rpc('claim_due_facebook_page_posts',{p_limit:limit}).returns<FacebookPagePostRow[]>();
