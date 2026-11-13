@@ -1,6 +1,6 @@
 # Kế hoạch tính năng quản lý Facebook cho MCP Gateway
 
-> **Ưu tiên hiện hành:** Facebook Personal Profile MVP trước; xem [FACEBOOK_PERSONAL_PROFILE_MVP.md](./FACEBOOK_PERSONAL_PROFILE_MVP.md). Kế hoạch Page bên dưới được giữ làm roadmap giai đoạn sau và không còn là ưu tiên triển khai kế tiếp.
+> **Kiến trúc và roadmap hợp nhất:** [FACEBOOK_PERSONAL_PROFILE_MVP.md](./FACEBOOK_PERSONAL_PROFILE_MVP.md) là nguồn chuẩn cho Facebook Personal AI Manager. Hướng C đã được chốt: profile dùng AI chuẩn bị và người dùng xác nhận chia sẻ; Page dùng AI soạn, người dùng duyệt, Gateway tự đăng ngay hoặc theo lịch. MVP hỗ trợ văn bản, ảnh + caption, video + caption; chia sẻ liên kết để giai đoạn sau.
 > 
 > **Trạng thái:** Đề xuất / chưa triển khai  
 > **Phạm vi phiên bản đầu:** Facebook Pages (Trang)  
