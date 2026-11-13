@@ -23,8 +23,8 @@ export class FacebookPagePostRepository {
   if(error) throw new ServiceUnavailableException({code:'FACEBOOK_POST_STORAGE_UNAVAILABLE',message:'Could not list Facebook Page posts'});return (data??[]) as unknown as FacebookPagePostRow[];
  }
  async claimDuePosts(limit:number):Promise<FacebookPagePostRow[]>{
-  const {data,error}=await this.supabase.createServiceRoleClient().rpc('claim_due_facebook_page_posts',{p_limit:limit}).returns<FacebookPagePostRow[]>();
-  if(error) throw new ServiceUnavailableException({code:'FACEBOOK_POST_QUEUE_UNAVAILABLE',message:'Could not claim scheduled Facebook Page posts'});return data??[];
+  const {data,error}=await this.supabase.createServiceRoleClient().rpc('claim_due_facebook_page_posts',{p_limit:limit});
+  if(error) throw new ServiceUnavailableException({code:'FACEBOOK_POST_QUEUE_UNAVAILABLE',message:'Could not claim scheduled Facebook Page posts'});return (data??[]) as unknown as FacebookPagePostRow[];
  }
  async recoverStalePosts():Promise<void>{
   const {error}=await this.supabase.createServiceRoleClient().rpc('recover_stale_facebook_page_posts');
