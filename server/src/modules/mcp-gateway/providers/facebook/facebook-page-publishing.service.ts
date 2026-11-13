@@ -1,7 +1,8 @@
 import { BadGatewayException, BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { isJsonObject } from '@server/root/modules/mcp-gateway/mcp-json';
 import { FacebookGraphApiClient } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-graph-api.client';
 import type { FacebookPagePostRow } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-post.repository';
-type ManagedPage={id:string;name:string;tasks:string[];accessToken:string};
+type ManagedPage={accessToken:string};
 @Injectable()
 export class FacebookPagePublishingService {
  constructor(private readonly api:FacebookGraphApiClient){}
@@ -24,12 +25,12 @@ export class FacebookPagePublishingService {
  private async resolveManagedPage(userToken:string,pageId:string):Promise<ManagedPage>{
   const response=await this.api.get(userToken,'/me/accounts',{fields:'id,name,tasks,access_token',limit:'100'});
   const rows=Array.isArray(response.data)?response.data:[];
-  const page=rows.find((item):item is Record<string,unknown>=>typeof item==='object'&&item!==null&&!Array.isArray(item)&&item.id===pageId);
+  const page=rows.find((item):item is import('@server/root/modules/mcp-gateway/providers/mcp-provider.types').JsonObject=>isJsonObject(item)&&item.id===pageId);
   if(!page) throw new NotFoundException({code:'FACEBOOK_PAGE_NOT_MANAGED',message:'The connected Facebook account does not manage this Page'});
   const tasks=Array.isArray(page.tasks)?page.tasks.filter((task):task is string=>typeof task==='string'):[];
   if(!tasks.includes('CREATE_CONTENT')&&!tasks.includes('MANAGE')) throw new ForbiddenException({code:'FACEBOOK_PAGE_CREATE_CONTENT_REQUIRED',message:'The connected account lacks the Page CREATE_CONTENT or MANAGE task'});
   if(typeof page.access_token!=='string'||!page.access_token) throw new ForbiddenException({code:'FACEBOOK_PAGE_ACCESS_TOKEN_MISSING',message:'Meta did not return a Page access token for this Page'});
-  return {id:pageId,name:typeof page.name==='string'?page.name:pageId,tasks,accessToken:page.access_token};
+  return {accessToken:page.access_token};
  }
  private requirePublicHttpsUrl(value:string|null):string{
   if(!value) throw new BadRequestException({code:'FACEBOOK_MEDIA_URL_REQUIRED',message:'A public HTTPS media URL is required'});

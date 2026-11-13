@@ -96,7 +96,7 @@ export class FacebookMcpAdapter implements McpProviderAdapter {
   private resolveScheduledAt(value: unknown): string {
     const now = Date.now();
     if (value === undefined) return new Date(now).toISOString();
-    const hasTimezone = typeof value === 'string' && /(?:Z|[+-]\\d{2}:\\d{2})$/u.test(value);
+    const hasTimezone = typeof value === 'string' && /(?:Z|[+-][0-9]{2}:[0-9]{2})$/u.test(value);
     const timestamp = hasTimezone && typeof value === 'string' ? Date.parse(value) : Number.NaN;
     if (!Number.isFinite(timestamp) || timestamp < now + 120_000 || timestamp > now + 75 * 24 * 60 * 60 * 1000) throw new BadRequestException({ code: 'FACEBOOK_SCHEDULE_TIME_INVALID', message: 'scheduledAt must be between 2 minutes and 75 days in the future' });
     return new Date(timestamp).toISOString();
