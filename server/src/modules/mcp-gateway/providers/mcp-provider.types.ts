@@ -10,6 +10,8 @@ export type JsonObject = {
 };
 
 export type McpToolArguments = JsonObject;
+
+export type McpProviderExecutionContext = { userId: string };
 export type McpJsonSchema = JsonObject;
 
 export type McpProviderCatalogStatus =

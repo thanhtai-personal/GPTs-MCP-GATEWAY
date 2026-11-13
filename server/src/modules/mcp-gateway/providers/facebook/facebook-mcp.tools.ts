@@ -1,11 +1,9 @@
 import type { McpToolDefinition } from '@server/root/modules/mcp-gateway/providers/mcp-provider.types';
-const readOnly = { readOnlyHint: true, openWorldHint: true };
-export const FACEBOOK_MCP_TOOLS: McpToolDefinition[] = [
-  { name: 'facebook_get_identity', title: 'Get Facebook identity',
-    description: 'Return the connected Facebook account identity. The ID is app-scoped and is not an access token.',
-    inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: readOnly },
-  { name: 'facebook_list_pages', title: 'List managed Facebook Pages',
-    description: 'List Pages accessible to the connected account. Returns identifiers and tasks only; Page access tokens are never returned.',
-    inputSchema: { type: 'object', properties: { limit: { type: 'integer', minimum: 1, maximum: 100, default: 25 } }, additionalProperties: false },
-    annotations: readOnly },
+const readOnly={readOnlyHint:true,openWorldHint:true};const action={readOnlyHint:false,destructiveHint:false,openWorldHint:true};
+export const FACEBOOK_MCP_TOOLS:McpToolDefinition[]=[
+ {name:'facebook_get_identity',title:'Get Facebook identity',description:'Return the connected Facebook account identity. The ID is app-scoped and is not an access token.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:readOnly},
+ {name:'facebook_list_pages',title:'List managed Facebook Pages',description:'List Pages accessible to the connected account. Returns identifiers and task names only; Page access tokens are never returned.',inputSchema:{type:'object',properties:{limit:{type:'integer',minimum:1,maximum:100,default:25}},additionalProperties:false},annotations:readOnly},
+ {name:'facebook_create_page_post_draft',title:'Create a Facebook Page post draft',description:'Create a draft only. It does not publish anything. Text, image URL, or video URL are supported. Media URL must be public HTTPS and reachable by Meta.',inputSchema:{type:'object',properties:{pageId:{type:'string',minLength:1},message:{type:'string',minLength:1,maxLength:5000},mediaType:{type:'string',enum:['text','image','video']},mediaUrl:{type:'string'}},required:['pageId','message','mediaType'],additionalProperties:false},annotations:action},
+ {name:'facebook_approve_page_post_draft',title:'Approve and schedule a Facebook Page post',description:'Explicitly approve a saved draft and schedule it for publishing. Omit scheduledAt to publish as soon as the worker claims it. This approval is the publish authorization.',inputSchema:{type:'object',properties:{draftId:{type:'string',minLength:1},scheduledAt:{type:'string',description:'UTC ISO-8601 timestamp, 2 minutes to 75 days in the future.'}},required:['draftId'],additionalProperties:false},annotations:action},
+ {name:'facebook_list_page_posts',title:'List Facebook Page post drafts and publishing status',description:'List the connected user’s drafts, scheduled posts, published posts, failures, and posts requiring manual review.',inputSchema:{type:'object',properties:{status:{type:'string',enum:['draft','scheduled','publishing','published','failed','needs_review']},limit:{type:'integer',minimum:1,maximum:100,default:20}},additionalProperties:false},annotations:readOnly},
 ];
