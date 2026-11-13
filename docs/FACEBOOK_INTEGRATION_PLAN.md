@@ -1,5 +1,7 @@
 # Kế hoạch tính năng quản lý Facebook cho MCP Gateway
 
+> **Ưu tiên hiện hành:** Facebook Personal Profile MVP trước; xem [FACEBOOK_PERSONAL_PROFILE_MVP.md](./FACEBOOK_PERSONAL_PROFILE_MVP.md). Kế hoạch Page bên dưới được giữ làm roadmap giai đoạn sau và không còn là ưu tiên triển khai kế tiếp.
+> 
 > **Trạng thái:** Đề xuất / chưa triển khai  
 > **Phạm vi phiên bản đầu:** Facebook Pages (Trang)  
 > **Ngày lập:** 2026-11-13  
