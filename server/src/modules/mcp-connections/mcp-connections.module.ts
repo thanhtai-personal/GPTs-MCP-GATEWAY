@@ -17,6 +17,7 @@ import { RemoteMcpHttpClient } from '@server/root/modules/mcp-gateway/providers/
 import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
 import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
 import { McpConnectionsController } from '@server/root/modules/mcp-connections/mcp-connections.controller';
+import { FacebookContentStudioController } from '@server/root/modules/mcp-connections/facebook-content-studio.controller';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { FacebookOAuthService } from '@server/root/modules/mcp-connections/facebook-oauth.service';
 import { FacebookGraphApiClient } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-graph-api.client';
@@ -33,7 +34,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
 
 @Module({
   imports: [AuthModule],
-  controllers: [McpConnectionsController],
+  controllers: [McpConnectionsController, FacebookContentStudioController],
   providers: [
     RemoteMcpHttpTransport,
     RemoteMcpHttpClient,
