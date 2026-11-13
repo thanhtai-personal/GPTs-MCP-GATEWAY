@@ -15,15 +15,17 @@ function setup() {
   const googleWorkspaceOAuth = {
     complete: jest.fn().mockResolvedValue({ connection: {} }),
   };
+  const facebookOAuth = { complete: jest.fn().mockResolvedValue({ connection: {} }) };
   const auth = { requireUser: jest.fn().mockResolvedValue({ id: 'user-1' }) };
   const controller = new McpConnectionsController(
     { webBaseUrl: 'https://web.example.com/' } as never,
     connections as never,
     googleWorkspaceOAuth as never,
+    facebookOAuth as never,
     auth as never,
   );
   const response = { setHeader: jest.fn(), redirect: jest.fn() };
-  return { controller, connections, googleWorkspaceOAuth, auth, response };
+  return { controller, connections, googleWorkspaceOAuth, facebookOAuth, auth, response };
 }
 
 const NONCE = 'a'.repeat(43);
