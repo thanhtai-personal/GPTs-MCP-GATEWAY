@@ -74,6 +74,10 @@ export function removeMcpConnection(accessToken: string, provider: string) {
 }
 
 
+export function startFacebookOAuth(accessToken: string) {
+  return gatewayRequest<McpOAuthStart>('/mcp-connections/facebook/oauth/start', accessToken, { method: 'POST' });
+}
+
 export function startGoogleWorkspaceOAuth(accessToken: string) {
   return gatewayRequest<McpOAuthStart>(
     "/mcp-connections/google-workspace/oauth/start",

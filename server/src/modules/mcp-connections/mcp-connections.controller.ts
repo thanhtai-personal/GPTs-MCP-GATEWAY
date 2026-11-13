@@ -17,6 +17,7 @@ import { CompleteMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/co
 import { SaveMcpConnectionDto } from '@server/root/modules/mcp-connections/dto/save-mcp-connection.dto';
 import { StartMcpOAuthDto } from '@server/root/modules/mcp-connections/dto/start-mcp-oauth.dto';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
+import { FacebookOAuthService } from '@server/root/modules/mcp-connections/facebook-oauth.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 
 const FORWARDED_PARAMS = [
@@ -33,6 +34,7 @@ export class McpConnectionsController {
     private readonly config: AppConfigService,
     private readonly connections: McpConnectionsService,
     private readonly googleWorkspaceOAuth: GoogleWorkspaceOAuthService,
+    private readonly facebookOAuth: FacebookOAuthService,
     private readonly auth: AuthService,
   ) {}
 
@@ -92,6 +94,25 @@ export class McpConnectionsController {
       status: 'connected' as const,
       returnTo: '#mcp-services',
     };
+  }
+
+  @Post('facebook/oauth/start')
+  startFacebookOAuth(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    response.setHeader('Cache-Control', 'no-store');
+    return this.facebookOAuth.start(request);
+  }
+
+  @Get('facebook/oauth/callback')
+  facebookOAuthCallback(@Query() query: Record<string, unknown>, @Res() response: Response) {
+    this.forwardToWeb(response, 'facebook', query);
+  }
+
+  @Post('facebook/oauth/complete')
+  async completeFacebookOAuth(@Req() request: Request, @Body() dto: CompleteMcpOAuthDto, @Res({ passthrough: true }) response: Response) {
+    response.setHeader('Cache-Control', 'no-store');
+    const user = await this.auth.requireUser(request);
+    await this.facebookOAuth.complete(dto.code, dto.state, dto.browserNonce, user.id);
+    return { provider: 'facebook', status: 'connected' as const, returnTo: '#mcp-services' };
   }
 
   @Post(':provider/oauth/start')

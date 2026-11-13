@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/api/mcp-connections.api";
+import { startFacebookOAuth, startGoogleWorkspaceOAuth } from "@/modules/mcp-connections/api/mcp-connections.api";
 import { redirectToOAuth } from "@/modules/mcp-connections/infrastructure/oauth-handoff";
 import type {
   McpConnection,
@@ -45,6 +45,8 @@ export function OAuthConnectionForm({
   const remove = useRemoveMcpConnection(accessToken);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googlePending, setGooglePending] = useState(false);
+  const [facebookError, setFacebookError] = useState<string | null>(null);
+  const [facebookPending, setFacebookPending] = useState(false);
   const isGoogleWorkspaceProvider = providerId === "google-workspace";
   const [accessMode, setAccessMode] = useState<McpProviderAccessMode>(
     connection?.accessMode ??
@@ -123,9 +125,19 @@ export function OAuthConnectionForm({
           disabled={
             !credential.configured ||
             connect.isPending ||
-            googlePending
+            googlePending ||
+            facebookPending
           }
           onClick={() => {
+            if (providerId === 'facebook') {
+              setFacebookPending(true);
+              setFacebookError(null);
+              void startFacebookOAuth(accessToken).then(redirectToOAuth).catch((error: unknown) => {
+                setFacebookPending(false);
+                setFacebookError(error instanceof Error ? error.message : 'FACEBOOK_OAUTH_FAILED');
+              });
+              return;
+            }
             if (isGoogleWorkspaceProvider) {
               setGooglePending(true);
               setGoogleError(null);
@@ -196,6 +208,7 @@ export function OAuthConnectionForm({
                 )}
         </p>
       ) : null}
+      {facebookError ? <p className="notice error">{facebookError}</p> : null}
       {googleError ? (
         <p className="notice error">{googleError}</p>
       ) : null}
