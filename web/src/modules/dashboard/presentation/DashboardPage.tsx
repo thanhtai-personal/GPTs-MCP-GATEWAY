@@ -1,4 +1,4 @@
-import { Activity, Bell, Boxes, CreditCard, Download, KeyRound, LayoutDashboard, LogOut, Search, Settings, Sparkles } from "lucide-react";
+import { Activity, Bell, Boxes, CreditCard, Download, Facebook, KeyRound, LayoutDashboard, LogOut, Search, Settings, Sparkles } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAccount } from "@/modules/account/queries/account.queries";
 import { SignInExperience } from "@/modules/auth/presentation/components/SignInExperience";
@@ -14,12 +14,13 @@ import { ThemeToggle } from "@/shared/theme/ThemeToggle";
 import { BrandLogo } from "@/shared/branding/BrandLogo";
 import { CinematicOverview } from "@/modules/dashboard/presentation/CinematicOverview";
 import { AdminSiteSettingsPanel } from "@/modules/site-settings/presentation/AdminSiteSettingsPanel";
+import { FacebookContentStudio } from "@/modules/facebook-content-studio/presentation/FacebookContentStudio";
 import "./DashboardPage.mobile.css";
 
-type AppScreen = "overview" | "mcp-services" | "open-id" | "gpt-integration" | "settings";
+type AppScreen = "overview" | "mcp-services" | "facebook-studio" | "open-id" | "gpt-integration" | "settings";
 type SystemRole = "user" | "admin";
 
-const SCREEN_IDS = new Set<AppScreen>(["overview", "mcp-services", "open-id", "gpt-integration", "settings"]);
+const SCREEN_IDS = new Set<AppScreen>(["overview", "mcp-services", "facebook-studio", "open-id", "gpt-integration", "settings"]);
 
 function getScreenFromHash(): AppScreen {
   if (typeof window === "undefined") return "overview";
@@ -70,6 +71,7 @@ export function DashboardPage() {
           <span className="app-nav__group-label">{t("CHÍNH", "CORE", "核心", "핵심", "コア")}</span>
           <AppNavItem active={activeScreen === "overview"} icon={<LayoutDashboard size={18} />} label={t("Tổng quan", "Overview")} onSelect={() => setScreen("overview")} screen="overview" />
           <AppNavItem active={activeScreen === "mcp-services"} icon={<Boxes size={18} />} label="MCP Services" onSelect={() => setScreen("mcp-services")} screen="mcp-services" />
+          <AppNavItem active={activeScreen === "facebook-studio"} icon={<Facebook size={18} />} label="Facebook Studio" onSelect={() => setScreen("facebook-studio")} screen="facebook-studio" />
           <AppNavItem active={activeScreen === "open-id"} icon={<KeyRound size={18} />} label="Open ID" onSelect={() => setScreen("open-id")} screen="open-id" />
           <AppNavItem active={activeScreen === "gpt-integration"} icon={<Sparkles size={18} />} label="GPT Integration" onSelect={() => setScreen("gpt-integration")} screen="gpt-integration" />
           <div className="app-nav__secondary" aria-label={t("Thông tin bổ sung", "Additional console areas")}>
@@ -115,6 +117,7 @@ export function DashboardPage() {
               <McpConnectionsPanel accessToken={accessToken} />
             </ConsoleScreenHeader>
           ) : null}
+          {activeScreen === "facebook-studio" ? <ConsoleScreenHeader eyebrow="SOCIAL PUBLISHING" title="Facebook Content Studio" description={t("Soạn bài, xem trước media, duyệt nội dung và quản lý lịch đăng Facebook Page ngay trong Gateway.", "Compose, preview media, approve content, and manage Facebook Page publishing schedules inside Gateway.")} badge="PAGE PUBLISHING"><FacebookContentStudio accessToken={accessToken} /></ConsoleScreenHeader> : null}
           {activeScreen === "open-id" && account.data ? <ConsoleScreenHeader eyebrow={t("OPEN ID HUB", "OPEN ID HUB")} title={t("Quyền truy cập Gateway", "Gateway access")} description={t("Open ID là entitlement kiểm soát mọi MCP execution. Trial chỉ bắt đầu khi bạn chủ động tạo Trial Token.", "Open ID is the entitlement controlling every MCP execution. Trial starts only when you explicitly create a Trial Token.", "Open ID 是控制所有 MCP 执行的 entitlement。只有在你主动创建 Trial Token 时试用才开始。", "Open ID는 모든 MCP 실행을 제어하는 entitlement입니다. Trial Token을 직접 생성할 때만 체험이 시작됩니다.", "Open ID はすべての MCP 実行を制御する entitlement です。Trial Token を明示的に作成した時点でトライアルが始まります。")} badge={account.data.membershipTier === "member" ? t("THÀNH VIÊN", "MEMBER", "会员", "멤버", "メンバー") : t("KHÁCH", "GUEST", "访客", "게스트", "ゲスト")}><OpenIdPanel accessToken={accessToken} account={account.data} /></ConsoleScreenHeader> : null}
           {activeScreen === "gpt-integration" ? <ConsoleScreenHeader eyebrow="CUSTOM GPT" title="GPT Integration" description={t("Cấu hình một Custom GPT dùng Gateway Action, instructions tối giản và Knowledge để tự discovery MCP tools.", "Configure a Custom GPT with the Gateway Action, minimal instructions, and Knowledge for runtime MCP tool discovery.", "配置 Custom GPT，使用 Gateway Action、精简 Instructions 和 Knowledge 在运行时发现 MCP 工具。", "Gateway Action, 최소 Instructions 및 Knowledge를 사용해 런타임에 MCP 도구를 검색하도록 Custom GPT를 구성합니다.", "Gateway Action、最小限の Instructions、Knowledge を使い、実行時に MCP ツールを発見する Custom GPT を設定します。")} badge={t("ACTION SẴN SÀNG", "ACTION READY", "ACTION 就绪", "ACTION 준비됨", "ACTION 準備完了")}><GptIntegrationPanel accessToken={accessToken} isMember={account.data?.membershipTier === "member"} /></ConsoleScreenHeader> : null}
           {activeScreen === "settings" && account.data?.systemRole === "admin" ? <AdminSiteSettingsPanel accessToken={accessToken} /> : null}
