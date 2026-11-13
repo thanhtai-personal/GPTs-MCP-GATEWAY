@@ -204,7 +204,8 @@ Không giả định mọi Page đều có cùng chỉ số. Insights có điề
 | pages_read_engagement | Đọc nội dung/engagement và một số dữ liệu Page | Phụ thuộc endpoint và Page task |
 | pages_read_user_content | Đọc nội dung do người dùng đăng lên Page, gồm bình luận theo trường hợp API | Cần xem xét App Review |
 | pages_manage_posts | Tạo/quản lý bài đăng Page | App Review và Page task phù hợp |
-| pages_manage_engagement | Quản lý tương tác/bình luận ở endpoint tương ứng | Xác minh endpoint/permission hiện hành |
+| pages_manage_engagement | Quản lý tương tác/bình luận ở endpoint tương ứng | Page task MODERATE; xác minh endpoint/permission hiện hành |
+| read_insights | Đọc Page/Post Insights | Page task ANALYZE; thường kết hợp pages_read_engagement |
 | pages_messaging | Messenger Page | Yêu cầu App Review và Page task phù hợp |
 | pages_manage_metadata | Subscription Webhooks và một số tác vụ quản lý metadata | Chỉ xin khi bật chức năng cần thiết |
 | business_management | Một số luồng tài sản Business Manager | Chỉ xin nếu mô hình kết nối thực sự cần |
@@ -226,7 +227,7 @@ Facebook sẽ dùng Facebook Login for Business và một OAuth service chuyên 
 9. Người dùng chọn Page và bật các capability mong muốn.
 10. Backend kiểm tra token, quyền và trạng thái kết nối định kỳ hoặc khi API báo lỗi.
 
-Tái sử dụng hạ tầng OAuth/credential hiện có nếu phù hợp, nhưng cần bổ sung provider credential type rõ ràng và refresh/re-auth flow đúng với vòng đời token Meta. Không nhét nhiều trường OAuth vào một chuỗi API key.
+Tái sử dụng OAuth transaction, browser nonce, SecretCipherService và credential storage hiện có; triển khai FacebookOAuthService riêng theo Facebook Login for Business, không dùng generic MCP OAuth discovery. MVP dùng User access token cho luồng có người dùng duyệt/xác nhận; đánh giá Business Integration System User token trước khi cam kết automation nền dài hạn. User token và Page token là hai credential khác nhau; Page publishing phải dùng Page access token. Không giả định Meta cấp refresh_token chuẩn OAuth.
 
 ### 6.3 Phiên bản API
 
@@ -241,9 +242,9 @@ Dùng PostgreSQL/Supabase hiện có và migration append-only. Đây là mô h�
 
 | Bảng | Vai trò / dữ liệu chính |
 |---|---|
-| facebook_connections | Chủ sở hữu, Meta user ID, token reference/encrypted credential, expiry, scopes, trạng thái |
-| facebook_pages | Page nội bộ, external Page ID, tên, category, trạng thái |
-| facebook_connection_pages | Quan hệ connection - Page, Page tasks/roles, thời điểm đồng bộ |
+| mcp_connections (provider=facebook) | Credential kết nối Meta cấp user, mã hóa server-side, expiry/scopes/trạng thái |
+| facebook_pages | Page asset nội bộ, external Page ID, tên, category, Page tasks, permission snapshot và trạng thái |
+| facebook_page_credentials | Page access token ciphertext/version; không bao giờ trả về client |
 | facebook_posts | Bản nháp, nội dung, media refs, loại nội dung, tác giả nội bộ |
 | facebook_post_targets | Page đích, external post ID, trạng thái thực thi |
 | facebook_schedules | Thời gian UTC, timezone gốc, trạng thái, retry, idempotency key |
