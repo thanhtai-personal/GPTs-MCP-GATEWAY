@@ -23,8 +23,8 @@ Developer-oriented local runtime ideas are a possible future expansion, not the 
 
 1. [Project Status](./PROJECT_STATUS.md) — current implementation, priorities, and explicit non-goals
 2. [Skill-Orchestrated MCP Source Direction](./SKILL_ORCHESTRATION_DIRECTION.md) — user-first orchestration direction
-3. [Facebook Personal Profile MVP](./FACEBOOK_PERSONAL_PROFILE_MVP.md) — current highest-priority milestone: safe personal-account connection, app-scoped Facebook ID, and AI-readable authorized/imported personal content
-4. [Facebook Page Integration Plan](./FACEBOOK_INTEGRATION_PLAN.md) — later-phase roadmap for Page connection, publishing, inbox, insights, approval, and AI workflows
+3. [Facebook Personal AI Manager Architecture & Roadmap](./FACEBOOK_PERSONAL_PROFILE_MVP.md) — approved combined direction for personal-profile share handoff and approval-based automated Page publishing
+4. [Facebook Page Integration Plan](./FACEBOOK_INTEGRATION_PLAN.md) — detailed Page API, publishing, inbox, insights, approval, and AI workflow plan
 5. [Facebook Phase 0 Discovery](./FACEBOOK_PHASE_0_DISCOVERY.md) — source audit, Meta API/permission findings, OAuth decisions, security boundary, PoC checklist, and remaining app-setup blockers
 5. [Skill-Orchestrated MCP Requirements](./SKILL_ORCHESTRATION_REQUIREMENTS.md)
 6. [../REQUIREMENTS.md](../REQUIREMENTS.md) — current requirements snapshot
