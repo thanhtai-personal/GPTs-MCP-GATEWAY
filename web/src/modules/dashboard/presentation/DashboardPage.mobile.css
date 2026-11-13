@@ -23,7 +23,7 @@
     inset: auto .75rem max(.75rem, env(safe-area-inset-bottom)) .75rem !important;
     z-index: 60;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: .2rem;
     margin: 0;
     padding: .4rem;

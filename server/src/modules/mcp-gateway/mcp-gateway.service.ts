@@ -202,6 +202,7 @@ export class McpGatewayService {
         credential,
         toolName,
         argumentsValue,
+        { userId: principal.user.id },
       );
       await this.audit.write({
         userId: principal.user.id,

@@ -17,10 +17,14 @@ import { RemoteMcpHttpClient } from '@server/root/modules/mcp-gateway/providers/
 import { RemoteMcpHttpTransport } from '@server/root/modules/mcp-gateway/providers/remote/remote-mcp-http.transport';
 import { StitchMcpAdapter } from '@server/root/modules/mcp-gateway/providers/stitch/stitch-mcp.adapter';
 import { McpConnectionsController } from '@server/root/modules/mcp-connections/mcp-connections.controller';
+import { FacebookContentStudioController } from '@server/root/modules/mcp-connections/facebook-content-studio.controller';
 import { GoogleWorkspaceOAuthService } from '@server/root/modules/mcp-connections/google-workspace-oauth.service';
 import { FacebookOAuthService } from '@server/root/modules/mcp-connections/facebook-oauth.service';
 import { FacebookGraphApiClient } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-graph-api.client';
 import { FacebookMcpAdapter } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-mcp.adapter';
+import { FacebookPagePostRepository } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-post.repository';
+import { FacebookPagePublishingService } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-publishing.service';
+import { FacebookPagePublishingWorker } from '@server/root/modules/mcp-gateway/providers/facebook/facebook-page-publishing.worker';
 import { McpCredentialCodec } from '@server/root/modules/mcp-connections/mcp-credential-codec.service';
 import { McpConnectionsService } from '@server/root/modules/mcp-connections/mcp-connections.service';
 import { McpOAuthClientRegistrationClient } from '@server/root/modules/mcp-connections/mcp-oauth-client-registration.client';
@@ -30,7 +34,7 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
 
 @Module({
   imports: [AuthModule],
-  controllers: [McpConnectionsController],
+  controllers: [McpConnectionsController, FacebookContentStudioController],
   providers: [
     RemoteMcpHttpTransport,
     RemoteMcpHttpClient,
@@ -46,6 +50,9 @@ import { OAuthTransactionService } from '@server/root/modules/mcp-connections/oa
     GoogleSheetsMcpAdapter,
     NotionMcpAdapter,
     FacebookGraphApiClient,
+    FacebookPagePostRepository,
+    FacebookPagePublishingService,
+    FacebookPagePublishingWorker,
     FacebookMcpAdapter,
     {
       provide: MCP_PROVIDER_ADAPTERS,

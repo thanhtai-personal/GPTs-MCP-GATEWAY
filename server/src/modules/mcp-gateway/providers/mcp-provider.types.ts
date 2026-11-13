@@ -10,6 +10,8 @@ export type JsonObject = {
 };
 
 export type McpToolArguments = JsonObject;
+
+export type McpProviderExecutionContext = { userId: string };
 export type McpJsonSchema = JsonObject;
 
 export type McpProviderCatalogStatus =
@@ -108,6 +110,7 @@ export interface McpProviderAdapter {
     credential: McpProviderCredential,
     toolName: string,
     argumentsValue: McpToolArguments,
+    context?: McpProviderExecutionContext,
   ): Promise<McpToolCallResult>;
   refreshCredential?(
     credential: McpOAuthCredential,
