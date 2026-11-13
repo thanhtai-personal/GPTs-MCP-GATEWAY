@@ -58,6 +58,6 @@ export class FacebookContentStudioController {
     if (result.isError) {
       throw new UnauthorizedException({ code: 'FACEBOOK_TOOL_FAILED', message: 'Facebook operation failed' });
     }
-    return result.structuredContent ?? { content: result.content };
+    return result.structuredContent?.result ?? { content: result.content };
   }
 }
