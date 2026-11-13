@@ -23,8 +23,9 @@ Developer-oriented local runtime ideas are a possible future expansion, not the 
 
 1. [Project Status](./PROJECT_STATUS.md) — current implementation, priorities, and explicit non-goals
 2. [Skill-Orchestrated MCP Source Direction](./SKILL_ORCHESTRATION_DIRECTION.md) — user-first orchestration direction
-3. [Skill-Orchestrated MCP Requirements](./SKILL_ORCHESTRATION_REQUIREMENTS.md)
-4. [../REQUIREMENTS.md](../REQUIREMENTS.md) — current requirements snapshot
+3. [Facebook Page Integration Plan](./FACEBOOK_INTEGRATION_PLAN.md) — Facebook-only roadmap for Page connection, publishing, inbox, insights, approval, and AI workflows
+4. [Skill-Orchestrated MCP Requirements](./SKILL_ORCHESTRATION_REQUIREMENTS.md)
+5. [../REQUIREMENTS.md](../REQUIREMENTS.md) — current requirements snapshot
 
 Direction/requirements documents describe target behavior. They are not evidence that a capability is already implemented.
 
