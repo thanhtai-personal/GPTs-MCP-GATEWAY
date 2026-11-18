@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 function gatewayUrl(baseUrl, path) {
-  const normalizedBase = baseUrl.replace(/\\/+$/u, "");
-  return new URL(path.replace(/^\\/+/, ""), `${normalizedBase}/`).toString();
+  const normalizedBase = baseUrl.replace(/\/+$/u, "");
+  return new URL(path.replace(/^\/+/, ""), `${normalizedBase}/`).toString();
 }
 
 test("keeps the /api/v1 prefix when resolving an absolute-looking route path", () => {
