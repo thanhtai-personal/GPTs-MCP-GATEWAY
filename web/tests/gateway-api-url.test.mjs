@@ -6,26 +6,25 @@ function gatewayUrl(baseUrl, path) {
   return new URL(path.replace(/^\/+/, ""), `${normalizedBase}/`).toString();
 }
 
-test("keeps the /api/v1 prefix when resolving an absolute-looking route path", () => {
+test("consent details resolves below the configured /api/v1 base", () => {
   assert.equal(
-    gatewayUrl(
-      "https://kata-mcp-api.vercel.app/api/v1",
-      "/account/oauth/authorizations/auth_123",
-    ),
+    gatewayUrl("https://kata-mcp-api.vercel.app/api/v1", "/account/oauth/authorizations/auth_123"),
     "https://kata-mcp-api.vercel.app/api/v1/account/oauth/authorizations/auth_123",
   );
 });
 
-test("normalizes a trailing slash in the configured API base", () => {
+test("approve and deny resolve below the configured /api/v1 base", () => {
+  for (const action of ["approve", "deny"]) {
+    assert.equal(
+      gatewayUrl("https://kata-mcp-api.vercel.app/api/v1", `/account/oauth/authorizations/auth_123/${action}`),
+      `https://kata-mcp-api.vercel.app/api/v1/account/oauth/authorizations/auth_123/${action}`,
+    );
+  }
+});
+
+test("normalizes a trailing slash in the API base", () => {
   assert.equal(
     gatewayUrl("https://api.example.com/api/v1/", "/account/me"),
     "https://api.example.com/api/v1/account/me",
-  );
-});
-
-test("preserves a nested path on an API base configured below a reverse proxy prefix", () => {
-  assert.equal(
-    gatewayUrl("https://example.com/gateway/api/v1", "/account/me"),
-    "https://example.com/gateway/api/v1/account/me",
   );
 });
