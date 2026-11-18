@@ -6,14 +6,14 @@ function gatewayUrl(baseUrl, path) {
   return new URL(path.replace(/^\/+/, ""), `${normalizedBase}/`).toString();
 }
 
-test("consent details resolves below the configured /api/v1 base", () => {
+test("consent details URL retains the /api/v1 prefix", () => {
   assert.equal(
     gatewayUrl("https://kata-mcp-api.vercel.app/api/v1", "/account/oauth/authorizations/auth_123"),
     "https://kata-mcp-api.vercel.app/api/v1/account/oauth/authorizations/auth_123",
   );
 });
 
-test("approve and deny resolve below the configured /api/v1 base", () => {
+test("approve and deny URLs retain the /api/v1 prefix", () => {
   for (const action of ["approve", "deny"]) {
     assert.equal(
       gatewayUrl("https://kata-mcp-api.vercel.app/api/v1", `/account/oauth/authorizations/auth_123/${action}`),
