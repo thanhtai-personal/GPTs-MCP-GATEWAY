@@ -1,6 +1,7 @@
-const baseUrl =
+const baseUrl = (
   import.meta.env.VITE_GATEWAY_API_BASE_URL?.trim() ||
-  "http://127.0.0.1:5657/api/v1";
+  "http://127.0.0.1:5657/api/v1"
+).replace(/\/+$/u, "");
 
 export class GatewayApiError extends Error {
   constructor(
@@ -12,12 +13,19 @@ export class GatewayApiError extends Error {
   }
 }
 
+function gatewayUrl(path: string): string {
+  // API callers pass route paths without the API version. Resolve against the
+  // configured /api/v1 base as a relative path so a leading slash cannot reset
+  // the origin path and accidentally send requests to /account/... .
+  return new URL(path.replace(/^\/+/, ""), `${baseUrl}/`).toString();
+}
+
 export async function gatewayRequest<T>(
   path: string,
   accessToken?: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(gatewayUrl(path), {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +54,7 @@ export async function downloadGatewayFile(
   path: string,
   accessToken: string,
 ): Promise<Blob> {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(gatewayUrl(path), {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!response.ok) {
