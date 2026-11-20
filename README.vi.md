@@ -1,4 +1,4 @@
-# MCP Gateway
+# MCP Gateway -commit
 
 > **Trạng thái: experimental MVP.** Source hiện tại là baseline phát triển; chưa nên tuyên bố production-ready trước khi hoàn tất các bước trong [VALIDATION.md](./VALIDATION.md) và [Open-source Release Checklist](./docs/OPEN_SOURCE_RELEASE.md).
 
