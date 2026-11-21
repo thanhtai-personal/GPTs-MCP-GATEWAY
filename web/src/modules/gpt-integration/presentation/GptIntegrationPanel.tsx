@@ -26,11 +26,19 @@ export function GptIntegrationPanel({ accessToken, isMember = false }: { accessT
       const blob = await downloadGatewayFile(path, accessToken);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
-    } catch (downloadError) { setError(downloadError instanceof Error ? downloadError.message : t("Tải xuống thất bại", "Download failed", "下载失败", "다운로드 실패", "ダウンロードに失敗しました")); }
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : t("Tải xuống thất bại", "Download failed", "下载失败", "다운로드 실패", "ダウンロードに失敗しました"));
+    }
   }
 
-  function downloadKit() { return downloadFile(`/gpt-integration/package?language=${kitLanguage}`, `mcp-gateway-gpt-kit-${kitLanguage}.zip`); }
-  function downloadKitFile(filename: string) { return downloadFile(`/gpt-integration/file/${encodeURIComponent(filename)}?language=${kitLanguage}`, filename); }
+  // Keep API paths relative to the shared versioned base. gateway-api.ts
+  // strips a leading slash before URL resolution so /api/v1 is never dropped.
+  function downloadKit() {
+    return downloadFile(`gpt-integration/package?language=${kitLanguage}`, `mcp-gateway-gpt-kit-${kitLanguage}.zip`);
+  }
+  function downloadKitFile(filename: string) {
+    return downloadFile(`gpt-integration/file/${encodeURIComponent(filename)}?language=${kitLanguage}`, filename);
+  }
   const routingConvention = "Intent → Gateway Skill → MCP Service → MCP Tool → Arguments → Gateway Call";
 
   return (
